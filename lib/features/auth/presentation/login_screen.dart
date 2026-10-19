@@ -5,7 +5,7 @@ import '../../../core/widgets/finpulse_buttons.dart';
 import '../../../core/widgets/finpulse_logo.dart';
 import '../../../core/widgets/finpulse_text_field.dart';
 import '../providers/auth_provider.dart';
-import 'register_screen.dart';
+import 'signup_screen.dart';
 import '../../navigation/main_wrapper.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -289,7 +289,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const RegisterScreen(),
+                          builder: (_) => const SignUpScreen(),
                         ),
                       );
                     },
