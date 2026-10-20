@@ -7,7 +7,9 @@ enum TransactionCategoryType {
   transport,
   shopping,
   bills,
+  housing,
   savings,
+  entertainment,
 
   // Income categories
   salary,
@@ -28,6 +30,11 @@ class TransactionModel {
   final TransactionCategoryType category;
   final DateTime date;
   final String? account;
+  final String? note;
+  final String? receiptFileName;
+  final int? receiptItemCount;
+  final int? receiptMatchPercent;
+  final String? receiptImagePath;
 
   TransactionModel({
     required this.id,
@@ -39,5 +46,44 @@ class TransactionModel {
     required this.category,
     required this.date,
     this.account,
+    this.note,
+    this.receiptFileName,
+    this.receiptItemCount,
+    this.receiptMatchPercent,
+    this.receiptImagePath,
   });
+
+  TransactionModel copyWith({
+    String? id,
+    String? merchant,
+    String? subtitle,
+    double? amount,
+    double? cashback,
+    TransactionType? type,
+    TransactionCategoryType? category,
+    DateTime? date,
+    String? account,
+    String? note,
+    String? receiptFileName,
+    int? receiptItemCount,
+    int? receiptMatchPercent,
+    String? receiptImagePath,
+  }) {
+    return TransactionModel(
+      id: id ?? this.id,
+      merchant: merchant ?? this.merchant,
+      subtitle: subtitle ?? this.subtitle,
+      amount: amount ?? this.amount,
+      cashback: cashback ?? this.cashback,
+      type: type ?? this.type,
+      category: category ?? this.category,
+      date: date ?? this.date,
+      account: account ?? this.account,
+      note: note ?? this.note,
+      receiptFileName: receiptFileName ?? this.receiptFileName,
+      receiptItemCount: receiptItemCount ?? this.receiptItemCount,
+      receiptMatchPercent: receiptMatchPercent ?? this.receiptMatchPercent,
+      receiptImagePath: receiptImagePath ?? this.receiptImagePath,
+    );
+  }
 }

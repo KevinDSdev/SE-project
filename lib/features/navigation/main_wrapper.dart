@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/navigation_provider.dart';
 import '../dashboard/presentation/dashboard_screen.dart';
 import '../budget/presentation/budget_screen.dart';
-import '../analytics/presentation/analytics_screen.dart';
+import '../analytics/presentation/financial_analytics_screen.dart';
 import '../goals/presentation/goals_screen.dart';
 import '../profile/presentation/profile_screen.dart';
 
@@ -14,7 +14,7 @@ class MainWrapper extends ConsumerWidget {
   final List<Widget> _screens = const [
     DashboardScreen(),
     BudgetScreen(),
-    AnalyticsScreen(),
+    FinancialAnalyticsScreen(),
     GoalsScreen(),
     ProfileScreen(),
   ];

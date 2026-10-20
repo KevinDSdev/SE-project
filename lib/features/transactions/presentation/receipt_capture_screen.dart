@@ -9,12 +9,22 @@ class ReceiptScanResult {
   final String merchant;
   final TransactionCategoryType category;
   final String? imagePath;
+  final String? note;
+  final String? receiptFileName;
+  final int? itemCount;
+  final int? matchPercent;
+  final double? cashback;
 
   const ReceiptScanResult({
     required this.amount,
     required this.merchant,
     required this.category,
     this.imagePath,
+    this.note,
+    this.receiptFileName,
+    this.itemCount,
+    this.matchPercent,
+    this.cashback,
   });
 }
 
@@ -126,11 +136,16 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
 
     if (!mounted) return;
 
-    // Extracted receipt metadata matching Pizza Hut Sri Lanka receipt mockup
+    // Extracted receipt metadata matching Pizza Hut Sri Lanka receipt mockup from design
     final result = ReceiptScanResult(
       amount: 3150.00,
-      merchant: 'Pizza Hut Sri Lanka (Colombo)',
+      merchant: 'Pizza Hut Sri Lanka (Colombo 03)',
       category: TransactionCategoryType.dining,
+      note: 'Team dinner after sprint launch #work',
+      receiptFileName: 'Receipt_PizzaHut_1910.jpg',
+      itemCount: 3,
+      matchPercent: 100,
+      cashback: 31.50,
       imagePath: imagePath,
     );
 

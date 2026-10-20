@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../models/transaction_model.dart';
 import '../providers/transactions_provider.dart';
 import 'receipt_capture_screen.dart';
+import 'transaction_details_edit_screen.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionType initialType;
@@ -295,6 +296,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       return;
     }
 
+    TransactionModel createdTx;
+
     if (isExpense) {
       final merchant = _expenseNoteController.text.trim();
       if (merchant.isEmpty) {
@@ -316,10 +319,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         return;
       }
 
-      ref.read(transactionsProvider.notifier).addExpense(
+      createdTx = ref.read(transactionsProvider.notifier).addExpense(
             amount: amount,
             merchant: merchant,
             category: _selectedExpenseCategory!,
+            note: '',
+            receiptFileName: null,
+            receiptItemCount: null,
+            receiptMatchPercent: null,
+            receiptImagePath: null,
           );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -349,10 +357,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         return;
       }
 
-      ref.read(transactionsProvider.notifier).addIncome(
+      createdTx = ref.read(transactionsProvider.notifier).addIncome(
             amount: amount,
             source: source,
             category: _selectedIncomeCategory!,
+            note: '',
           );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -363,7 +372,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       );
     }
 
-    Navigator.pop(context);
+    // Direct transition to Transaction Details & Edit Screen with relevant details
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionDetailsEditScreen(transaction: createdTx),
+      ),
+    );
   }
 
   Future<void> _openReceiptScanner() async {
@@ -374,11 +389,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     );
 
     if (result != null) {
-      setState(() {
-        _expenseAmount = result.amount;
-        _expenseNoteController.text = result.merchant;
-        _selectedExpenseCategory = result.category;
-      });
+      // Add pre-defined Pizza Hut receipt transaction
+      final newTx = ref.read(transactionsProvider.notifier).addExpense(
+            amount: result.amount,
+            merchant: result.merchant,
+            category: result.category,
+            note: result.note ?? 'Team dinner after sprint launch #work',
+            receiptFileName: result.receiptFileName ?? 'Receipt_PizzaHut_1910.jpg',
+            receiptItemCount: result.itemCount ?? 3,
+            receiptMatchPercent: result.matchPercent ?? 100,
+            receiptImagePath: result.imagePath,
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -387,6 +408,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               'Receipt Scanned! Extracted LKR ${currencyFormat.format(result.amount)} from ${result.merchant}.',
             ),
             backgroundColor: AppColors.primary,
+          ),
+        );
+
+        // Direct transition to Transaction Details & Edit Screen with pre-defined details
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TransactionDetailsEditScreen(transaction: newTx),
           ),
         );
       }
