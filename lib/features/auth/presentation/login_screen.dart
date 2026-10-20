@@ -16,20 +16,30 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  static final RegExp _emailRegExp = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
+
   final _emailController =
       TextEditingController(text: 'kavinda.perera@email.lk');
   final _passwordController = TextEditingController(text: 'secret123');
   bool _rememberMe = true;
-  bool _isEmailValid = true;
+  late bool _isEmailValid;
+  String? _emailError;
+
+  bool _checkEmail(String email) => _emailRegExp.hasMatch(email.trim());
 
   @override
   void initState() {
     super.initState();
+    _isEmailValid = _checkEmail(_emailController.text);
     _emailController.addListener(() {
-      final isValid = _emailController.text.contains('@') &&
-          _emailController.text.contains('.');
-      if (isValid != _isEmailValid) {
-        setState(() => _isEmailValid = isValid);
+      final isValid = _checkEmail(_emailController.text);
+      if (isValid != _isEmailValid || _emailError != null) {
+        setState(() {
+          _isEmailValid = isValid;
+          if (isValid) _emailError = null;
+        });
       }
     });
   }
@@ -42,9 +52,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleSignIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Please enter your email address');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email address.'),
+        ),
+      );
+      return;
+    }
+
+    if (!_checkEmail(email)) {
+      setState(() => _emailError = 'Please enter a valid email address');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address (e.g. name@domain.lk).'),
+        ),
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your password.'),
+        ),
+      );
+      return;
+    }
+
     final success = await ref.read(authProvider.notifier).login(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
+          email,
+          password,
         );
 
     if (mounted && success) {
@@ -62,43 +104,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: AppColors.darkBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Top Bar with Circular Back & Help Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  FinPulseCircleButton(
-                    icon: const Icon(
-                      Icons.chevron_left_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                    onTap: () {
-                      if (Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                  FinPulseCircleButton(
-                    icon: const Icon(
-                      Icons.help_outline_rounded,
-                      color: AppColors.textSecondary,
-                      size: 20,
-                    ),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('FinPulse Support: Need help logging in?'),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 16),
 
               // Hero Logo with Circular Glow Halo
               const FinPulseLogo(
@@ -135,12 +145,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: Icons.mail_outline_rounded,
-                suffixWidget: _isEmailValid
-                    ? const Icon(
-                        Icons.check_circle_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      )
+                errorText: _emailError,
+                suffixWidget: _emailController.text.trim().isNotEmpty
+                    ? (_isEmailValid
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          )
+                        : const Icon(
+                            Icons.cancel_rounded,
+                            color: AppColors.error,
+                            size: 20,
+                          ))
                     : null,
               ),
               const SizedBox(height: 20),
@@ -286,12 +303,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SignUpScreen(),
-                        ),
-                      );
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => const SignUpScreen(),
+                          ),
+                        );
+                      }
                     },
                     child: const Text(
                       'Sign Up',

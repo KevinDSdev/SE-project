@@ -8,6 +8,8 @@ import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 import '../../navigation/main_wrapper.dart';
 
+enum PasswordStrength { empty, weak, medium, strong }
+
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
@@ -16,23 +18,91 @@ class SignUpScreen extends ConsumerStatefulWidget {
 }
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
+  static final RegExp _emailRegExp = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
+  static final RegExp _phoneRegExp = RegExp(
+    r'^(?:0|94|\+94)?(7[0-8]\d{7})$',
+  );
+
   final _nameController = TextEditingController(text: 'Kavinda Perera');
   final _emailController =
       TextEditingController(text: 'kavinda.perera@email.lk');
   final _phoneController = TextEditingController(text: '77 458 9210');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _passwordController = TextEditingController(text: 'FinPulse@2026');
   bool _agreeTerms = true;
-  bool _isEmailValid = true;
+  late bool _isEmailValid;
+  late bool _isPhoneValid;
+  String? _emailError;
+  String? _phoneError;
+
+  bool _checkEmail(String email) => _emailRegExp.hasMatch(email.trim());
+  bool _checkPhone(String phone) {
+    final clean = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    return _phoneRegExp.hasMatch(clean);
+  }
+
+  PasswordStrength _evaluatePasswordStrength(String password) {
+    if (password.isEmpty) return PasswordStrength.empty;
+    if (password.length < 6) return PasswordStrength.weak;
+
+    int lengthPoints;
+    if (password.length >= 16) {
+      lengthPoints = 4;
+    } else if (password.length >= 12) {
+      lengthPoints = 3;
+    } else if (password.length >= 8) {
+      lengthPoints = 2;
+    } else {
+      lengthPoints = 1;
+    }
+
+    int diversityCount = 0;
+    if (RegExp(r'[a-z]').hasMatch(password)) diversityCount++;
+    if (RegExp(r'[A-Z]').hasMatch(password)) diversityCount++;
+    if (RegExp(r'[0-9]').hasMatch(password)) diversityCount++;
+    if (RegExp(r'[!@#\$%^&*()_\-+=\[\]{};:\x27",.<>?/\\|~`]').hasMatch(password)) diversityCount++;
+
+    final varietyBonus = diversityCount >= 3 ? 1 : 0;
+    final totalScore = lengthPoints + diversityCount + varietyBonus;
+
+    if (diversityCount >= 2 && (totalScore >= 6 || password.length >= 14)) {
+      return PasswordStrength.strong;
+    } else if (totalScore >= 4 || (password.length >= 8 && diversityCount >= 2)) {
+      return PasswordStrength.medium;
+    } else {
+      return PasswordStrength.weak;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _isEmailValid = _checkEmail(_emailController.text);
+    _isPhoneValid = _checkPhone(_phoneController.text);
+
     _emailController.addListener(() {
-      final isValid = _emailController.text.contains('@') &&
-          _emailController.text.contains('.');
-      if (isValid != _isEmailValid) {
-        setState(() => _isEmailValid = isValid);
+      final isValid = _checkEmail(_emailController.text);
+      if (isValid != _isEmailValid || _emailError != null) {
+        setState(() {
+          _isEmailValid = isValid;
+          if (isValid) _emailError = null;
+        });
       }
+    });
+
+    _phoneController.addListener(() {
+      final isValid = _checkPhone(_phoneController.text);
+      if (isValid != _isPhoneValid || _phoneError != null) {
+        setState(() {
+          _isPhoneValid = isValid;
+          if (isValid) _phoneError = null;
+        });
+      }
+    });
+
+    _passwordController.addListener(() {
+      setState(() {});
     });
   }
 
@@ -46,6 +116,41 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _handleCreateAccount() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your full name.')),
+      );
+      return;
+    }
+
+    if (email.isEmpty || !_checkEmail(email)) {
+      setState(() => _emailError = 'Please enter a valid email address');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address (e.g. name@domain.lk).')),
+      );
+      return;
+    }
+
+    if (phone.isEmpty || !_checkPhone(phone)) {
+      setState(() => _phoneError = 'Valid Sri Lankan mobile number required');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid Sri Lankan mobile number (e.g. 77 458 9210).')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters long.')),
+      );
+      return;
+    }
+
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -56,9 +161,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
 
     final success = await ref.read(authProvider.notifier).register(
-          _nameController.text.trim(),
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
+          name,
+          email,
+          password,
         );
 
     if (mounted && success) {
@@ -73,40 +178,54 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
+    final pwdText = _passwordController.text;
+    final strength = _evaluatePasswordStrength(pwdText);
+    Color segment1Color = AppColors.darkBorder;
+    Color segment2Color = AppColors.darkBorder;
+    Color segment3Color = AppColors.darkBorder;
+    String strengthLabel = 'Enter password';
+    Color labelColor = AppColors.textSecondary;
+
+    switch (strength) {
+      case PasswordStrength.empty:
+        segment1Color = AppColors.darkBorder;
+        segment2Color = AppColors.darkBorder;
+        segment3Color = AppColors.darkBorder;
+        strengthLabel = 'Enter password';
+        labelColor = AppColors.textSecondary;
+        break;
+      case PasswordStrength.weak:
+        segment1Color = AppColors.error;
+        segment2Color = AppColors.darkBorder;
+        segment3Color = AppColors.darkBorder;
+        strengthLabel = 'Weak password';
+        labelColor = AppColors.error;
+        break;
+      case PasswordStrength.medium:
+        segment1Color = AppColors.warning;
+        segment2Color = AppColors.warning;
+        segment3Color = AppColors.darkBorder;
+        strengthLabel = 'Medium strength';
+        labelColor = AppColors.warning;
+        break;
+      case PasswordStrength.strong:
+        segment1Color = AppColors.primary;
+        segment2Color = AppColors.primary;
+        segment3Color = AppColors.primary;
+        strengthLabel = 'Strong password ✓';
+        labelColor = AppColors.primary;
+        break;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.darkBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Bar with Back Button and LK (LKR) Badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  FinPulseCircleButton(
-                    icon: const Icon(
-                      Icons.chevron_left_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                    onTap: () {
-                      if (Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop();
-                      } else {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        );
-                      }
-                    },
-                  ),
-                  const FinPulseCurrencyBadge(
-                    label: 'LK (LKR)',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
 
               // Header Row: FinPulse App Logo + Title + Subtitle
               Row(
@@ -161,12 +280,19 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: Icons.mail_outline_rounded,
                 isUppercaseLabel: true,
-                suffixWidget: _isEmailValid
-                    ? const Icon(
-                        Icons.check_circle_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      )
+                errorText: _emailError,
+                suffixWidget: _emailController.text.trim().isNotEmpty
+                    ? (_isEmailValid
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          )
+                        : const Icon(
+                            Icons.cancel_rounded,
+                            color: AppColors.error,
+                            size: 20,
+                          ))
                     : null,
               ),
               const SizedBox(height: 18),
@@ -178,6 +304,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 isUppercaseLabel: true,
+                errorText: _phoneError,
+                suffixWidget: _phoneController.text.trim().isNotEmpty
+                    ? (_isPhoneValid
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          )
+                        : const Icon(
+                            Icons.cancel_rounded,
+                            color: AppColors.error,
+                            size: 20,
+                          ))
+                    : null,
                 prefixWidget: Container(
                   margin: const EdgeInsets.only(left: 8),
                   padding:
@@ -214,14 +354,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Password Strength Meter (3 Segments + "Strong password ✓")
+              // Password Strength Meter (3 Segments + Label)
               Row(
                 children: [
                   Expanded(
                     child: Container(
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: segment1Color,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -231,7 +371,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: Container(
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: segment2Color,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -241,16 +381,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     child: Container(
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: segment3Color,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Text(
-                    'Strong password ✓',
+                  Text(
+                    strengthLabel,
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: labelColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -390,6 +530,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ),
                   ),
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
                       if (Navigator.of(context).canPop()) {
                         Navigator.of(context).pop();

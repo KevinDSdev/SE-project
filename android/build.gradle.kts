@@ -15,6 +15,18 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
+subprojects {
+    pluginManager.withPlugin("com.android.library") {
+        dependencies.add("compileOnly", "androidx.concurrent:concurrent-futures:1.2.0")
+        dependencies.add("implementation", "androidx.concurrent:concurrent-futures:1.2.0")
+    }
+    pluginManager.withPlugin("com.android.application") {
+        dependencies.add("compileOnly", "androidx.concurrent:concurrent-futures:1.2.0")
+        dependencies.add("implementation", "androidx.concurrent:concurrent-futures:1.2.0")
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }

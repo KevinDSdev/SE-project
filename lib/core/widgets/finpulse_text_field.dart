@@ -13,6 +13,7 @@ class FinPulseTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final bool isUppercaseLabel;
+  final String? errorText;
 
   const FinPulseTextField({
     super.key,
@@ -27,6 +28,7 @@ class FinPulseTextField extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.isUppercaseLabel = false,
+    this.errorText,
   });
 
   @override
@@ -44,6 +46,8 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -63,7 +67,10 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
           decoration: BoxDecoration(
             color: AppColors.darkInput,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.darkBorder, width: 1),
+            border: Border.all(
+              color: hasError ? AppColors.error : AppColors.darkBorder,
+              width: hasError ? 1.5 : 1,
+            ),
           ),
           child: Row(
             children: [
@@ -84,8 +91,11 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
               ],
               Expanded(
                 child: TextFormField(
+                  key: widget.isPassword ? ValueKey('pwd_$_obscureText') : null,
                   controller: widget.controller,
                   obscureText: widget.isPassword ? _obscureText : false,
+                  enableSuggestions: !widget.isPassword,
+                  autocorrect: !widget.isPassword,
                   keyboardType: widget.keyboardType,
                   validator: widget.validator,
                   onChanged: widget.onChanged,
@@ -111,15 +121,20 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
               ),
               if (widget.isPassword)
                 IconButton(
+                  splashRadius: 20,
                   icon: Icon(
                     _obscureText
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    color: AppColors.textSecondary,
+                    color: _obscureText
+                        ? AppColors.textSecondary
+                        : AppColors.primary,
                     size: 20,
                   ),
                   onPressed: () {
-                    setState(() => _obscureText = !_obscureText);
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
                   },
                 )
               else if (widget.suffixWidget != null)
@@ -130,6 +145,18 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
             ],
           ),
         ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(
+              widget.errorText!,
+              style: const TextStyle(
+                color: AppColors.error,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
       ],
     );
   }
