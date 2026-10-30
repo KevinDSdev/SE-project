@@ -352,7 +352,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               : Icons.storefront_rounded,
           color: item.type == TransactionType.income
               ? const Color(0xFF38BDF8)
-              : const Color(0xFFA855F7),
+              : const Color(0xFF9353D3),
           size: 20,
         ),
       );

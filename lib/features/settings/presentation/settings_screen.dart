@@ -2,249 +2,759 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
-import '../../../core/providers/theme_provider.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../../auth/presentation/login_screen.dart';
+import '../../../core/navigation/slide_route.dart';
+import '../../analytics/presentation/screens/analytics_customization_screen.dart';
+import '../../analytics/presentation/screens/dashboard_widgets_screen.dart';
+import '../providers/settings_provider.dart';
+import 'screens/app_info_screen.dart';
+import 'widgets/set_reminder_dialog.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final currentThemeMode = ref.watch(themeModeProvider);
-    final user = ref.watch(authProvider).user;
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final selectedAccent = ref.watch(accentColorProvider);
+    final accentColor = selectedAccent.color;
+    final notificationsEnabled = ref.watch(notificationsEnabledProvider);
+    final reminderTime = ref.watch(dailyReminderTimeProvider);
+    final gpsEnabled = ref.watch(gpsSuggestionsProvider);
+    final cloudSync = ref.watch(cloudSyncProvider);
+    final biometrics = ref.watch(biometricsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.settings)),
+      backgroundColor: AppColors.lightBg,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          children: [
-            // User Profile Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 54,
-                      height: 54,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Bar: Back Button & Title
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
+                        color: Colors.white,
                         shape: BoxShape.circle,
-                        gradient: AppColors.primaryGradient,
+                        border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Center(
-                        child: Text(
-                          user?.name.isNotEmpty == true ? user!.name[0] : 'U',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                      child: const Icon(
+                        Icons.chevron_left_rounded,
+                        color: AppColors.lightTextPrimary,
+                        size: 26,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'App Settings',
+                        style: TextStyle(
+                          color: AppColors.lightTextPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Application preferences, security, sync & appearance',
+                        style: TextStyle(
+                          color: AppColors.lightTextSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // SECTION 1: THEME & APPEARANCE (Light theme only, no dark toggle)
+              _buildSectionHeader('THEME & APPEARANCE'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: Column(
+                  children: [
+                    // Primary Accent Color
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Primary Accent Color',
+                                style: TextStyle(
+                                  color: AppColors.lightTextPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                selectedAccent.name,
+                                style: const TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
+                          Row(
+                            children: kAccentColors.map((opt) {
+                              final isSel =
+                                  opt.color.toARGB32() == accentColor.toARGB32();
+                              return GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(accentColorProvider.notifier)
+                                      .setColor(opt);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(left: 8),
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                    color: opt.color,
+                                    shape: BoxShape.circle,
+                                    border: isSel
+                                        ? Border.all(
+                                            color: AppColors.lightTextPrimary,
+                                            width: 2.5,
+                                          )
+                                        : Border.all(
+                                            color: AppColors.lightBorder,
+                                            width: 1,
+                                          ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildDivider(),
+
+                    // Set Layout / Customize Cards
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const DashboardWidgetsScreen()),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text(
+                              'Customize Cards / Dashboard Layout',
+                              style: TextStyle(
+                                color: AppColors.lightTextPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.lightTextSecondary,
+                              size: 22,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    _buildDivider(),
+
+                    // Customize Analytical Dashboard
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const AnalyticsCustomizationScreen()),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text(
+                              'Customize Analytical Dashboard',
+                              style: TextStyle(
+                                color: AppColors.lightTextPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.lightTextSecondary,
+                              size: 22,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+
+              // SECTION 2: NOTIFICATIONS & REMINDERS
+              _buildSectionHeader('NOTIFICATIONS & REMINDERS'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: Column(
+                  children: [
+                    // Notifications & Alerts
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            user?.name ?? 'Developer',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Notifications & Alerts',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Transaction alerts and bill due dates',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            user?.email ?? 'developer@example.com',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.lightTextSecondary,
+                          Switch(
+                            value: notificationsEnabled,
+                            onChanged: (val) {
+                              ref
+                                  .read(notificationsEnabledProvider.notifier)
+                                  .setVal(val);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildDivider(),
+
+                    // Daily Log Reminder Time
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Daily Log Reminder Time',
+                                style: TextStyle(
+                                  color: AppColors.lightTextPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Everyday at 8:00 PM Sri Lanka Time',
+                                style: TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: reminderTime,
+                              );
+                              if (picked != null) {
+                                ref
+                                    .read(dailyReminderTimeProvider.notifier)
+                                    .setTime(picked);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: accentColor,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                reminderTime.format(context),
+                                style: TextStyle(
+                                  color: accentColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Edit profile clicked')),
+                    _buildDivider(),
+
+                    // Set Reminder
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const SetReminderDialog(),
                         );
                       },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Set Reminder',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Configure personal financial reminder schedules',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.lightTextSecondary,
+                              size: 22,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildDivider(),
+
+                    // GPS Location Suggestions
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF43F5E).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: Color(0xFFF43F5E),
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'GPS Location Suggestions',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Notify to log expenses near malls & stores',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: gpsEnabled,
+                            onChanged: (val) {
+                              ref
+                                  .read(gpsSuggestionsProvider.notifier)
+                                  .setVal(val);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
-            // Section: Appearance / Theme
-            Text(
-              AppStrings.appearance,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: isDark
-                    ? AppColors.darkTextSecondary
-                    : AppColors.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+              // SECTION 3: DATA SYNC & STORAGE
+              _buildSectionHeader('DATA SYNC & STORAGE'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.lightBorder),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.palette_outlined,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          AppStrings.theme,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                    // Cloud Real-time Auto-Sync
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Cloud Real-time Auto-Sync',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Encrypted synchronization across devices',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          Switch(
+                            value: cloudSync,
+                            onChanged: (val) {
+                              ref.read(cloudSyncProvider.notifier).setVal(val);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 14),
-                    SegmentedButton<ThemeMode>(
-                      segments: const [
-                        ButtonSegment(
-                          value: ThemeMode.system,
-                          label: Text(AppStrings.system),
-                          icon: Icon(Icons.brightness_auto_rounded, size: 16),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.light,
-                          label: Text(AppStrings.light),
-                          icon: Icon(Icons.light_mode_rounded, size: 16),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.dark,
-                          label: Text(AppStrings.dark),
-                          icon: Icon(Icons.dark_mode_rounded, size: 16),
-                        ),
-                      ],
-                      selected: {currentThemeMode},
-                      onSelectionChanged: (Set<ThemeMode> newSelection) {
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .setThemeMode(newSelection.first);
-                      },
+                    _buildDivider(),
+
+                    // Local Encrypted Database
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Local Encrypted Database',
+                                style: TextStyle(
+                                  color: AppColors.lightTextPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                '142 records stored securely',
+                                style: TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Active',
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
-            // Section: Preferences
-            Text(
-              'App Preferences',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: isDark
-                    ? AppColors.darkTextSecondary
-                    : AppColors.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: AppColors.secondary,
-                    ),
-                    title: const Text('Push Notifications'),
-                    subtitle: const Text('Build status and system alerts'),
-                    trailing: Switch(value: true, onChanged: (val) {}),
+              // SECTION 4: SECURITY & PRIVACY
+              _buildSectionHeader('SECURITY & PRIVACY'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                  Divider(
-                    height: 1,
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : AppColors.lightBorder,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Biometric Face ID / Fingerprint',
+                              style: TextStyle(
+                                color: AppColors.lightTextPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Require biometric confirmation to open app',
+                              style: TextStyle(
+                                color: AppColors.lightTextSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: biometrics,
+                        onChanged: (val) {
+                          ref.read(biometricsProvider.notifier).setVal(val);
+                        },
+                      ),
+                    ],
                   ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.lock_outline_rounded,
-                      color: AppColors.accent,
-                    ),
-                    title: const Text(AppStrings.security),
-                    subtitle: const Text('Biometrics and session control'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () {},
-                  ),
-                  Divider(
-                    height: 1,
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : AppColors.lightBorder,
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.info_outline_rounded,
-                      color: AppColors.primaryLight,
-                    ),
-                    title: const Text(AppStrings.about),
-                    subtitle: const Text('v1.0.0 (Flutter 3.47.7)'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () {
-                      showAboutDialog(
-                        context: context,
-                        applicationName: AppStrings.appName,
-                        applicationVersion: '1.0.0+1',
-                        applicationLegalese:
-                            'Flutter & Riverpod Cross-Platform Scaffold',
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // Sign Out Button
-            OutlinedButton.icon(
-              onPressed: () {
-                ref.read(authProvider.notifier).logout();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              },
-              icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-              label: const Text(
-                AppStrings.signOut,
-                style: TextStyle(color: AppColors.error),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                side: const BorderSide(color: AppColors.error),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 22),
+
+              // SECTION 5: APP INFORMATION
+              _buildSectionHeader('APP INFORMATION'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: Column(
+                  children: [
+                    // App Information
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const AppInfoScreen()),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'App Information',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Learn more about application & privacy',
+                                  style: TextStyle(
+                                    color: AppColors.lightTextSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: accentColor,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                'About',
+                                style: TextStyle(
+                                  color: accentColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildDivider(),
+
+                    // System Version
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'System Version',
+                            style: TextStyle(
+                              color: AppColors.lightTextPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'V.1.1',
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: AppColors.lightTextSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      color: AppColors.lightBorder,
     );
   }
 }

@@ -2,23 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../auth/providers/auth_provider.dart';
+import '../../../core/navigation/slide_route.dart';
+import '../../analytics/presentation/analytics_screen.dart';
+import '../../analytics/presentation/screens/report_export_screen.dart';
 import '../../auth/presentation/login_screen.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../settings/presentation/settings_screen.dart';
+import '../../settings/providers/settings_provider.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _budgetAlertsEnabled = true;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     final userName = user?.name ?? 'Kavinda Perera';
     final userEmail = user?.email ?? 'kavinda.perera@email.lk';
+    final accentColor = ref.watch(accentColorProvider).color;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: AppColors.lightBg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -29,57 +43,66 @@ class ProfileScreen extends ConsumerWidget {
                   const Text(
                     'Profile',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.lightTextPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
                     ),
                   ),
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: const Icon(
-                      Icons.settings_outlined,
-                      color: AppColors.textSecondary,
-                      size: 20,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        slideRoute(const SettingsScreen()),
+                      );
+                    },
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.lightBorder),
+                      ),
+                      child: const Icon(
+                        Icons.settings_outlined,
+                        color: AppColors.lightTextSecondary,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-              // User Card
+              // User Profile Card (Reference: Profile Screen (LKR).png)
               Container(
-                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: AppColors.darkCard,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.darkBorder),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: accentColor, width: 1.5),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 58,
-                      height: 58,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1B2414),
+                        color: accentColor.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary, width: 2),
+                        border: Border.all(color: accentColor, width: 2),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.person,
-                          color: AppColors.primary,
-                          size: 32,
+                          color: accentColor,
+                          size: 30,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,16 +110,16 @@ class ProfileScreen extends ConsumerWidget {
                           Text(
                             userName,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.lightTextPrimary,
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
                             userEmail,
                             style: const TextStyle(
-                              color: AppColors.textSecondary,
+                              color: AppColors.lightTextSecondary,
                               fontSize: 13,
                             ),
                           ),
@@ -106,18 +129,16 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Stats Row (Linked Banks, Budget Mode, CRIB Score)
               Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 12,
-                ),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.darkCard,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.darkBorder),
+                  border: Border.all(color: AppColors.lightBorder),
                 ),
                 child: Row(
                   children: [
@@ -127,16 +148,16 @@ class ProfileScreen extends ConsumerWidget {
                           Text(
                             'Linked Banks',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: AppColors.lightTextSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          SizedBox(height: 5),
                           Text(
                             '3 Accounts',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.lightTextPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -146,25 +167,25 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     Container(
                       width: 1,
-                      height: 32,
-                      color: AppColors.darkBorder,
+                      height: 28,
+                      color: AppColors.lightBorder,
                     ),
                     Expanded(
                       child: Column(
-                        children: const [
-                          Text(
+                        children: [
+                          const Text(
                             'Budget Mode',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: AppColors.lightTextSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(
                             'Auto-Track',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: accentColor,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -174,8 +195,8 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     Container(
                       width: 1,
-                      height: 32,
-                      color: AppColors.darkBorder,
+                      height: 28,
+                      color: AppColors.lightBorder,
                     ),
                     Expanded(
                       child: Column(
@@ -183,17 +204,17 @@ class ProfileScreen extends ConsumerWidget {
                           const Text(
                             'CRIB Score',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: AppColors.lightTextSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           RichText(
-                            text: const TextSpan(
+                            text: TextSpan(
                               text: '785 ',
-                              style: TextStyle(
-                                color: Colors.white,
+                              style: const TextStyle(
+                                color: AppColors.lightTextPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -201,9 +222,9 @@ class ProfileScreen extends ConsumerWidget {
                                 TextSpan(
                                   text: 'Good',
                                   style: TextStyle(
-                                    color: AppColors.primary,
+                                    color: accentColor,
                                     fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ],
@@ -215,51 +236,135 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
-              // Menu Items List
-              _buildMenuItem(
-                icon: Icons.account_balance_outlined,
-                iconColor: const Color(0xFF38BDF8),
-                title: 'Bank Accounts',
-                subtitle: 'Commercial Bank, Sampath, HNB',
-                onTap: () {},
-              ),
-              const SizedBox(height: 12),
-              _buildMenuItem(
-                icon: Icons.chat_bubble_outline_rounded,
-                iconColor: AppColors.primary,
-                title: 'Bank SMS Auto-Sync',
-                subtitle: 'Auto-log transactions from bank SMS',
-                trailing: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'Setup',
-                    style: TextStyle(
-                      color: Color(0xFF0C0F14),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+              // Grouped Section 1: Financial Preferences Card
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppColors.lightBorder),
                 ),
-                onTap: () {},
+                child: Column(
+                  children: [
+                    // Bank Accounts
+                    _buildGroupTile(
+                      icon: Icons.home_rounded,
+                      iconColor: const Color(0xFF38BDF8),
+                      title: 'Bank Accounts',
+                      subtitle: 'Commercial Bank, Sampath, HNB',
+                      onTap: () {},
+                    ),
+                    _buildDivider(),
+                    // Bank SMS Auto-Sync
+                    _buildGroupTile(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      iconColor: const Color(0xFF98E836),
+                      title: 'Bank SMS Auto-Sync',
+                      subtitle: 'Auto-log transactions from bank SMS',
+                      subtitleColor: const Color(0xFF65A30D),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: accentColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Setup',
+                          style: TextStyle(
+                            color: Color(0xFF0C0F14),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      onTap: () {},
+                    ),
+                    _buildDivider(),
+                    // Primary Currency
+                    _buildGroupTile(
+                      icon: Icons.currency_exchange_rounded,
+                      iconColor: const Color(0xFFF59E0B),
+                      title: 'Primary Currency',
+                      subtitle: 'Sri Lankan Rupee (LKR / Rs.)',
+                      onTap: () {},
+                    ),
+                    _buildDivider(),
+                    // Budget Limit Alerts
+                    _buildGroupTile(
+                      icon: Icons.notifications_none_rounded,
+                      iconColor: const Color(0xFF9353D3),
+                      title: 'Budget Limit Alerts',
+                      subtitle: 'Notify at 80% and 100% threshold',
+                      trailing: Switch(
+                        value: _budgetAlertsEnabled,
+                        onChanged: (val) {
+                          setState(() => _budgetAlertsEnabled = val);
+                        },
+                      ),
+                      onTap: () {
+                        setState(() => _budgetAlertsEnabled = !_budgetAlertsEnabled);
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              _buildMenuItem(
-                icon: Icons.currency_exchange_rounded,
-                iconColor: const Color(0xFFFBBF24),
-                title: 'Primary Currency',
-                subtitle: 'Sri Lankan Rupee (LKR / Rs.)',
-                onTap: () {},
+              const SizedBox(height: 16),
+
+              // Grouped Section 2: App & Reports Card
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: Column(
+                  children: [
+                    // App Settings
+                    _buildGroupTile(
+                      icon: Icons.settings_outlined,
+                      iconColor: const Color(0xFF98E836),
+                      title: 'App Settings',
+                      subtitle: 'Preferences, accent color & notifications',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const SettingsScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(),
+                    // Download Statements
+                    _buildGroupTile(
+                      icon: Icons.description_outlined,
+                      iconColor: const Color(0xFF64748B),
+                      title: 'Download Statements',
+                      subtitle: 'Monthly PDF & CSV tax reports',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const ReportExportScreen()),
+                        );
+                      },
+                    ),
+                    _buildDivider(),
+                    // Transaction History
+                    _buildGroupTile(
+                      icon: Icons.receipt_long_outlined,
+                      iconColor: const Color(0xFF9353D3),
+                      title: 'Transaction History',
+                      subtitle: 'Overall information of transaction History',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const AnalyticsScreen()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // Log Out Button
               SizedBox(
@@ -268,20 +373,21 @@ class ProfileScreen extends ConsumerWidget {
                 child: OutlinedButton.icon(
                   icon: const Icon(
                     Icons.logout_rounded,
-                    color: AppColors.error,
+                    color: Color(0xFFF43F5E),
                     size: 20,
                   ),
                   label: const Text(
                     'Log Out',
                     style: TextStyle(
-                      color: AppColors.error,
+                      color: Color(0xFFF43F5E),
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: AppColors.error.withValues(alpha: 0.3),
+                    side: const BorderSide(
+                      color: Color(0xFFF43F5E),
+                      width: 1.2,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -298,7 +404,7 @@ class ProfileScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -306,52 +412,80 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildGroupTile({
     required IconData icon,
     required Color iconColor,
     required String title,
     required String subtitle,
+    Color? subtitleColor,
     Widget? trailing,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.darkCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.darkBorder),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: iconColor, size: 22),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        trailing:
-            trailing ??
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Icon(icon, color: iconColor, size: 22),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.lightTextPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: subtitleColor ?? AppColors.lightTextSecondary,
+                        fontSize: 12,
+                        fontWeight: subtitleColor != null ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              trailing ??
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.lightTextSecondary,
+                    size: 22,
+                  ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      indent: 68,
+      endIndent: 16,
+      color: AppColors.lightBorder,
     );
   }
 }

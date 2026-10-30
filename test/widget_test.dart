@@ -14,7 +14,7 @@ void main() {
 
     // Verify Sign Up header, currency badge, and action button
     expect(find.text('Create Account'), findsOneWidget);
-    expect(find.text('LK (LKR)'), findsOneWidget);
+    expect(find.text('+94 🇱🇰'), findsOneWidget);
     expect(find.text('Create Account →'), findsOneWidget);
   });
 

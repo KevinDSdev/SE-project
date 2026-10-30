@@ -62,8 +62,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (RegExp(r'[A-Z]').hasMatch(password)) diversityCount++;
     if (RegExp(r'[0-9]').hasMatch(password)) diversityCount++;
     if (RegExp(r'[!@#\$%^&*()_\-+=\[\]{};:\x27",.<>?/\\|~`]')
-        .hasMatch(password))
+        .hasMatch(password)) {
       diversityCount++;
+    }
 
     final varietyBonus = diversityCount >= 3 ? 1 : 0;
     final totalScore = lengthPoints + diversityCount + varietyBonus;

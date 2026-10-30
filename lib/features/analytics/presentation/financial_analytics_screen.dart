@@ -3,10 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/navigation/slide_route.dart';
 import '../../../core/providers/navigation_provider.dart';
-import 'analytics_screen.dart';
-
-enum AnalyticsPeriod { weekly, monthly, yearly }
+import '../../settings/providers/settings_provider.dart';
+import '../providers/analytics_provider.dart';
+import 'screens/expense_analytics_screen.dart';
+import 'screens/goal_savings_analytics_screen.dart';
+import 'screens/income_analytics_screen.dart';
+import 'screens/prediction_analysis_screen.dart';
+import 'screens/report_export_screen.dart';
+import 'screens/spending_anomaly_screen.dart';
+import 'widgets/analytics_chart_widgets.dart';
+import 'widgets/import_statements_dialog.dart';
 
 class FinancialAnalyticsScreen extends ConsumerStatefulWidget {
   const FinancialAnalyticsScreen({super.key});
@@ -18,65 +26,82 @@ class FinancialAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _FinancialAnalyticsScreenState
     extends ConsumerState<FinancialAnalyticsScreen> {
-  AnalyticsPeriod _selectedPeriod = AnalyticsPeriod.monthly;
   int _selectedMonthIndex = 5; // Default Oct (index 5)
-  final _currencyFormat = NumberFormat('#,###');
+  final NumberFormat _currencyFormat = NumberFormat('#,###');
 
   final List<Map<String, dynamic>> _monthlyData = [
     {
       'month': 'May',
       'income': 420000.0,
       'expense': 280000.0,
-      'inRatio': 0.65,
-      'exRatio': 0.45,
+      'savings': 15000.0,
     },
     {
       'month': 'Jun',
       'income': 450000.0,
       'expense': 295000.0,
-      'inRatio': 0.70,
-      'exRatio': 0.48,
+      'savings': 18000.0,
     },
     {
       'month': 'Jul',
       'income': 470000.0,
       'expense': 260000.0,
-      'inRatio': 0.73,
-      'exRatio': 0.42,
+      'savings': 14000.0,
     },
     {
       'month': 'Aug',
       'income': 510000.0,
       'expense': 290000.0,
-      'inRatio': 0.82,
-      'exRatio': 0.47,
+      'savings': 22000.0,
     },
     {
       'month': 'Sep',
       'income': 490000.0,
       'expense': 305000.0,
-      'inRatio': 0.78,
-      'exRatio': 0.49,
+      'savings': 19000.0,
     },
     {
       'month': 'Oct',
       'income': 535000.0,
       'expense': 318500.0,
-      'inRatio': 0.95,
-      'exRatio': 0.55,
+      'savings': 20000.0,
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    final selectedPeriod = ref.watch(selectedPeriodProvider);
+    final mainStyle = ref.watch(mainChartStyleProvider);
+    final accentColor = ref.watch(accentColorProvider).color;
+    final widgetsState = ref.watch(dashboardWidgetsProvider);
+    final activeIds = widgetsState.activeWidgets.map((w) => w.id).toSet();
+
     final activeMonth = _monthlyData[_selectedMonthIndex];
-    final activeIncome = activeMonth['income'] as double;
-    final activeExpense = activeMonth['expense'] as double;
-    final activeSavings = activeIncome - activeExpense;
-    final monthName = activeMonth['month'] as String;
+
+    // Dynamic adjustment based on selected period
+    double activeIncome = activeMonth['income'] as double;
+    double activeExpense = activeMonth['expense'] as double;
+    double activeSavings = (activeMonth['savings'] as double?) ?? 20000.0;
+
+    if (selectedPeriod == AnalyticsPeriod.weekly) {
+      activeIncome = (activeIncome / 4).roundToDouble();
+      activeExpense = (activeExpense / 4).roundToDouble();
+      activeSavings = (activeSavings / 4).roundToDouble();
+    } else if (selectedPeriod == AnalyticsPeriod.yearly) {
+      activeIncome = activeIncome * 12;
+      activeExpense = activeExpense * 12;
+      activeSavings = activeSavings * 12;
+    }
+
+    final showIncome = activeIds.contains('active_income');
+    final showExpense = activeIds.contains('active_expenses');
+    final showSavings = activeIds.contains('active_savings');
+    final showTrend = activeIds.contains('active_trend');
+
+    final hasAnySummary = showIncome || showExpense || showSavings;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: AppColors.lightBg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -99,19 +124,14 @@ class _FinancialAnalyticsScreenState
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF262B36),
-                          width: 1,
-                        ),
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.chevron_left_rounded,
-                          color: Colors.white,
-                          size: 26,
-                        ),
+                      child: const Icon(
+                        Icons.chevron_left_rounded,
+                        color: AppColors.lightTextPrimary,
+                        size: 26,
                       ),
                     ),
                   ),
@@ -119,105 +139,240 @@ class _FinancialAnalyticsScreenState
                   const Text(
                     'Financial Analytics',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.lightTextPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
+                      letterSpacing: -0.3,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 18),
 
-              // Period Selector (Weekly, Monthly, Yearly)
-              _buildPeriodSelector(),
-              const SizedBox(height: 18),
-
-              // 3 Metric Cards: Income, Expenses, Savings
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildMetricCard(
-                      title: 'Income',
-                      amount: activeIncome,
-                      dotColor: AppColors.primary,
-                      borderColor: AppColors.primary,
-                      onTap: () => _showBreakdownSheet(
-                        'Income',
-                        activeIncome,
-                        AppColors.primary,
-                      ),
-                    ),
+              // Period Selector
+              Container(
+                height: 44,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: AppColors.lightBorder,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildMetricCard(
-                      title: 'Expenses',
-                      amount: activeExpense,
-                      dotColor: const Color(0xFFEF4444),
-                      borderColor: const Color(0xFFEF4444),
-                      onTap: () => _showBreakdownSheet(
-                        'Expenses',
-                        activeExpense,
-                        const Color(0xFFEF4444),
-                      ),
+                ),
+                child: Row(
+                  children: [
+                    _buildPeriodItem(
+                      AnalyticsPeriod.weekly,
+                      'Weekly',
+                      selectedPeriod,
+                      accentColor,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildMetricCard(
-                      title: 'Savings',
-                      amount: activeSavings,
-                      dotColor: const Color(0xFF38BDF8),
-                      borderColor: const Color(0xFF38BDF8),
-                      onTap: () => _showBreakdownSheet(
-                        'Savings',
-                        activeSavings,
-                        const Color(0xFF38BDF8),
-                      ),
+                    _buildPeriodItem(
+                      AnalyticsPeriod.monthly,
+                      'Monthly',
+                      selectedPeriod,
+                      accentColor,
                     ),
-                  ),
-                ],
+                    _buildPeriodItem(
+                      AnalyticsPeriod.yearly,
+                      'Yearly',
+                      selectedPeriod,
+                      accentColor,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 18),
 
-              // Income vs Expenses Chart Card
-              _buildIncomeVsExpensesCard(activeMonth, monthName, activeSavings),
-              const SizedBox(height: 18),
+              // Summary Cards (Dynamically driven by Dashboard Widgets preferences)
+              if (hasAnySummary) ...[
+                Row(
+                  children: [
+                    if (showIncome)
+                      Expanded(
+                        child: _buildSummaryCard(
+                          title: 'Income',
+                          amount: _currencyFormat.format(activeIncome.toInt()),
+                          color: const Color(0xFF98E836),
+                          textColor: const Color(0xFF0C0F14),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              slideRoute(const IncomeAnalyticsScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                    if (showIncome && (showExpense || showSavings))
+                      const SizedBox(width: 10),
+                    if (showExpense)
+                      Expanded(
+                        child: _buildSummaryCard(
+                          title: 'Expenses',
+                          amount: _currencyFormat.format(activeExpense.toInt()),
+                          color: const Color(0xFFF43F5E),
+                          textColor: Colors.white,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              slideRoute(const ExpenseAnalyticsScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                    if (showExpense && showSavings)
+                      const SizedBox(width: 10),
+                    if (showSavings)
+                      Expanded(
+                        child: _buildSummaryCard(
+                          title: 'Goal Savings',
+                          amount: _currencyFormat.format(activeSavings.toInt()),
+                          color: const Color(0xFF38BDF8),
+                          textColor: const Color(0xFF0C0F14),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              slideRoute(const GoalSavingsAnalyticsScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+              ],
 
-              // 2x2 Quick Action Cards Grid
+              // Income vs Expenses Comparison Chart (Dynamically driven by Widget preferences)
+              if (showTrend) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: AppColors.lightBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Income vs Expenses (May – Oct)',
+                            style: TextStyle(
+                              color: AppColors.lightTextPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Row(
+                            children: const [
+                              Icon(Icons.circle,
+                                  color: Color(0xFF98E836), size: 8),
+                              SizedBox(width: 4),
+                              Text(
+                                'In',
+                                style: TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Icon(Icons.circle,
+                                  color: Color(0xFFF43F5E), size: 8),
+                              SizedBox(width: 4),
+                              Text(
+                                'Ex',
+                                style: TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (mainStyle == ChartVisualMode.line)
+                        DualTrendLineChart(
+                          labels: _monthlyData
+                              .map((m) => m['month'] as String)
+                              .toList(),
+                          incomeValues: _monthlyData
+                              .map((m) => (m['income'] as num).toDouble())
+                              .toList(),
+                          expenseValues: _monthlyData
+                              .map((m) => (m['expense'] as num).toDouble())
+                              .toList(),
+                          selectedIndex: _selectedMonthIndex,
+                          height: 155,
+                        )
+                      else if (mainStyle == ChartVisualMode.donut)
+                        DonutBreakdownChart(
+                          income: activeIncome,
+                          expenses: activeExpense,
+                          height: 155,
+                        )
+                      else
+                        GroupedDualBarChart(
+                          monthlyData: _monthlyData,
+                          selectedIndex: _selectedMonthIndex,
+                          onSelectMonth: (index) {
+                            setState(() => _selectedMonthIndex = index);
+                          },
+                          height: 155,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
+
+              // Dynamically Pinned Extra Widgets from Dashboard Widgets Screen
+              ..._buildPinnedWidgets(context, activeIds),
+
+              // Quick Actions Grid (5 cards: Transaction History removed)
               Row(
                 children: [
                   Expanded(
                     child: _buildActionCard(
-                      title: 'AI Forecast',
-                      subtitle: 'Projections',
-                      borderColor: AppColors.primary,
-                      titleColor: AppColors.primary,
-                      icon: Icons.auto_awesome_rounded,
-                      onTap: _showAIForecastModal,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildActionCard(
-                      title: 'Transaction History',
-                      subtitle: '142 records',
-                      borderColor: AppColors.primary,
-                      titleColor: AppColors.primary,
-                      icon: Icons.receipt_long_rounded,
+                      title: 'Income Prediction',
+                      subtitle: 'Analysis',
+                      borderColor: const Color(0xFF98E836),
+                      titleColor: const Color(0xFF65A30D),
+                      icon: Icons.trending_up_rounded,
+                      iconBgColor: const Color(0xFF98E836).withValues(alpha: 0.15),
+                      iconColor: const Color(0xFF65A30D),
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(),
-                          ),
+                          slideRoute(const PredictionAnalysisScreen(
+                            initialMode: PredictionMode.income,
+                          )),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      title: 'Expenses Prediction',
+                      subtitle: 'Analysis',
+                      borderColor: const Color(0xFFF43F5E),
+                      titleColor: const Color(0xFFE11D48),
+                      icon: Icons.query_stats_rounded,
+                      iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
+                      iconColor: const Color(0xFFE11D48),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const PredictionAnalysisScreen(
+                            initialMode: PredictionMode.expenses,
+                          )),
                         );
                       },
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -225,28 +380,57 @@ class _FinancialAnalyticsScreenState
                       title: 'Import Statements',
                       subtitle: 'PDF, XLS',
                       borderColor: const Color(0xFF38BDF8),
-                      titleColor: const Color(0xFF38BDF8),
-                      icon: Icons.upload_file_rounded,
-                      onTap: _showImportModal,
+                      titleColor: const Color(0xFF0284C7),
+                      icon: Icons.file_download_outlined,
+                      iconBgColor: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                      iconColor: const Color(0xFF0284C7),
+                      onTap: () {
+                        ImportStatementsDialog.show(context);
+                      },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _buildActionCard(
                       title: 'Export Hub',
                       subtitle: 'PDF, CSV',
                       borderColor: const Color(0xFF38BDF8),
-                      titleColor: const Color(0xFF38BDF8),
-                      icon: Icons.download_rounded,
-                      onTap: _showExportModal,
+                      titleColor: const Color(0xFF0284C7),
+                      icon: Icons.file_upload_outlined,
+                      iconBgColor: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                      iconColor: const Color(0xFF0284C7),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const ReportExportScreen()),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-
-              // Full Width "Customize Analytics Dashboard" Card
-              _buildCustomizeCard(),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionCard(
+                      title: 'Anomaly Detection',
+                      subtitle: 'PDF, XLS',
+                      borderColor: const Color(0xFFF43F5E),
+                      titleColor: const Color(0xFFE11D48),
+                      icon: Icons.warning_amber_rounded,
+                      iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
+                      iconColor: const Color(0xFFE11D48),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const SpendingAnomalyScreen()),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(child: SizedBox()),
+                ],
+              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -255,34 +439,171 @@ class _FinancialAnalyticsScreenState
     );
   }
 
-  Widget _buildPeriodSelector() {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C0F14),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary, width: 1.2),
-      ),
-      child: Row(
-        children: [
-          _buildPeriodTab('Weekly', AnalyticsPeriod.weekly),
-          _buildPeriodTab('Monthly', AnalyticsPeriod.monthly),
-          _buildPeriodTab('Yearly', AnalyticsPeriod.yearly),
-        ],
+  List<Widget> _buildPinnedWidgets(BuildContext context, Set<String> activeIds) {
+    final widgets = <Widget>[];
+
+    if (activeIds.contains('avail_inc_pred')) {
+      widgets.add(_buildPinnedCard(
+        context,
+        title: 'Income Prediction Analytics',
+        subtitle: 'Projected next month: LKR 540,000 (High 92%)',
+        color: const Color(0xFF98E836),
+        icon: Icons.insights_rounded,
+        onTap: () => Navigator.of(context).push(
+          slideRoute(const PredictionAnalysisScreen(initialMode: PredictionMode.income)),
+        ),
+      ));
+    }
+
+    if (activeIds.contains('avail_exp_pred')) {
+      widgets.add(_buildPinnedCard(
+        context,
+        title: 'Expenses Prediction Analytics',
+        subtitle: 'Projected next month: LKR 330,000 (High 88%)',
+        color: const Color(0xFFF43F5E),
+        icon: Icons.query_stats_rounded,
+        onTap: () => Navigator.of(context).push(
+          slideRoute(const PredictionAnalysisScreen(initialMode: PredictionMode.expenses)),
+        ),
+      ));
+    }
+
+    if (activeIds.contains('avail_anomaly')) {
+      widgets.add(_buildPinnedCard(
+        context,
+        title: 'Anomaly Detection Analytics',
+        subtitle: '1 unusual spending spike flagged in Oct',
+        color: const Color(0xFFF59E0B),
+        icon: Icons.warning_amber_rounded,
+        onTap: () => Navigator.of(context).push(
+          slideRoute(const SpendingAnomalyScreen()),
+        ),
+      ));
+    }
+
+    if (activeIds.contains('avail_inc_analytics')) {
+      widgets.add(_buildPinnedCard(
+        context,
+        title: 'Income Analytics Details',
+        subtitle: 'Primary Salary, Rent Inflow, Freelance',
+        color: const Color(0xFF98E836),
+        icon: Icons.pie_chart_outline_rounded,
+        onTap: () => Navigator.of(context).push(
+          slideRoute(const IncomeAnalyticsScreen()),
+        ),
+      ));
+    }
+
+    if (activeIds.contains('avail_exp_analytics')) {
+      widgets.add(_buildPinnedCard(
+        context,
+        title: 'Expenses Analytics Details',
+        subtitle: 'Food & Groceries, Transport, Utilities',
+        color: const Color(0xFFF43F5E),
+        icon: Icons.analytics_outlined,
+        onTap: () => Navigator.of(context).push(
+          slideRoute(const ExpenseAnalyticsScreen()),
+        ),
+      ));
+    }
+
+    if (activeIds.contains('avail_goal_analytics')) {
+      widgets.add(_buildPinnedCard(
+        context,
+        title: 'Goal Savings Analytics Details',
+        subtitle: 'Emergency Fund, Vehicle, Vacation',
+        color: const Color(0xFF38BDF8),
+        icon: Icons.track_changes_rounded,
+        onTap: () => Navigator.of(context).push(
+          slideRoute(const GoalSavingsAnalyticsScreen()),
+        ),
+      ));
+    }
+
+    return widgets;
+  }
+
+  Widget _buildPinnedCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required Color color,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.lightBorder),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.lightTextPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: AppColors.lightTextSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.lightTextSecondary,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildPeriodTab(String label, AnalyticsPeriod period) {
-    final isSelected = _selectedPeriod == period;
+  Widget _buildPeriodItem(
+    AnalyticsPeriod period,
+    String label,
+    AnalyticsPeriod current,
+    Color accentColor,
+  ) {
+    final isSelected = current == period;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedPeriod = period),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+        onTap: () {
+          ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+        },
+        child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            color: isSelected ? accentColor : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Center(
@@ -291,9 +612,9 @@ class _FinancialAnalyticsScreenState
               style: TextStyle(
                 color: isSelected
                     ? const Color(0xFF0C0F14)
-                    : const Color(0xFF8E95A3),
-                fontSize: 13.5,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    : AppColors.lightTextSecondary,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ),
@@ -302,11 +623,11 @@ class _FinancialAnalyticsScreenState
     );
   }
 
-  Widget _buildMetricCard({
+  Widget _buildSummaryCard({
     required String title,
-    required double amount,
-    required Color dotColor,
-    required Color borderColor,
+    required String amount,
+    required Color color,
+    required Color textColor,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -314,9 +635,8 @@ class _FinancialAnalyticsScreenState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF131722),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: 1.2),
+          color: color,
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,237 +644,55 @@ class _FinancialAnalyticsScreenState
             Row(
               children: [
                 Container(
-                  width: 7,
-                  height: 7,
+                  width: 5,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: dotColor,
+                    color: textColor,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4),
                 Text(
                   title,
                   style: TextStyle(
-                    color: dotColor,
-                    fontSize: 12.5,
+                    color: textColor,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'LKR',
               style: TextStyle(
-                color: dotColor,
+                color: textColor.withValues(alpha: 0.8),
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 1),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _currencyFormat.format(amount),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
+            Text(
+              amount,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               'Breakdown',
               style: TextStyle(
-                color: dotColor,
-                fontSize: 10.5,
+                color: textColor.withValues(alpha: 0.8),
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildIncomeVsExpensesCard(
-    Map<String, dynamic> activeMonth,
-    String monthName,
-    double activeSavings,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF131722),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF1E2332), width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row: Title & In/Ex Legend
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Income vs Expenses (May – Oct)',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'In',
-                    style: TextStyle(
-                      color: Color(0xFF8E95A3),
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFA855F7),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Ex',
-                    style: TextStyle(
-                      color: Color(0xFF8E95A3),
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          // Subtitle: Net Surplus
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: '$monthName Net Surplus: ',
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                TextSpan(
-                  text: '+LKR ${_currencyFormat.format(activeSavings)}',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Bar Chart with 6 months
-          SizedBox(
-            height: 130,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(_monthlyData.length, (index) {
-                final item = _monthlyData[index];
-                final isSelected = index == _selectedMonthIndex;
-                final inRatio = item['inRatio'] as double;
-                final exRatio = item['exRatio'] as double;
-                final month = item['month'] as String;
-
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedMonthIndex = index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.12)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                      border: isSelected
-                          ? Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.35),
-                              width: 1,
-                            )
-                          : null,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        // Dual Bars: Green (In) & Purple (Ex)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              width: 14,
-                              height: 95 * inRatio,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Container(
-                              width: 14,
-                              height: 95 * exRatio,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFA855F7),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          month,
-                          style: TextStyle(
-                            color: isSelected
-                                ? AppColors.primary
-                                : const Color(0xFF8E95A3),
-                            fontSize: 12,
-                            fontWeight: isSelected
-                                ? FontWeight.w800
-                                : FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -565,14 +703,17 @@ class _FinancialAnalyticsScreenState
     required Color borderColor,
     required Color titleColor,
     required IconData icon,
+    required Color iconBgColor,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        height: 68,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF131722),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: borderColor, width: 1.2),
         ),
@@ -582,409 +723,45 @@ class _FinancialAnalyticsScreenState
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0),
+                color: iconBgColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: Icon(icon, color: const Color(0xFF1E293B), size: 20),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: titleColor,
-                      fontSize: 13.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      color: Color(0xFF8E95A3),
-                      fontSize: 11.5,
+                      color: AppColors.lightTextSecondary,
+                      fontSize: 10,
                       fontWeight: FontWeight.w400,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCustomizeCard() {
-    return GestureDetector(
-      onTap: _showCustomizeModal,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF131722),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primary, width: 1.2),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.tune_rounded,
-                  color: Color(0xFF1E293B),
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Customize Analytics Dashboard',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showBreakdownSheet(String type, double amount, Color color) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(22),
-        decoration: const BoxDecoration(
-          color: Color(0xFF121620),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF262B36),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '$type Breakdown',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Total: LKR ${_currencyFormat.format(amount)}',
-              style: TextStyle(
-                color: color,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildBreakdownItem('Salary & Dividends', amount * 0.75, color),
-            const SizedBox(height: 10),
-            _buildBreakdownItem(
-              'Freelance & Side Hustles',
-              amount * 0.25,
-              color,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBreakdownItem(String label, double amount, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1F2C),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-          ),
-          Text(
-            'LKR ${_currencyFormat.format(amount)}',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAIForecastModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(22),
-        decoration: const BoxDecoration(
-          color: Color(0xFF121620),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF262B36),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppColors.primary,
-                  size: 22,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'AI Forecast & Projections',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'Based on your spending pace, you will finish October with an estimated net surplus of LKR 235,000 (+8% compared to last month).',
-              style: TextStyle(
-                color: Color(0xFF94A3B8),
-                fontSize: 13.5,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showImportModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(22),
-        decoration: const BoxDecoration(
-          color: Color(0xFF121620),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF262B36),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Import Statements',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _buildDialogTile(
-              Icons.picture_as_pdf_rounded,
-              'Import Bank PDF Statement',
-            ),
-            const SizedBox(height: 10),
-            _buildDialogTile(
-              Icons.table_chart_rounded,
-              'Import Excel / CSV Sheet',
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showExportModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(22),
-        decoration: const BoxDecoration(
-          color: Color(0xFF121620),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF262B36),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Export Financial Data',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _buildDialogTile(
-              Icons.picture_as_pdf_rounded,
-              'Export as PDF Report',
-            ),
-            const SizedBox(height: 10),
-            _buildDialogTile(
-              Icons.table_view_rounded,
-              'Export as CSV Spreadsheet',
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showCustomizeModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(22),
-        decoration: const BoxDecoration(
-          color: Color(0xFF121620),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF262B36),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Customize Dashboard',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _buildDialogTile(
-              Icons.view_quilt_rounded,
-              'Rearrange Analytics Widgets',
-            ),
-            const SizedBox(height: 10),
-            _buildDialogTile(
-              Icons.currency_exchange_rounded,
-              'Currency & Decimal Settings',
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDialogTile(IconData icon, String title) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1F2C),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF262C3D)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }
