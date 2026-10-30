@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/providers/theme_provider.dart';
 import 'core/services/app_preferences_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/signup_screen.dart';
@@ -21,12 +22,14 @@ class FinPulseApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accentOption = ref.watch(accentColorProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: 'ECORP',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightThemeWith(accentOption.color),
-      themeMode: ThemeMode.light,
+      darkTheme: AppTheme.darkThemeWith(accentOption.color),
+      themeMode: themeMode,
       home: const SignUpScreen(),
     );
   }

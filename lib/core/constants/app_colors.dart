@@ -12,7 +12,20 @@ class AppColors {
   static const Color purple = Color(0xFF9353D3); // 9353D3 Purple
   static const Color amber = Color(0xFFF59E0B); // F59E0B Amber
 
-  // Light Theme Surfaces (Light Theme Only)
+  // Dark Theme Surfaces (Default Authoritative Design)
+  static const Color darkBg = Color(0xFF0C0F14); // Main dark background
+  static const Color darkSurface = Color(0xFF161922); // Card surface
+  static const Color darkCard = Color(0xFF161922);
+  static const Color darkSubContainer = Color(0xFF10141D); // Inner container / pill container
+  static const Color darkBorder = Color(0xFF262B36); // Dark borders
+  static const Color darkInput = Color(0xFF10141D);
+  static const Color darkInputFilled = Color(0xFF10141D);
+  static const Color darkButton = Color(0xFF1E2638);
+  static const Color darkTextPrimary = Colors.white; // High-contrast white text
+  static const Color darkTextSecondary = Color(0xFF8E95A3); // Muted grey text
+  static const Color darkTextMuted = Color(0xFF646B79);
+
+  // Light Theme Surfaces (Optional Theme)
   static const Color lightBg = Color(0xFFF8FAFC); // Main light background
   static const Color lightSurface = Color(0xFFFFFFFF); // Clean white card surface
   static const Color lightCard = Color(0xFFFFFFFF);
@@ -22,19 +35,18 @@ class AppColors {
   static const Color lightTextSecondary = Color(0xFF64748B); // Slate muted text
   static const Color lightTextMuted = Color(0xFF94A3B8);
 
-  // Backward compatibility tokens mapped to Light Theme
-  static const Color darkBg = lightBg;
-  static const Color darkSurface = lightSurface;
-  static const Color darkCard = lightCard;
-  static const Color darkInput = lightSubContainer;
-  static const Color darkInputFilled = lightSubContainer;
-  static const Color darkBorder = lightBorder;
-  static const Color darkButton = lightSubContainer;
-  static const Color textPrimary = lightTextPrimary;
-  static const Color textSecondary = lightTextSecondary;
-  static const Color textMuted = lightTextMuted;
-  static const Color darkTextPrimary = lightTextPrimary;
-  static const Color darkTextSecondary = lightTextSecondary;
+  // Common Tokens (Defaulting to Dark Theme)
+  static const Color textPrimary = darkTextPrimary;
+  static const Color textSecondary = darkTextSecondary;
+  static const Color textMuted = darkTextMuted;
+
+  // Dynamic Theme Helpers
+  static Color getBg(bool isDark) => isDark ? darkBg : lightBg;
+  static Color getCard(bool isDark) => isDark ? darkCard : lightCard;
+  static Color getBorder(bool isDark) => isDark ? darkBorder : lightBorder;
+  static Color getSubContainer(bool isDark) => isDark ? darkSubContainer : lightSubContainer;
+  static Color getTextPrimary(bool isDark) => isDark ? darkTextPrimary : lightTextPrimary;
+  static Color getTextSecondary(bool isDark) => isDark ? darkTextSecondary : lightTextSecondary;
 
   // Status & Feedback Colors
   static const Color success = Color(0xFF98E836);

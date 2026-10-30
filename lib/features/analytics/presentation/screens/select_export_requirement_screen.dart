@@ -75,8 +75,14 @@ class SelectExportRequirementScreen extends ConsumerWidget {
     final totalCount = allModules.length;
     final allSelected = selectedCount == totalCount;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -96,22 +102,22 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.lightBorder),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.chevron_left_rounded,
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             size: 26,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Select Requirement',
                         style: TextStyle(
-                          color: AppColors.lightTextPrimary,
+                          color: textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),

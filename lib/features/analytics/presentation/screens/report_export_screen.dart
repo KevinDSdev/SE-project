@@ -17,18 +17,23 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
 
   void _showPeriodPicker(Color accentColor) {
     final currentPeriod = ref.read(exportPreferencesProvider).period;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Select Time Period',
           style: TextStyle(
-            color: AppColors.lightTextPrimary,
+            color: textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -47,7 +52,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               title: Text(
                 p,
                 style: TextStyle(
-                  color: isSel ? accentColor : AppColors.lightTextPrimary,
+                  color: isSel ? accentColor : textPrimary,
                   fontSize: 14,
                   fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -68,18 +73,23 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
 
   void _showAccountPicker(Color accentColor) {
     final currentAccount = ref.read(exportPreferencesProvider).account;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Select Account',
           style: TextStyle(
-            color: AppColors.lightTextPrimary,
+            color: textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -98,7 +108,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               title: Text(
                 acc,
                 style: TextStyle(
-                  color: isSel ? accentColor : AppColors.lightTextPrimary,
+                  color: isSel ? accentColor : textPrimary,
                   fontSize: 14,
                   fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -128,10 +138,16 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         : (prefs.format.contains('Excel') ? 'xlsx' : 'csv');
     final fileName = 'ECORP_Report_${prefs.period.replaceAll(' ', '_')}.$ext';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
           side: BorderSide(color: accentColor),
@@ -140,10 +156,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
           children: [
             Icon(Icons.check_circle_rounded, color: accentColor, size: 26),
             const SizedBox(width: 10),
-            const Text(
+            Text(
               'Report Ready',
               style: TextStyle(
-                color: AppColors.lightTextPrimary,
+                color: textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -163,22 +179,22 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _infoRow('Format', prefs.format),
-            _infoRow('Scope', prefs.period),
-            _infoRow('Account', prefs.account),
+            _infoRow('Format', prefs.format, textPrimary: textPrimary, textSecondary: textSecondary),
+            _infoRow('Scope', prefs.period, textPrimary: textPrimary, textSecondary: textSecondary),
+            _infoRow('Account', prefs.account, textPrimary: textPrimary, textSecondary: textSecondary),
             _infoRow('Included',
-                '${prefs.selectedRequirements.length} analytics modules'),
+                '${prefs.selectedRequirements.length} analytics modules', textPrimary: textPrimary, textSecondary: textSecondary),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.lightSubContainer,
+                color: subContainer,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
+              child: Text(
                 'Demo notice: The report structure has been compiled. In full production, this saves directly to your device downloads folder.',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 11,
                 ),
               ),
@@ -203,22 +219,28 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
   }
 
   void _shareToWhatsApp(Color accentColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
         title: Row(
-          children: const [
-            Icon(Icons.share_rounded, color: Color(0xFF25D366), size: 24),
-            SizedBox(width: 10),
+          children: [
+            const Icon(Icons.share_rounded, color: Color(0xFF25D366), size: 24),
+            const SizedBox(width: 10),
             Text(
               'Share to WhatsApp',
               style: TextStyle(
-                color: AppColors.lightTextPrimary,
+                color: textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -228,19 +250,19 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'Ready to send generated summary report via WhatsApp.',
               style: TextStyle(
-                color: AppColors.lightTextPrimary,
+                color: textPrimary,
                 fontSize: 14,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Demo notice: In production this will invoke the WhatsApp sharing intent with encrypted attachment.',
               style: TextStyle(
-                color: AppColors.lightTextSecondary,
+                color: textSecondary,
                 fontSize: 12,
               ),
             ),
@@ -249,9 +271,9 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: AppColors.lightTextSecondary),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -259,10 +281,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  backgroundColor: Colors.white,
-                  content: const Text(
+                  backgroundColor: cardBg,
+                  content: Text(
                     'WhatsApp share intent simulated.',
-                    style: TextStyle(color: AppColors.lightTextPrimary),
+                    style: TextStyle(color: textPrimary),
                   ),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
@@ -287,7 +309,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  Widget _infoRow(String label, String value, {required Color textPrimary, required Color textSecondary}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -295,15 +317,15 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.lightTextSecondary,
+            style: TextStyle(
+              color: textSecondary,
               fontSize: 12,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.lightTextPrimary,
+            style: TextStyle(
+              color: textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -318,8 +340,15 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
     final exportPrefs = ref.watch(exportPreferencesProvider);
     final accentColor = ref.watch(accentColorProvider).color;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -336,22 +365,22 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         size: 26,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Export',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
@@ -361,10 +390,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               const SizedBox(height: 20),
 
               // Section: CHOOSE EXPORT FORMAT
-              const Text(
+              Text(
                 'CHOOSE EXPORT FORMAT',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
@@ -382,6 +411,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                     formatKey: 'PDF Report',
                     selectedFormat: exportPrefs.format,
                     accentColor: accentColor,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
                   ),
                   const SizedBox(width: 10),
                   _buildFormatCard(
@@ -393,6 +426,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                     formatKey: 'Excel (.XLSX)',
                     selectedFormat: exportPrefs.format,
                     accentColor: accentColor,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
                   ),
                   const SizedBox(width: 10),
                   _buildFormatCard(
@@ -404,16 +441,20 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                     formatKey: 'Raw Data',
                     selectedFormat: exportPrefs.format,
                     accentColor: accentColor,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
               // Section: EXPORT SCOPE & FILTERS
-              const Text(
+              Text(
                 'EXPORT SCOPE & FILTERS',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
@@ -423,9 +464,9 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   children: [
@@ -440,10 +481,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Time Period',
                               style: TextStyle(
-                                color: AppColors.lightTextPrimary,
+                                color: textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -462,7 +503,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                     ),
                     Container(
                       height: 1,
-                      color: AppColors.lightBorder,
+                      color: borderColor,
                     ),
                     // Accounts
                     InkWell(
@@ -475,10 +516,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Accounts',
                               style: TextStyle(
-                                color: AppColors.lightTextPrimary,
+                                color: textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -504,10 +545,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'INCLUDED REPORT SECTIONS & DETAILS',
                     style: TextStyle(
-                      color: AppColors.lightTextSecondary,
+                      color: textSecondary,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.8,
@@ -537,7 +578,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: accentColor,
@@ -610,9 +651,9 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                 child: OutlinedButton(
                   onPressed: () => _shareToWhatsApp(accentColor),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.lightTextPrimary,
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: AppColors.lightBorder),
+                    foregroundColor: textPrimary,
+                    backgroundColor: cardBg,
+                    side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -643,6 +684,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
     required String formatKey,
     required String selectedFormat,
     required Color accentColor,
+    required Color cardBg,
+    required Color borderColor,
+    required Color textPrimary,
+    required Color textSecondary,
   }) {
     final isSelected = selectedFormat == formatKey;
 
@@ -655,12 +700,12 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
           height: 120,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: isSelected
                   ? accentColor
-                  : AppColors.lightBorder,
+                  : borderColor,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -676,8 +721,8 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: AppColors.lightTextPrimary,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
@@ -687,8 +732,8 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: const TextStyle(
-                          color: AppColors.lightTextSecondary,
+                        style: TextStyle(
+                          color: textSecondary,
                           fontSize: 10,
                         ),
                         maxLines: 1,

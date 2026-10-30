@@ -1,20 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/app_preferences_service.dart';
 
-// Light Theme only across the application
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
-  ThemeMode build() => ThemeMode.light;
+  ThemeMode build() {
+    final isDark = AppPreferencesService.getDarkMode() ?? true;
+    return isDark ? ThemeMode.dark : ThemeMode.light;
+  }
 
   void setThemeMode(ThemeMode mode) {
-    state = ThemeMode.light;
+    state = mode;
+    AppPreferencesService.saveDarkMode(mode == ThemeMode.dark);
   }
 
   void toggleTheme() {
-    state = ThemeMode.light;
+    if (state == ThemeMode.dark) {
+      setThemeMode(ThemeMode.light);
+    } else {
+      setThemeMode(ThemeMode.dark);
+    }
+  }
+
+  void setDarkMode(bool isDark) {
+    setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 }
 
 final themeModeProvider =
     NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
-

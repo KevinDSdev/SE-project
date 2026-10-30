@@ -71,19 +71,24 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
     },
   };
 
-  void _showPeriodPicker(String currentPeriod) {
+  void _showPeriodPicker(BuildContext context, String currentPeriod) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Select Period',
           style: TextStyle(
-            color: AppColors.lightTextPrimary,
+            color: textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -100,8 +105,8 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
             return ListTile(
               title: Text(
                 period,
-                style: const TextStyle(
-                  color: AppColors.lightTextPrimary,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 14,
                 ),
               ),
@@ -121,6 +126,13 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
     final defaultPeriod = ref.watch(selectedPeriodProvider);
@@ -136,7 +148,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
         _categoryData[_selectedFilter] ?? _categoryData['Food & Groceries']!;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -156,22 +168,22 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.lightBorder),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.chevron_left_rounded,
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             size: 26,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Expense Analytics',
                         style: TextStyle(
-                          color: AppColors.lightTextPrimary,
+                          color: textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -179,7 +191,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => _showPeriodPicker(periodLabel),
+                    onTap: () => _showPeriodPicker(context, periodLabel),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -208,7 +220,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
                 ),
@@ -266,12 +278,12 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                           decoration: BoxDecoration(
                             color: isSel
                                 ? const Color(0xFFF43F5E)
-                                : Colors.white,
+                                : cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSel
                                   ? const Color(0xFFF43F5E)
-                                  : AppColors.lightBorder,
+                                  : borderColor,
                             ),
                           ),
                           child: Row(
@@ -282,7 +294,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                                 style: TextStyle(
                                   color: isSel
                                       ? Colors.white
-                                      : AppColors.lightTextSecondary,
+                                      : textSecondary,
                                   fontSize: 13,
                                   fontWeight:
                                       isSel ? FontWeight.w700 : FontWeight.w500,
@@ -311,9 +323,9 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,8 +336,8 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                         Expanded(
                           child: Text(
                             currentCat['title'] as String,
-                            style: const TextStyle(
-                              color: AppColors.lightTextPrimary,
+                            style: TextStyle(
+                              color: textPrimary,
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
@@ -334,8 +346,8 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                         const SizedBox(width: 8),
                         Text(
                           currentCat['budget'] as String,
-                          style: const TextStyle(
-                            color: AppColors.lightTextSecondary,
+                          style: TextStyle(
+                            color: textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -371,17 +383,17 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Categories Breakdown',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -392,6 +404,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       name: 'Food & Groceries',
                       amount: 'LKR 118,500',
                       amountColor: const Color(0xFFE11D48),
+                      textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
                     _buildExpenseRow(
@@ -399,6 +412,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       name: 'Transport',
                       amount: 'LKR 65,000',
                       amountColor: const Color(0xFF0284C7),
+                      textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
                     _buildExpenseRow(
@@ -406,6 +420,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       name: 'Utilities',
                       amount: 'LKR 45,000',
                       amountColor: const Color(0xFFD97706),
+                      textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
                     _buildExpenseRow(
@@ -413,6 +428,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       name: 'Bills & Subscriptions',
                       amount: 'LKR 90,000',
                       amountColor: const Color(0xFF65A30D),
+                      textColor: textPrimary,
                     ),
                   ],
                 ),
@@ -430,6 +446,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
     required String name,
     required String amount,
     required Color amountColor,
+    required Color textColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -447,8 +464,8 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
             const SizedBox(width: 10),
             Text(
               name,
-              style: const TextStyle(
-                color: AppColors.lightTextPrimary,
+              style: TextStyle(
+                color: textColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),

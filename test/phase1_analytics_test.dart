@@ -51,15 +51,14 @@ void main() {
     expect(find.text('Transaction History'), findsNothing);
   });
 
-  testWidgets('App Settings screen renders sections and controls without Dark Mode',
+  testWidgets('App Settings screen renders sections and controls with Dark Mode toggle',
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget(const SettingsScreen()));
 
     expect(find.text('App Settings'), findsOneWidget);
-    // Verified: Dark Mode toggle removed
-    expect(find.text('Dark Mode Theme'), findsNothing);
+    expect(find.text('Dark Mode Theme'), findsOneWidget);
     expect(find.text('Primary Accent Color'), findsOneWidget);
-    expect(find.text('Customize Cards / Dashboard Layout'), findsOneWidget);
+    expect(find.text('Customize Widgets'), findsOneWidget);
     expect(find.text('Customize Analytical Dashboard'), findsOneWidget);
     expect(find.text('Notifications & Alerts'), findsOneWidget);
     expect(find.text('Daily Log Reminder Time'), findsOneWidget);

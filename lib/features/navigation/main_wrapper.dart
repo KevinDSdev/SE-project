@@ -41,6 +41,10 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(selectedTabProvider);
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final navBg = isDark ? AppColors.darkBg : Colors.white;
+    final borderColor = AppColors.getBorder(isDark);
 
     return PopScope(
       canPop: false,
@@ -60,14 +64,14 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.lightBg,
+        backgroundColor: bg,
         body: IndexedStack(index: currentIndex, children: _screens),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: navBg,
             border: Border(
               top: BorderSide(
-                color: AppColors.lightBorder,
+                color: borderColor,
                 width: 1,
               ),
             ),

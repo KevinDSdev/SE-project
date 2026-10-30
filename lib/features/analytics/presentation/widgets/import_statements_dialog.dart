@@ -36,6 +36,12 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
   @override
   Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     return Container(
       padding: EdgeInsets.only(
@@ -44,11 +50,11 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
         right: 20,
         top: 20,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(
-          top: BorderSide(color: AppColors.lightBorder, width: 1.5),
+          top: BorderSide(color: borderColor, width: 1.5),
         ),
       ),
       child: Column(
@@ -61,7 +67,7 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.lightBorder,
+                color: borderColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -70,34 +76,34 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Import Statements',
                 style: TextStyle(
-                  color: AppColors.lightTextPrimary,
+                  color: textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: AppColors.lightTextSecondary),
+                icon: Icon(Icons.close, color: textSecondary),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
-          const Text(
+          Text(
             'Upload your e-statement (PDF or Excel) to automatically synchronize transactions.',
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: textSecondary,
               fontSize: 13,
             ),
           ),
           const SizedBox(height: 20),
 
           // File Format Selector
-          const Text(
+          Text(
             'STATEMENT FORMAT',
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -106,18 +112,18 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildFormatChip(label: 'PDF Statement', format: 'PDF', icon: Icons.picture_as_pdf_rounded, color: const Color(0xFFF43F5E)),
+              _buildFormatChip(label: 'PDF Statement', format: 'PDF', icon: Icons.picture_as_pdf_rounded, color: const Color(0xFFF43F5E), subContainer: subContainer, borderColor: borderColor, textPrimary: textPrimary, textSecondary: textSecondary),
               const SizedBox(width: 12),
-              _buildFormatChip(label: 'Excel (.XLSX)', format: 'XLSX', icon: Icons.table_chart_rounded, color: accentColor),
+              _buildFormatChip(label: 'Excel (.XLSX)', format: 'XLSX', icon: Icons.table_chart_rounded, color: accentColor, subContainer: subContainer, borderColor: borderColor, textPrimary: textPrimary, textSecondary: textSecondary),
             ],
           ),
           const SizedBox(height: 18),
 
           // Bank Template
-          const Text(
+          Text(
             'ISSUING BANK / TEMPLATE',
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -127,16 +133,16 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: AppColors.lightSubContainer,
+              color: subContainer,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.lightBorder),
+              border: Border.all(color: borderColor),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedBank,
                 isExpanded: true,
-                dropdownColor: Colors.white,
-                style: const TextStyle(color: AppColors.lightTextPrimary, fontSize: 14),
+                dropdownColor: cardBg,
+                style: TextStyle(color: textPrimary, fontSize: 14),
                 icon: Icon(Icons.keyboard_arrow_down, color: accentColor),
                 items: _banks
                     .map((bank) => DropdownMenuItem(value: bank, child: Text(bank)))
@@ -162,12 +168,12 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
               decoration: BoxDecoration(
-                color: AppColors.lightSubContainer,
+                color: subContainer,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: _selectedFileName != null
                       ? accentColor
-                      : AppColors.lightBorder,
+                      : borderColor,
                   style: BorderStyle.solid,
                 ),
               ),
@@ -186,15 +192,15 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
                   Text(
                     _selectedFileName ?? 'Tap to select statement file',
                     style: TextStyle(
-                      color: _selectedFileName != null ? AppColors.lightTextPrimary : AppColors.lightTextSecondary,
+                      color: _selectedFileName != null ? textPrimary : textSecondary,
                       fontSize: 14,
                       fontWeight: _selectedFileName != null ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                   if (_selectedFileName == null)
-                    const Text(
+                    Text(
                       'Supports standard PDF bank statements & XLSX files',
-                      style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 11),
+                      style: TextStyle(color: textSecondary, fontSize: 11),
                     ),
                 ],
               ),
@@ -220,15 +226,15 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
 
                       messenger.showSnackBar(
                         SnackBar(
-                          backgroundColor: Colors.white,
+                          backgroundColor: cardBg,
                           content: Row(
                             children: [
                               Icon(Icons.check_circle, color: accentColor, size: 20),
                               const SizedBox(width: 10),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
                                   'Import completed: 142 records parsed & ready in Analytics.',
-                                  style: TextStyle(color: AppColors.lightTextPrimary, fontSize: 13),
+                                  style: TextStyle(color: textPrimary, fontSize: 13),
                                 ),
                               ),
                             ],
@@ -277,6 +283,10 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
     required String format,
     required IconData icon,
     required Color color,
+    required Color subContainer,
+    required Color borderColor,
+    required Color textPrimary,
+    required Color textSecondary,
   }) {
     final isSelected = _selectedFormat == format;
 
@@ -291,22 +301,22 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.15) : AppColors.lightSubContainer,
+            color: isSelected ? color.withValues(alpha: 0.15) : subContainer,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isSelected ? color : AppColors.lightBorder,
+              color: isSelected ? color : borderColor,
               width: isSelected ? 1.8 : 1,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: isSelected ? color : AppColors.lightTextSecondary, size: 18),
+              Icon(icon, color: isSelected ? color : textSecondary, size: 18),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppColors.lightTextPrimary : AppColors.lightTextSecondary,
+                  color: isSelected ? textPrimary : textSecondary,
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),

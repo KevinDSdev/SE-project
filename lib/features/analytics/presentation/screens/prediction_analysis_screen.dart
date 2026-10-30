@@ -71,9 +71,16 @@ class _PredictionAnalysisScreenState
   @override
   Widget build(BuildContext context) {
     final isExpense = _currentMode == PredictionMode.expenses;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -90,13 +97,13 @@ class _PredictionAnalysisScreenState
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         size: 26,
                       ),
                     ),
@@ -107,8 +114,8 @@ class _PredictionAnalysisScreenState
                       isExpense
                           ? 'Expenses Prediction Analysis'
                           : 'Income Prediction Analysis',
-                      style: const TextStyle(
-                        color: AppColors.lightTextPrimary,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 19,
                         fontWeight: FontWeight.w800,
                       ),
@@ -124,10 +131,10 @@ class _PredictionAnalysisScreenState
                 height: 46,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: AppColors.lightBorder,
+                    color: borderColor,
                   ),
                 ),
                 child: Row(
@@ -149,7 +156,7 @@ class _PredictionAnalysisScreenState
                               style: TextStyle(
                                 color: isExpense
                                     ? Colors.white
-                                    : AppColors.lightTextSecondary,
+                                    : textSecondary,
                                 fontSize: 13,
                                 fontWeight: isExpense
                                     ? FontWeight.w700
@@ -177,7 +184,7 @@ class _PredictionAnalysisScreenState
                               style: TextStyle(
                                 color: !isExpense
                                     ? const Color(0xFF0C0F14)
-                                    : AppColors.lightTextSecondary,
+                                    : textSecondary,
                                 fontSize: 13,
                                 fontWeight: !isExpense
                                     ? FontWeight.w700
@@ -198,7 +205,7 @@ class _PredictionAnalysisScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color: isExpense
@@ -262,8 +269,8 @@ class _PredictionAnalysisScreenState
                       isExpense
                           ? 'Estimated variance: ± LKR 8,500 based on previous 5 months'
                           : 'Estimated variance: ± LKR 12,000 based on incoming milestones',
-                      style: const TextStyle(
-                        color: AppColors.lightTextSecondary,
+                      style: TextStyle(
+                        color: textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -307,14 +314,14 @@ class _PredictionAnalysisScreenState
                                 ? (isExpense
                                     ? const Color(0xFFF43F5E)
                                     : const Color(0xFF98E836))
-                                : Colors.white,
+                                : cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSel
                                   ? (isExpense
                                       ? const Color(0xFFF43F5E)
                                       : const Color(0xFF98E836))
-                                  : AppColors.lightBorder,
+                                  : borderColor,
                             ),
                           ),
                           child: Text(
@@ -324,7 +331,7 @@ class _PredictionAnalysisScreenState
                                   ? (isExpense
                                       ? Colors.white
                                       : const Color(0xFF0C0F14))
-                                  : AppColors.lightTextSecondary,
+                                  : textSecondary,
                               fontSize: 13,
                               fontWeight:
                                   isSel ? FontWeight.w700 : FontWeight.w500,
@@ -343,9 +350,9 @@ class _PredictionAnalysisScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,8 +364,8 @@ class _PredictionAnalysisScreenState
                           isExpense
                               ? 'Nov 2026 Expected Outflow'
                               : 'Nov 2026 Expected Inflow',
-                          style: const TextStyle(
-                            color: AppColors.lightTextPrimary,
+                          style: TextStyle(
+                            color: textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
@@ -411,9 +418,9 @@ class _PredictionAnalysisScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,8 +429,8 @@ class _PredictionAnalysisScreenState
                       isExpense
                           ? 'Detected Spending Probabilities'
                           : 'Detected Inflow Probabilities',
-                      style: const TextStyle(
-                        color: AppColors.lightTextPrimary,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -435,6 +442,8 @@ class _PredictionAnalysisScreenState
                         label: 'Single Bill Under LKR 5,000',
                         badgeColor: const Color(0xFF98E836),
                         borderColor: const Color(0xFF98E836),
+                        subContainer: subContainer,
+                        textColor: textPrimary,
                       ),
                       const SizedBox(height: 10),
                       _buildProbabilityItem(
@@ -442,6 +451,8 @@ class _PredictionAnalysisScreenState
                         label: 'First Weekend Bulk Spend',
                         badgeColor: const Color(0xFF38BDF8),
                         borderColor: const Color(0xFF38BDF8),
+                        subContainer: subContainer,
+                        textColor: textPrimary,
                       ),
                       const SizedBox(height: 10),
                       _buildProbabilityItem(
@@ -449,6 +460,8 @@ class _PredictionAnalysisScreenState
                         label: 'Late-Month Surge Over LKR 70K',
                         badgeColor: const Color(0xFFF59E0B),
                         borderColor: const Color(0xFFF59E0B),
+                        subContainer: subContainer,
+                        textColor: textPrimary,
                       ),
                     ] else ...[
                       _buildProbabilityItem(
@@ -456,6 +469,8 @@ class _PredictionAnalysisScreenState
                         label: 'Base Salary End Of The Month',
                         badgeColor: const Color(0xFF98E836),
                         borderColor: const Color(0xFF98E836),
+                        subContainer: subContainer,
+                        textColor: textPrimary,
                       ),
                       const SizedBox(height: 10),
                       _buildProbabilityItem(
@@ -463,6 +478,8 @@ class _PredictionAnalysisScreenState
                         label: 'Rental Deposit Before Day 10',
                         badgeColor: const Color(0xFF38BDF8),
                         borderColor: const Color(0xFF38BDF8),
+                        subContainer: subContainer,
+                        textColor: textPrimary,
                       ),
                       const SizedBox(height: 10),
                       _buildProbabilityItem(
@@ -470,6 +487,8 @@ class _PredictionAnalysisScreenState
                         label: 'Freelance Payout',
                         badgeColor: const Color(0xFF9353D3),
                         borderColor: const Color(0xFF9353D3),
+                        subContainer: subContainer,
+                        textColor: textPrimary,
                       ),
                     ],
                   ],
@@ -488,11 +507,13 @@ class _PredictionAnalysisScreenState
     required String label,
     required Color badgeColor,
     required Color borderColor,
+    required Color subContainer,
+    required Color textColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.lightSubContainer,
+        color: subContainer,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor.withValues(alpha: 0.7)),
       ),
@@ -517,8 +538,8 @@ class _PredictionAnalysisScreenState
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                color: AppColors.lightTextPrimary,
+              style: TextStyle(
+                color: textColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),

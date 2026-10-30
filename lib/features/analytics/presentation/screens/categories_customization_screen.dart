@@ -40,7 +40,7 @@ class _CategoriesCustomizationScreenState
     _activeTab = widget.initialTab;
   }
 
-  void _showEditDialog(CustomCategoryItem item) {
+  void _showEditDialog(CustomCategoryItem item, Color cardBg, Color borderColor, Color textPrimary, Color textSecondary, Color subContainer, Color accentColor) {
     final controller = TextEditingController(text: item.name);
     Color selectedColor = item.color;
 
@@ -48,15 +48,15 @@ class _CategoriesCustomizationScreenState
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: cardBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
-            side: const BorderSide(color: AppColors.lightBorder),
+            side: BorderSide(color: borderColor),
           ),
           title: Text(
             'Edit ${_activeTab == CustomizationTab.incomeMethods ? "Income Source" : "Expense Category"}',
-            style: const TextStyle(
-              color: AppColors.lightTextPrimary,
+            style: TextStyle(
+              color: textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
@@ -65,58 +65,60 @@ class _CategoriesCustomizationScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Name',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 12,
                 ),
               ),
               const SizedBox(height: 6),
               TextField(
                 controller: controller,
-                style: const TextStyle(
-                  color: AppColors.lightTextPrimary,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 14,
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppColors.lightSubContainer,
+                  fillColor: subContainer,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 12,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.lightBorder),
+                    borderSide: BorderSide(color: borderColor),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Card Accent Color',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 12,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: _palette.map((col) {
-                  final isSel = col.toARGB32() == selectedColor.toARGB32();
+                spacing: 8,
+                runSpacing: 8,
+                children: _palette.map((c) {
+                  final isSel = selectedColor.toARGB32() == c.toARGB32();
                   return GestureDetector(
-                    onTap: () => setDialogState(() => selectedColor = col),
+                    onTap: () {
+                      setDialogState(() => selectedColor = c);
+                    },
                     child: Container(
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: col,
+                        color: c,
                         shape: BoxShape.circle,
                         border: isSel
-                            ? Border.all(color: AppColors.lightTextPrimary, width: 2.5)
-                            : Border.all(color: AppColors.lightBorder, width: 1),
+                            ? Border.all(color: Colors.white, width: 3)
+                            : null,
                       ),
                     ),
                   );
@@ -127,9 +129,9 @@ class _CategoriesCustomizationScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(color: AppColors.lightTextSecondary),
+                style: TextStyle(color: textSecondary),
               ),
             ),
             TextButton(
@@ -167,7 +169,7 @@ class _CategoriesCustomizationScreenState
                 Navigator.of(ctx).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF98E836),
+                backgroundColor: accentColor,
                 foregroundColor: const Color(0xFF0C0F14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -181,7 +183,7 @@ class _CategoriesCustomizationScreenState
     );
   }
 
-  void _showAddDialog() {
+  void _showAddDialog(Color cardBg, Color borderColor, Color textPrimary, Color textSecondary, Color subContainer, Color accentColor) {
     final controller = TextEditingController();
     Color selectedColor = _palette.first;
 
@@ -189,15 +191,15 @@ class _CategoriesCustomizationScreenState
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: cardBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
-            side: const BorderSide(color: AppColors.lightBorder),
+            side: BorderSide(color: borderColor),
           ),
           title: Text(
             'Add ${_activeTab == CustomizationTab.incomeMethods ? "Income Source" : "Expense Category"}',
-            style: const TextStyle(
-              color: AppColors.lightTextPrimary,
+            style: TextStyle(
+              color: textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
@@ -206,10 +208,10 @@ class _CategoriesCustomizationScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Title',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 12,
                 ),
               ),
@@ -217,53 +219,55 @@ class _CategoriesCustomizationScreenState
               TextField(
                 controller: controller,
                 autofocus: true,
-                style: const TextStyle(
-                  color: AppColors.lightTextPrimary,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 14,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'e.g. Dividend Payouts / Subscriptions',
-                  hintStyle: const TextStyle(
-                    color: AppColors.lightTextSecondary,
+                  hintText: 'e.g. Dividend Income, Investments',
+                  hintStyle: TextStyle(
+                    color: textSecondary.withValues(alpha: 0.6),
                     fontSize: 13,
                   ),
                   filled: true,
-                  fillColor: AppColors.lightSubContainer,
+                  fillColor: subContainer,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 12,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.lightBorder),
+                    borderSide: BorderSide(color: borderColor),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Badge Color',
+              Text(
+                'Color Theme',
                 style: TextStyle(
-                  color: AppColors.lightTextSecondary,
+                  color: textSecondary,
                   fontSize: 12,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: _palette.map((col) {
-                  final isSel = col.toARGB32() == selectedColor.toARGB32();
+                spacing: 8,
+                runSpacing: 8,
+                children: _palette.map((c) {
+                  final isSel = selectedColor.toARGB32() == c.toARGB32();
                   return GestureDetector(
-                    onTap: () => setDialogState(() => selectedColor = col),
+                    onTap: () {
+                      setDialogState(() => selectedColor = c);
+                    },
                     child: Container(
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: col,
+                        color: c,
                         shape: BoxShape.circle,
                         border: isSel
-                            ? Border.all(color: AppColors.lightTextPrimary, width: 2.5)
-                            : Border.all(color: AppColors.lightBorder, width: 1),
+                            ? Border.all(color: Colors.white, width: 3)
+                            : null,
                       ),
                     ),
                   );
@@ -274,9 +278,9 @@ class _CategoriesCustomizationScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
+              child: Text(
                 'Cancel',
-                style: TextStyle(color: AppColors.lightTextSecondary),
+                style: TextStyle(color: textSecondary),
               ),
             ),
             ElevatedButton(
@@ -292,7 +296,7 @@ class _CategoriesCustomizationScreenState
                 Navigator.of(ctx).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF98E836),
+                backgroundColor: accentColor,
                 foregroundColor: const Color(0xFF0C0F14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -313,11 +317,19 @@ class _CategoriesCustomizationScreenState
     final applyToSub = ref.watch(applySubDashboardsLayoutProvider);
     final accentColor = ref.watch(accentColorProvider).color;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     final isIncome = _activeTab == CustomizationTab.incomeMethods;
     final currentItems = isIncome ? incomeItems : expenseItems;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -334,22 +346,22 @@ class _CategoriesCustomizationScreenState
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         size: 26,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Analytics Customization',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
@@ -363,17 +375,17 @@ class _CategoriesCustomizationScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Customize Sectors & Categories',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -392,12 +404,12 @@ class _CategoriesCustomizationScreenState
                               decoration: BoxDecoration(
                                 color: isIncome
                                     ? accentColor.withValues(alpha: 0.15)
-                                    : AppColors.lightSubContainer,
+                                    : subContainer,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isIncome
                                       ? accentColor
-                                      : AppColors.lightBorder,
+                                      : borderColor,
                                   width: isIncome ? 1.5 : 1,
                                 ),
                               ),
@@ -407,7 +419,7 @@ class _CategoriesCustomizationScreenState
                                   style: TextStyle(
                                     color: isIncome
                                         ? accentColor
-                                        : AppColors.lightTextSecondary,
+                                        : textSecondary,
                                     fontSize: 13,
                                     fontWeight: isIncome
                                         ? FontWeight.w700
@@ -428,12 +440,12 @@ class _CategoriesCustomizationScreenState
                               decoration: BoxDecoration(
                                 color: !isIncome
                                     ? accentColor.withValues(alpha: 0.15)
-                                    : AppColors.lightSubContainer,
+                                    : subContainer,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: !isIncome
                                       ? accentColor
-                                      : AppColors.lightBorder,
+                                      : borderColor,
                                   width: !isIncome ? 1.5 : 1,
                                 ),
                               ),
@@ -443,7 +455,7 @@ class _CategoriesCustomizationScreenState
                                   style: TextStyle(
                                     color: !isIncome
                                         ? accentColor
-                                        : AppColors.lightTextSecondary,
+                                        : textSecondary,
                                     fontSize: 13,
                                     fontWeight: !isIncome
                                         ? FontWeight.w700
@@ -485,7 +497,7 @@ class _CategoriesCustomizationScreenState
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () => _showEditDialog(item),
+                                onTap: () => _showEditDialog(item, cardBg, borderColor, textPrimary, textSecondary, subContainer, accentColor),
                                 child: const Text(
                                   'Edit',
                                   style: TextStyle(
@@ -503,12 +515,12 @@ class _CategoriesCustomizationScreenState
 
                     // Add Custom Button
                     GestureDetector(
-                      onTap: _showAddDialog,
+                      onTap: () => _showAddDialog(cardBg, borderColor, textPrimary, textSecondary, subContainer, accentColor),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: accentColor,
@@ -539,25 +551,27 @@ class _CategoriesCustomizationScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Apply Layout to All 3 Sub-Dashboards',
                         style: TextStyle(
-                          color: AppColors.lightTextPrimary,
+                          color: textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    Switch(
+                    Switch.adaptive(
                       value: applyToSub,
+                      activeColor: Colors.white,
+                      activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref
                             .read(applySubDashboardsLayoutProvider.notifier)
@@ -577,7 +591,7 @@ class _CategoriesCustomizationScreenState
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        backgroundColor: Colors.white,
+                        backgroundColor: cardBg,
                         content: Row(
                           children: [
                             Icon(
@@ -586,11 +600,11 @@ class _CategoriesCustomizationScreenState
                               size: 20,
                             ),
                             const SizedBox(width: 10),
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Customization applied successfully.',
                                 style: TextStyle(
-                                  color: AppColors.lightTextPrimary,
+                                  color: textPrimary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                 ),

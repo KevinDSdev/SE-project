@@ -26,13 +26,19 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
   ];
 
   void _showTransactionDetails(FlaggedTransactionItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
         title: Row(
           children: [
@@ -52,8 +58,8 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
             Expanded(
               child: Text(
                 item.title,
-                style: const TextStyle(
-                  color: AppColors.lightTextPrimary,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -65,20 +71,24 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow('Category', item.category),
+            _buildDetailRow('Category', item.category, textColor: textPrimary, labelColor: textSecondary),
             const SizedBox(height: 10),
-            _buildDetailRow('Transaction Date', item.date),
+            _buildDetailRow('Transaction Date', item.date, textColor: textPrimary, labelColor: textSecondary),
             const SizedBox(height: 10),
             _buildDetailRow(
               '6-Month Baseline',
               'LKR ${item.baseline.toInt()}',
               valueColor: const Color(0xFF0284C7),
+              textColor: textPrimary,
+              labelColor: textSecondary,
             ),
             const SizedBox(height: 10),
             _buildDetailRow(
               'Oct Actual Charged',
               'LKR ${item.amount.toInt()}',
               valueColor: const Color(0xFFF43F5E),
+              textColor: textPrimary,
+              labelColor: textSecondary,
             ),
             const SizedBox(height: 10),
             _buildDetailRow(
@@ -86,15 +96,17 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
               '+LKR ${(item.amount - item.baseline).toInt()} (+${(((item.amount - item.baseline) / item.baseline) * 100).toStringAsFixed(0)}%)',
               valueColor: const Color(0xFFF43F5E),
               isBold: true,
+              textColor: textPrimary,
+              labelColor: textSecondary,
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
+            child: Text(
               'Close',
-              style: TextStyle(color: AppColors.lightTextSecondary),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -103,11 +115,11 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: cardBg,
                   content: Text(
                     'Marked "${item.title}" as reviewed.',
-                    style: const TextStyle(
-                      color: AppColors.lightTextPrimary,
+                    style: TextStyle(
+                      color: textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -141,21 +153,23 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     String value, {
     Color? valueColor,
     bool isBold = false,
+    required Color textColor,
+    required Color labelColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.lightTextSecondary,
+          style: TextStyle(
+            color: labelColor,
             fontSize: 13,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            color: valueColor ?? AppColors.lightTextPrimary,
+            color: valueColor ?? textColor,
             fontSize: 14,
             fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
           ),
@@ -165,18 +179,23 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
   }
 
   void _showPeriodPicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Select Period',
           style: TextStyle(
-            color: AppColors.lightTextPrimary,
+            color: textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -193,8 +212,8 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
             return ListTile(
               title: Text(
                 period,
-                style: const TextStyle(
-                  color: AppColors.lightTextPrimary,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 14,
                 ),
               ),
@@ -217,8 +236,16 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     final flaggedList = ref.watch(flaggedTransactionsProvider);
     final count = flaggedList.length;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -238,22 +265,22 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.lightBorder),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.chevron_left_rounded,
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             size: 26,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Spending Anomaly Analysis',
                         style: TextStyle(
-                          color: AppColors.lightTextPrimary,
+                          color: textPrimary,
                           fontSize: 19,
                           fontWeight: FontWeight.w800,
                         ),
@@ -290,17 +317,17 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Unusual Spendings',
                       style: TextStyle(
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -311,8 +338,8 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                       children: [
                         Text(
                           '$count Anomalies',
-                          style: const TextStyle(
-                            color: AppColors.lightTextPrimary,
+                          style: TextStyle(
+                            color: textPrimary,
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
                           ),
@@ -344,26 +371,26 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.lightSubContainer,
+                        color: subContainer,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
                                   '6-Mo Normal Avg',
                                   style: TextStyle(
-                                    color: AppColors.lightTextSecondary,
+                                    color: textSecondary,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   'LKR 289,300',
                                   style: TextStyle(
                                     color: Color(0xFF0284C7),
@@ -377,26 +404,26 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                           Container(
                             width: 1,
                             height: 34,
-                            color: AppColors.lightBorder,
+                            color: borderColor,
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
                                   'Oct Actual Spend',
                                   style: TextStyle(
-                                    color: AppColors.lightTextSecondary,
+                                    color: textSecondary,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
                                   'LKR 339,000',
                                   style: TextStyle(
-                                    color: AppColors.lightTextPrimary,
+                                    color: textPrimary,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -417,7 +444,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
                 ),
@@ -450,9 +477,9 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,32 +487,32 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Category Spike Breakdown',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Row(
-                          children: const [
-                            Icon(Icons.circle, color: Color(0xFF38BDF8), size: 8),
-                            SizedBox(width: 4),
+                          children: [
+                            const Icon(Icons.circle, color: Color(0xFF38BDF8), size: 8),
+                            const SizedBox(width: 4),
                             Text(
                               'Baseline',
                               style: TextStyle(
-                                color: AppColors.lightTextSecondary,
+                                color: textSecondary,
                                 fontSize: 10,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.circle, color: Color(0xFFF43F5E), size: 8),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.circle, color: Color(0xFFF43F5E), size: 8),
+                            const SizedBox(width: 4),
                             Text(
                               'Oct Spend',
                               style: TextStyle(
-                                color: AppColors.lightTextSecondary,
+                                color: textSecondary,
                                 fontSize: 10,
                               ),
                             ),
@@ -526,10 +553,10 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Flagged Transactions',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -551,14 +578,14 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: borderColor),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'All flagged transactions have been reviewed.',
-                      style: TextStyle(color: AppColors.lightTextSecondary),
+                      style: TextStyle(color: textSecondary),
                     ),
                   ),
                 )
@@ -574,7 +601,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: const Color(0xFFF43F5E).withValues(alpha: 0.3),
@@ -602,8 +629,8 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                                 children: [
                                   Text(
                                     item.title,
-                                    style: const TextStyle(
-                                      color: AppColors.lightTextPrimary,
+                                    style: TextStyle(
+                                      color: textPrimary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -611,8 +638,8 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '${item.date} • ${item.category}',
-                                    style: const TextStyle(
-                                      color: AppColors.lightTextSecondary,
+                                    style: TextStyle(
+                                      color: textSecondary,
                                       fontSize: 11,
                                     ),
                                   ),
@@ -633,8 +660,8 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   '+${(((item.amount - item.baseline) / item.baseline) * 100).toStringAsFixed(0)}% spike',
-                                  style: const TextStyle(
-                                    color: AppColors.lightTextSecondary,
+                                  style: TextStyle(
+                                    color: textSecondary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w500,
                                   ),

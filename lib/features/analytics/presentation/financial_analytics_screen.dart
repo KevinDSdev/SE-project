@@ -26,8 +26,8 @@ class FinancialAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _FinancialAnalyticsScreenState
     extends ConsumerState<FinancialAnalyticsScreen> {
-  int _selectedMonthIndex = 5; // Default Oct (index 5)
-  final NumberFormat _currencyFormat = NumberFormat('#,###');
+  final NumberFormat _currencyFormat = NumberFormat('#,##,000');
+  int _selectedMonthIndex = 5; // Default October
 
   final List<Map<String, dynamic>> _monthlyData = [
     {
@@ -39,26 +39,26 @@ class _FinancialAnalyticsScreenState
     {
       'month': 'Jun',
       'income': 450000.0,
-      'expense': 295000.0,
+      'expense': 310000.0,
       'savings': 18000.0,
     },
     {
       'month': 'Jul',
-      'income': 470000.0,
-      'expense': 260000.0,
-      'savings': 14000.0,
+      'income': 480000.0,
+      'expense': 295000.0,
+      'savings': 20000.0,
     },
     {
       'month': 'Aug',
-      'income': 510000.0,
-      'expense': 290000.0,
-      'savings': 22000.0,
+      'income': 460000.0,
+      'expense': 340000.0,
+      'savings': 12000.0,
     },
     {
       'month': 'Sep',
-      'income': 490000.0,
+      'income': 510000.0,
       'expense': 305000.0,
-      'savings': 19000.0,
+      'savings': 25000.0,
     },
     {
       'month': 'Oct',
@@ -75,6 +75,13 @@ class _FinancialAnalyticsScreenState
     final accentColor = ref.watch(accentColorProvider).color;
     final widgetsState = ref.watch(dashboardWidgetsProvider);
     final activeIds = widgetsState.activeWidgets.map((w) => w.id).toSet();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
 
     final activeMonth = _monthlyData[_selectedMonthIndex];
 
@@ -101,7 +108,7 @@ class _FinancialAnalyticsScreenState
     final hasAnySummary = showIncome || showExpense || showSavings;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -124,22 +131,22 @@ class _FinancialAnalyticsScreenState
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         size: 26,
                       ),
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Text(
+                  Text(
                     'Financial Analytics',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.3,
@@ -154,10 +161,10 @@ class _FinancialAnalyticsScreenState
                 height: 44,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: AppColors.lightBorder,
+                    color: borderColor,
                   ),
                 ),
                 child: Row(
@@ -167,18 +174,21 @@ class _FinancialAnalyticsScreenState
                       'Weekly',
                       selectedPeriod,
                       accentColor,
+                      textSecondary,
                     ),
                     _buildPeriodItem(
                       AnalyticsPeriod.monthly,
                       'Monthly',
                       selectedPeriod,
                       accentColor,
+                      textSecondary,
                     ),
                     _buildPeriodItem(
                       AnalyticsPeriod.yearly,
                       'Yearly',
                       selectedPeriod,
                       accentColor,
+                      textSecondary,
                     ),
                   ],
                 ),
@@ -246,9 +256,9 @@ class _FinancialAnalyticsScreenState
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,34 +266,34 @@ class _FinancialAnalyticsScreenState
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Income vs Expenses (May – Oct)',
                             style: TextStyle(
-                              color: AppColors.lightTextPrimary,
+                              color: textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           Row(
-                            children: const [
-                              Icon(Icons.circle,
+                            children: [
+                              const Icon(Icons.circle,
                                   color: Color(0xFF98E836), size: 8),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
                                 'In',
                                 style: TextStyle(
-                                  color: AppColors.lightTextSecondary,
+                                  color: textSecondary,
                                   fontSize: 11,
                                 ),
                               ),
-                              SizedBox(width: 10),
-                              Icon(Icons.circle,
+                              const SizedBox(width: 10),
+                              const Icon(Icons.circle,
                                   color: Color(0xFFF43F5E), size: 8),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
                                 'Ex',
                                 style: TextStyle(
-                                  color: AppColors.lightTextSecondary,
+                                  color: textSecondary,
                                   fontSize: 11,
                                 ),
                               ),
@@ -328,20 +338,22 @@ class _FinancialAnalyticsScreenState
               ],
 
               // Dynamically Pinned Extra Widgets from Dashboard Widgets Screen
-              ..._buildPinnedWidgets(context, activeIds),
+              ..._buildPinnedWidgets(context, activeIds, cardBg, borderColor, textPrimary, textSecondary),
 
-              // Quick Actions Grid (5 cards: Transaction History removed)
+              // Quick Actions Grid (5 cards: Exactly matching authoritative PNG reference)
               Row(
                 children: [
                   Expanded(
                     child: _buildActionCard(
                       title: 'Income Prediction',
                       subtitle: 'Analysis',
+                      cardBg: cardBg,
                       borderColor: const Color(0xFF98E836),
-                      titleColor: const Color(0xFF65A30D),
+                      titleColor: const Color(0xFF98E836),
+                      textSecondary: textSecondary,
                       icon: Icons.trending_up_rounded,
                       iconBgColor: const Color(0xFF98E836).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFF65A30D),
+                      iconColor: const Color(0xFF98E836),
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const PredictionAnalysisScreen(
@@ -356,11 +368,13 @@ class _FinancialAnalyticsScreenState
                     child: _buildActionCard(
                       title: 'Expenses Prediction',
                       subtitle: 'Analysis',
+                      cardBg: cardBg,
                       borderColor: const Color(0xFFF43F5E),
-                      titleColor: const Color(0xFFE11D48),
+                      titleColor: const Color(0xFFF43F5E),
+                      textSecondary: textSecondary,
                       icon: Icons.query_stats_rounded,
                       iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFFE11D48),
+                      iconColor: const Color(0xFFF43F5E),
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const PredictionAnalysisScreen(
@@ -379,11 +393,13 @@ class _FinancialAnalyticsScreenState
                     child: _buildActionCard(
                       title: 'Import Statements',
                       subtitle: 'PDF, XLS',
+                      cardBg: cardBg,
                       borderColor: const Color(0xFF38BDF8),
-                      titleColor: const Color(0xFF0284C7),
+                      titleColor: const Color(0xFF38BDF8),
+                      textSecondary: textSecondary,
                       icon: Icons.file_download_outlined,
                       iconBgColor: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFF0284C7),
+                      iconColor: const Color(0xFF38BDF8),
                       onTap: () {
                         ImportStatementsDialog.show(context);
                       },
@@ -394,11 +410,13 @@ class _FinancialAnalyticsScreenState
                     child: _buildActionCard(
                       title: 'Export Hub',
                       subtitle: 'PDF, CSV',
+                      cardBg: cardBg,
                       borderColor: const Color(0xFF38BDF8),
-                      titleColor: const Color(0xFF0284C7),
+                      titleColor: const Color(0xFF38BDF8),
+                      textSecondary: textSecondary,
                       icon: Icons.file_upload_outlined,
                       iconBgColor: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFF0284C7),
+                      iconColor: const Color(0xFF38BDF8),
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const ReportExportScreen()),
@@ -415,11 +433,13 @@ class _FinancialAnalyticsScreenState
                     child: _buildActionCard(
                       title: 'Anomaly Detection',
                       subtitle: 'PDF, XLS',
+                      cardBg: cardBg,
                       borderColor: const Color(0xFFF43F5E),
-                      titleColor: const Color(0xFFE11D48),
+                      titleColor: const Color(0xFFF43F5E),
+                      textSecondary: textSecondary,
                       icon: Icons.warning_amber_rounded,
                       iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFFE11D48),
+                      iconColor: const Color(0xFFF43F5E),
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const SpendingAnomalyScreen()),
@@ -439,12 +459,23 @@ class _FinancialAnalyticsScreenState
     );
   }
 
-  List<Widget> _buildPinnedWidgets(BuildContext context, Set<String> activeIds) {
+  List<Widget> _buildPinnedWidgets(
+    BuildContext context,
+    Set<String> activeIds,
+    Color cardBg,
+    Color borderColor,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
     final widgets = <Widget>[];
 
     if (activeIds.contains('avail_inc_pred')) {
       widgets.add(_buildPinnedCard(
         context,
+        cardBg: cardBg,
+        borderColor: borderColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
         title: 'Income Prediction Analytics',
         subtitle: 'Projected next month: LKR 540,000 (High 92%)',
         color: const Color(0xFF98E836),
@@ -458,6 +489,10 @@ class _FinancialAnalyticsScreenState
     if (activeIds.contains('avail_exp_pred')) {
       widgets.add(_buildPinnedCard(
         context,
+        cardBg: cardBg,
+        borderColor: borderColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
         title: 'Expenses Prediction Analytics',
         subtitle: 'Projected next month: LKR 330,000 (High 88%)',
         color: const Color(0xFFF43F5E),
@@ -471,6 +506,10 @@ class _FinancialAnalyticsScreenState
     if (activeIds.contains('avail_anomaly')) {
       widgets.add(_buildPinnedCard(
         context,
+        cardBg: cardBg,
+        borderColor: borderColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
         title: 'Anomaly Detection Analytics',
         subtitle: '1 unusual spending spike flagged in Oct',
         color: const Color(0xFFF59E0B),
@@ -484,6 +523,10 @@ class _FinancialAnalyticsScreenState
     if (activeIds.contains('avail_inc_analytics')) {
       widgets.add(_buildPinnedCard(
         context,
+        cardBg: cardBg,
+        borderColor: borderColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
         title: 'Income Analytics Details',
         subtitle: 'Primary Salary, Rent Inflow, Freelance',
         color: const Color(0xFF98E836),
@@ -497,6 +540,10 @@ class _FinancialAnalyticsScreenState
     if (activeIds.contains('avail_exp_analytics')) {
       widgets.add(_buildPinnedCard(
         context,
+        cardBg: cardBg,
+        borderColor: borderColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
         title: 'Expenses Analytics Details',
         subtitle: 'Food & Groceries, Transport, Utilities',
         color: const Color(0xFFF43F5E),
@@ -510,6 +557,10 @@ class _FinancialAnalyticsScreenState
     if (activeIds.contains('avail_goal_analytics')) {
       widgets.add(_buildPinnedCard(
         context,
+        cardBg: cardBg,
+        borderColor: borderColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
         title: 'Goal Savings Analytics Details',
         subtitle: 'Emergency Fund, Vehicle, Vacation',
         color: const Color(0xFF38BDF8),
@@ -525,6 +576,10 @@ class _FinancialAnalyticsScreenState
 
   Widget _buildPinnedCard(
     BuildContext context, {
+    required Color cardBg,
+    required Color borderColor,
+    required Color textPrimary,
+    required Color textSecondary,
     required String title,
     required String subtitle,
     required Color color,
@@ -538,9 +593,9 @@ class _FinancialAnalyticsScreenState
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.lightBorder),
+            border: Border.all(color: borderColor),
           ),
           child: Row(
             children: [
@@ -560,8 +615,8 @@ class _FinancialAnalyticsScreenState
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppColors.lightTextPrimary,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -569,17 +624,17 @@ class _FinancialAnalyticsScreenState
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppColors.lightTextSecondary,
+                      style: TextStyle(
+                        color: textSecondary,
                         fontSize: 11,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.lightTextSecondary,
+                color: textSecondary,
                 size: 20,
               ),
             ],
@@ -594,6 +649,7 @@ class _FinancialAnalyticsScreenState
     String label,
     AnalyticsPeriod current,
     Color accentColor,
+    Color textSecondary,
   ) {
     final isSelected = current == period;
     return Expanded(
@@ -612,7 +668,7 @@ class _FinancialAnalyticsScreenState
               style: TextStyle(
                 color: isSelected
                     ? const Color(0xFF0C0F14)
-                    : AppColors.lightTextSecondary,
+                    : textSecondary,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
@@ -700,8 +756,10 @@ class _FinancialAnalyticsScreenState
   Widget _buildActionCard({
     required String title,
     required String subtitle,
+    required Color cardBg,
     required Color borderColor,
     required Color titleColor,
+    required Color textSecondary,
     required IconData icon,
     required Color iconBgColor,
     required Color iconColor,
@@ -713,7 +771,7 @@ class _FinancialAnalyticsScreenState
         height: 68,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: borderColor, width: 1.2),
         ),
@@ -749,8 +807,8 @@ class _FinancialAnalyticsScreenState
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: AppColors.lightTextSecondary,
+                    style: TextStyle(
+                      color: textSecondary,
                       fontSize: 10,
                       fontWeight: FontWeight.w400,
                     ),

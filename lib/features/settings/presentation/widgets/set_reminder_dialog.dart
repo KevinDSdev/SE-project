@@ -40,6 +40,12 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
   @override
   Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     return Container(
       padding: EdgeInsets.only(
@@ -48,11 +54,11 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
         right: 20,
         top: 20,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(
-          top: BorderSide(color: AppColors.lightBorder, width: 1.5),
+          top: BorderSide(color: borderColor, width: 1.5),
         ),
       ),
       child: Column(
@@ -64,7 +70,7 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.lightBorder,
+                color: borderColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -73,31 +79,31 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Set Custom Reminder',
                 style: TextStyle(
-                  color: AppColors.lightTextPrimary,
+                  color: textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: AppColors.lightTextSecondary),
+                icon: Icon(Icons.close, color: textSecondary),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
-          const Text(
+          Text(
             'Receive reminders to review budgets or log cash transactions.',
-            style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 13),
+            style: TextStyle(color: textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 20),
 
           // Title
-          const Text(
+          Text(
             'REMINDER TITLE',
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -106,19 +112,19 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
           const SizedBox(height: 8),
           TextField(
             controller: _titleController,
-            style: const TextStyle(color: AppColors.lightTextPrimary, fontSize: 14),
+            style: TextStyle(color: textPrimary, fontSize: 14),
             decoration: InputDecoration(
               filled: true,
-              fillColor: AppColors.lightSubContainer,
+              fillColor: subContainer,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: AppColors.lightBorder),
+                borderSide: BorderSide(color: borderColor),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: AppColors.lightBorder),
+                borderSide: BorderSide(color: borderColor),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -129,10 +135,10 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
           const SizedBox(height: 18),
 
           // Time Picker
-          const Text(
+          Text(
             'REMINDER TIME',
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -152,9 +158,9 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.lightSubContainer,
+                color: subContainer,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.lightBorder),
+                border: Border.all(color: borderColor),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -166,8 +172,8 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
                       const SizedBox(width: 10),
                       Text(
                         _selectedTime.format(context),
-                        style: const TextStyle(
-                          color: AppColors.lightTextPrimary,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -189,10 +195,10 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
           const SizedBox(height: 18),
 
           // Recurrence
-          const Text(
+          Text(
             'RECURRENCE',
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -211,10 +217,10 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
                     decoration: BoxDecoration(
                       color: isSel
                           ? accentColor.withValues(alpha: 0.15)
-                          : AppColors.lightSubContainer,
+                          : subContainer,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSel ? accentColor : AppColors.lightBorder,
+                        color: isSel ? accentColor : borderColor,
                         width: isSel ? 1.6 : 1,
                       ),
                     ),
@@ -222,7 +228,7 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
                       child: Text(
                         opt,
                         style: TextStyle(
-                          color: isSel ? accentColor : AppColors.lightTextSecondary,
+                          color: isSel ? accentColor : textSecondary,
                           fontSize: 13,
                           fontWeight:
                               isSel ? FontWeight.w700 : FontWeight.w500,
@@ -253,10 +259,10 @@ class _SetReminderDialogState extends ConsumerState<SetReminderDialog> {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    backgroundColor: Colors.white,
+                    backgroundColor: cardBg,
                     content: Text(
                       'Reminder "$title" scheduled at ${_selectedTime.format(context)} ($_selectedRecurrence).',
-                      style: const TextStyle(color: AppColors.lightTextPrimary, fontSize: 13),
+                      style: TextStyle(color: textPrimary, fontSize: 13),
                     ),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(

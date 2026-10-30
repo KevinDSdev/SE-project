@@ -46,6 +46,7 @@ class NotificationsEnabledNotifier extends Notifier<bool> {
 
   void toggle() => state = !state;
   void setVal(bool val) => state = val;
+  void setEnabled(bool val) => state = val;
 }
 
 final notificationsEnabledProvider =
@@ -71,6 +72,7 @@ class GpsSuggestionsNotifier extends Notifier<bool> {
 
   void toggle() => state = !state;
   void setVal(bool val) => state = val;
+  void setEnabled(bool val) => state = val;
 }
 
 final gpsSuggestionsProvider =
@@ -84,6 +86,7 @@ class CloudSyncNotifier extends Notifier<bool> {
 
   void toggle() => state = !state;
   void setVal(bool val) => state = val;
+  void setEnabled(bool val) => state = val;
 }
 
 final cloudSyncProvider =
@@ -97,6 +100,7 @@ class BiometricsNotifier extends Notifier<bool> {
 
   void toggle() => state = !state;
   void setVal(bool val) => state = val;
+  void setEnabled(bool val) => state = val;
 }
 
 final biometricsProvider =

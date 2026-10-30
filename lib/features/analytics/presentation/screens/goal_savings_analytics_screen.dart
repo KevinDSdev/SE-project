@@ -66,19 +66,24 @@ class _GoalSavingsAnalyticsScreenState
     },
   };
 
-  void _showPeriodPicker(String currentPeriod) {
+  void _showPeriodPicker(BuildContext context, String currentPeriod) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.lightBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Select Period',
           style: TextStyle(
-            color: AppColors.lightTextPrimary,
+            color: textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -95,8 +100,8 @@ class _GoalSavingsAnalyticsScreenState
             return ListTile(
               title: Text(
                 period,
-                style: const TextStyle(
-                  color: AppColors.lightTextPrimary,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 14,
                 ),
               ),
@@ -116,6 +121,14 @@ class _GoalSavingsAnalyticsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
     final defaultPeriod = ref.watch(selectedPeriodProvider);
@@ -131,7 +144,7 @@ class _GoalSavingsAnalyticsScreenState
         _goalsData[_selectedFilter] ?? _goalsData['Emergency Fund']!;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -151,22 +164,22 @@ class _GoalSavingsAnalyticsScreenState
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.lightBorder),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.chevron_left_rounded,
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             size: 26,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Goal Savings Analytics',
                         style: TextStyle(
-                          color: AppColors.lightTextPrimary,
+                          color: textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -174,7 +187,7 @@ class _GoalSavingsAnalyticsScreenState
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => _showPeriodPicker(periodLabel),
+                    onTap: () => _showPeriodPicker(context, periodLabel),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -203,7 +216,7 @@ class _GoalSavingsAnalyticsScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border:
                       Border.all(color: const Color(0xFF38BDF8), width: 1.5),
@@ -262,12 +275,12 @@ class _GoalSavingsAnalyticsScreenState
                           decoration: BoxDecoration(
                             color: isSel
                                 ? const Color(0xFF38BDF8)
-                                : Colors.white,
+                                : cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSel
                                   ? const Color(0xFF38BDF8)
-                                  : AppColors.lightBorder,
+                                  : borderColor,
                             ),
                           ),
                           child: Row(
@@ -278,7 +291,7 @@ class _GoalSavingsAnalyticsScreenState
                                 style: TextStyle(
                                   color: isSel
                                       ? const Color(0xFF0C0F14)
-                                      : AppColors.lightTextSecondary,
+                                      : textSecondary,
                                   fontSize: 13,
                                   fontWeight:
                                       isSel ? FontWeight.w700 : FontWeight.w500,
@@ -307,9 +320,9 @@ class _GoalSavingsAnalyticsScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,8 +333,8 @@ class _GoalSavingsAnalyticsScreenState
                         Expanded(
                           child: Text(
                             currentGoal['title'] as String,
-                            style: const TextStyle(
-                              color: AppColors.lightTextPrimary,
+                            style: TextStyle(
+                              color: textPrimary,
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
@@ -330,8 +343,8 @@ class _GoalSavingsAnalyticsScreenState
                         const SizedBox(width: 8),
                         Text(
                           currentGoal['target'] as String,
-                          style: const TextStyle(
-                            color: AppColors.lightTextSecondary,
+                          style: TextStyle(
+                            color: textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -353,7 +366,7 @@ class _GoalSavingsAnalyticsScreenState
                       borderRadius: BorderRadius.circular(6),
                       child: LinearProgressIndicator(
                         value: (currentGoal['progress'] as num).toDouble(),
-                        backgroundColor: AppColors.lightSubContainer,
+                        backgroundColor: subContainer,
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           Color(0xFF98E836),
                         ),
@@ -382,17 +395,17 @@ class _GoalSavingsAnalyticsScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Other Active Savings Targets',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -403,6 +416,7 @@ class _GoalSavingsAnalyticsScreenState
                       name: 'Emergency Fund',
                       amount: 'LKR 45,000',
                       amountColor: const Color(0xFF65A30D),
+                      textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
                     _buildTargetRow(
@@ -410,6 +424,7 @@ class _GoalSavingsAnalyticsScreenState
                       name: 'Vehicle Upgrade',
                       amount: 'LKR 80,000',
                       amountColor: const Color(0xFF0284C7),
+                      textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
                     _buildTargetRow(
@@ -417,6 +432,7 @@ class _GoalSavingsAnalyticsScreenState
                       name: 'Vacation Trip',
                       amount: 'LKR 35,000',
                       amountColor: const Color(0xFFD97706),
+                      textColor: textPrimary,
                     ),
                   ],
                 ),
@@ -434,6 +450,7 @@ class _GoalSavingsAnalyticsScreenState
     required String name,
     required String amount,
     required Color amountColor,
+    required Color textColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -451,8 +468,8 @@ class _GoalSavingsAnalyticsScreenState
             const SizedBox(width: 10),
             Text(
               name,
-              style: const TextStyle(
-                color: AppColors.lightTextPrimary,
+              style: TextStyle(
+                color: textColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),

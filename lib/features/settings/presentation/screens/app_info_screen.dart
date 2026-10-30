@@ -9,9 +9,15 @@ class AppInfoScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -28,22 +34,22 @@ class AppInfoScreen extends ConsumerWidget {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         size: 26,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'App Information',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
@@ -57,9 +63,9 @@ class AppInfoScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,21 +95,21 @@ class AppInfoScreen extends ConsumerWidget {
                         const SizedBox(width: 14),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               'ECORP',
                               style: TextStyle(
-                                color: AppColors.lightTextPrimary,
+                                color: textPrimary,
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
                               'Personal Budgeting App',
                               style: TextStyle(
-                                color: AppColors.lightTextSecondary,
+                                color: textSecondary,
                                 fontSize: 13,
                               ),
                             ),
@@ -154,19 +160,19 @@ class AppInfoScreen extends ConsumerWidget {
                     const SizedBox(height: 18),
 
                     // About description
-                    const Text(
+                    Text(
                       'About the Application',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
+                    Text(
                       'This is a zero-based personal budgeting tool tailored for Sri Lankan users. Assign every LKR a purpose before spending, capture transactions via bank SMS & receipt OCR, and track financial goals.',
                       style: TextStyle(
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                         height: 1.45,
                       ),
@@ -181,17 +187,17 @@ class AppInfoScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Data & Privacy Summary',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -236,17 +242,17 @@ class AppInfoScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Build & Legal Information',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -254,16 +260,16 @@ class AppInfoScreen extends ConsumerWidget {
                     const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
+                      children: [
                         Text(
                           'Developed By',
                           style: TextStyle(
-                              color: AppColors.lightTextSecondary, fontSize: 13),
+                              color: textSecondary, fontSize: 13),
                         ),
                         Text(
                           'Group ECORP',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                           ),
@@ -273,16 +279,16 @@ class AppInfoScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
+                      children: [
                         Text(
                           'Core Stack',
                           style: TextStyle(
-                              color: AppColors.lightTextSecondary, fontSize: 13),
+                              color: textSecondary, fontSize: 13),
                         ),
                         Text(
                           'Flutter • SQLite • Supabase',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                           ),

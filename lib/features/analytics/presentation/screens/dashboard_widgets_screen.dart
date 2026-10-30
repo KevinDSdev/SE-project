@@ -12,8 +12,16 @@ class DashboardWidgetsScreen extends ConsumerWidget {
     final widgetsState = ref.watch(dashboardWidgetsProvider);
     final accentColor = ref.watch(accentColorProvider).color;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -33,22 +41,22 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.lightBorder),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.chevron_left_rounded,
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             size: 26,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Dashboard Layout',
                         style: TextStyle(
-                          color: AppColors.lightTextPrimary,
+                          color: textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -60,11 +68,11 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                       ref.read(dashboardWidgetsProvider.notifier).reset();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          backgroundColor: Colors.white,
-                          content: const Text(
+                          backgroundColor: cardBg,
+                          content: Text(
                             'Dashboard cards reset to default layout.',
                             style: TextStyle(
-                              color: AppColors.lightTextPrimary,
+                              color: textPrimary,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -101,10 +109,10 @@ class DashboardWidgetsScreen extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // Section: Active Dashboard Layout
-              const Text(
+              Text(
                 'Active Dashboard Layout',
                 style: TextStyle(
-                  color: AppColors.lightTextPrimary,
+                  color: textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -117,15 +125,15 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: borderColor),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'No active cards. Tap + below to add cards to dashboard.',
                       style: TextStyle(
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                       ),
                       textAlign: TextAlign.center,
@@ -133,18 +141,27 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   ),
                 )
               else
-                _buildActiveCardsLayout(context, ref, widgetsState.activeWidgets),
+                _buildActiveCardsLayout(
+                  context,
+                  ref,
+                  widgetsState.activeWidgets,
+                  cardBg,
+                  borderColor,
+                  textPrimary,
+                  textSecondary,
+                  subContainer,
+                ),
 
               const SizedBox(height: 22),
 
               // Section: Available Widgets to Add
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
                     'Available Widgets to Add',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -152,7 +169,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   Text(
                     'Tap + to pin',
                     style: TextStyle(
-                      color: AppColors.lightTextSecondary,
+                      color: textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -167,15 +184,15 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: borderColor),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'All widgets are currently active on dashboard.',
                       style: TextStyle(
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -191,9 +208,9 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Row(
                         children: [
@@ -214,8 +231,8 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               item.title,
-                              style: const TextStyle(
-                                color: AppColors.lightTextPrimary,
+                              style: TextStyle(
+                                color: textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -278,11 +295,11 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                     ref.read(dashboardWidgetsProvider.notifier).savePreferences();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        backgroundColor: Colors.white,
-                        content: const Text(
+                        backgroundColor: cardBg,
+                        content: Text(
                           'Preferences saved successfully.',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -325,14 +342,17 @@ class DashboardWidgetsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     List<DashboardWidgetItem> activeWidgets,
+    Color cardBg,
+    Color borderColor,
+    Color textPrimary,
+    Color textSecondary,
+    Color subContainer,
   ) {
-    // Separate small summary cards vs large/full cards
     final incomeItem = activeWidgets.where((w) => w.id == 'active_income').firstOrNull;
     final expenseItem = activeWidgets.where((w) => w.id == 'active_expenses').firstOrNull;
     final savingsItem = activeWidgets.where((w) => w.id == 'active_savings').firstOrNull;
     final trendItem = activeWidgets.where((w) => w.id == 'active_trend').firstOrNull;
 
-    // Additional active widgets
     final otherItems = activeWidgets.where((w) =>
         w.id != 'active_income' &&
         w.id != 'active_expenses' &&
@@ -397,7 +417,16 @@ class DashboardWidgetsScreen extends ConsumerWidget {
         if (trendItem != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildTrendActiveCard(context, ref, trendItem),
+            child: _buildTrendActiveCard(
+              context,
+              ref,
+              trendItem,
+              cardBg,
+              borderColor,
+              textPrimary,
+              textSecondary,
+              subContainer,
+            ),
           ),
 
         // Other pinned active cards
@@ -407,9 +436,9 @@ class DashboardWidgetsScreen extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.lightBorder),
+                border: Border.all(color: borderColor),
               ),
               child: Row(
                 children: [
@@ -429,16 +458,16 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                       children: [
                         Text(
                           item.title,
-                          style: const TextStyle(
-                            color: AppColors.lightTextPrimary,
+                          style: TextStyle(
+                            color: textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
                           item.subtitle,
-                          style: const TextStyle(
-                            color: AppColors.lightTextSecondary,
+                          style: TextStyle(
+                            color: textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -516,13 +545,18 @@ class DashboardWidgetsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     DashboardWidgetItem item,
+    Color cardBg,
+    Color borderColor,
+    Color textPrimary,
+    Color textSecondary,
+    Color subContainer,
   ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.lightBorder),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
@@ -547,8 +581,8 @@ class DashboardWidgetsScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   item.title,
-                  style: const TextStyle(
-                    color: AppColors.lightTextPrimary,
+                  style: TextStyle(
+                    color: textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
@@ -562,7 +596,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.lightSubContainer,
+              color: subContainer,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -585,23 +619,23 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   ],
                 ),
                 Row(
-                  children: const [
-                    Icon(Icons.circle, color: Color(0xFF98E836), size: 7),
-                    SizedBox(width: 4),
+                  children: [
+                    const Icon(Icons.circle, color: Color(0xFF98E836), size: 7),
+                    const SizedBox(width: 4),
                     Text(
                       'In',
                       style: TextStyle(
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         fontSize: 10,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.circle, color: Color(0xFFF43F5E), size: 7),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.circle, color: Color(0xFFF43F5E), size: 7),
+                    const SizedBox(width: 4),
                     Text(
                       'Ex',
                       style: TextStyle(
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         fontSize: 10,
                       ),
                     ),

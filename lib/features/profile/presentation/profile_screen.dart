@@ -27,8 +27,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final userEmail = user?.email ?? 'kavinda.perera@email.lk';
     final accentColor = ref.watch(accentColorProvider).color;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -40,10 +47,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Profile',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
@@ -60,13 +67,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.settings_outlined,
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         size: 20,
                       ),
                     ),
@@ -80,7 +87,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: accentColor, width: 1.5),
                 ),
@@ -109,8 +116,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         children: [
                           Text(
                             userName,
-                            style: const TextStyle(
-                              color: AppColors.lightTextPrimary,
+                            style: TextStyle(
+                              color: textPrimary,
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
@@ -118,8 +125,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const SizedBox(height: 3),
                           Text(
                             userEmail,
-                            style: const TextStyle(
-                              color: AppColors.lightTextSecondary,
+                            style: TextStyle(
+                              color: textSecondary,
                               fontSize: 13,
                             ),
                           ),
@@ -136,28 +143,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       child: Column(
-                        children: const [
+                        children: [
                           Text(
                             'Linked Banks',
                             style: TextStyle(
-                              color: AppColors.lightTextSecondary,
+                              color: textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 5),
+                          const SizedBox(height: 5),
                           Text(
                             '3 Accounts',
                             style: TextStyle(
-                              color: AppColors.lightTextPrimary,
+                              color: textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -168,15 +175,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Container(
                       width: 1,
                       height: 28,
-                      color: AppColors.lightBorder,
+                      color: borderColor,
                     ),
                     Expanded(
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             'Budget Mode',
                             style: TextStyle(
-                              color: AppColors.lightTextSecondary,
+                              color: textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
@@ -196,15 +203,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Container(
                       width: 1,
                       height: 28,
-                      color: AppColors.lightBorder,
+                      color: borderColor,
                     ),
                     Expanded(
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             'CRIB Score',
                             style: TextStyle(
-                              color: AppColors.lightTextSecondary,
+                              color: textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
@@ -213,8 +220,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           RichText(
                             text: TextSpan(
                               text: '785 ',
-                              style: const TextStyle(
-                                color: AppColors.lightTextPrimary,
+                              style: TextStyle(
+                                color: textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -241,9 +248,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Grouped Section 1: Financial Preferences Card
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   children: [
@@ -253,9 +260,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       iconColor: const Color(0xFF38BDF8),
                       title: 'Bank Accounts',
                       subtitle: 'Commercial Bank, Sampath, HNB',
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
                       onTap: () {},
                     ),
-                    _buildDivider(),
+                    _buildDivider(borderColor),
                     // Bank SMS Auto-Sync
                     _buildGroupTile(
                       icon: Icons.chat_bubble_outline_rounded,
@@ -263,6 +272,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       title: 'Bank SMS Auto-Sync',
                       subtitle: 'Auto-log transactions from bank SMS',
                       subtitleColor: const Color(0xFF65A30D),
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -283,24 +294,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       onTap: () {},
                     ),
-                    _buildDivider(),
+                    _buildDivider(borderColor),
                     // Primary Currency
                     _buildGroupTile(
                       icon: Icons.currency_exchange_rounded,
                       iconColor: const Color(0xFFF59E0B),
                       title: 'Primary Currency',
                       subtitle: 'Sri Lankan Rupee (LKR / Rs.)',
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
                       onTap: () {},
                     ),
-                    _buildDivider(),
+                    _buildDivider(borderColor),
                     // Budget Limit Alerts
                     _buildGroupTile(
                       icon: Icons.notifications_none_rounded,
                       iconColor: const Color(0xFF9353D3),
                       title: 'Budget Limit Alerts',
                       subtitle: 'Notify at 80% and 100% threshold',
-                      trailing: Switch(
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      trailing: Switch.adaptive(
                         value: _budgetAlertsEnabled,
+                        activeColor: Colors.white,
+                        activeTrackColor: accentColor,
                         onChanged: (val) {
                           setState(() => _budgetAlertsEnabled = val);
                         },
@@ -317,9 +334,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Grouped Section 2: App & Reports Card
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   children: [
@@ -329,32 +346,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       iconColor: const Color(0xFF98E836),
                       title: 'App Settings',
                       subtitle: 'Preferences, accent color & notifications',
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const SettingsScreen()),
                         );
                       },
                     ),
-                    _buildDivider(),
+                    _buildDivider(borderColor),
                     // Download Statements
                     _buildGroupTile(
                       icon: Icons.description_outlined,
                       iconColor: const Color(0xFF64748B),
                       title: 'Download Statements',
                       subtitle: 'Monthly PDF & CSV tax reports',
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const ReportExportScreen()),
                         );
                       },
                     ),
-                    _buildDivider(),
+                    _buildDivider(borderColor),
                     // Transaction History
                     _buildGroupTile(
                       icon: Icons.receipt_long_outlined,
                       iconColor: const Color(0xFF9353D3),
                       title: 'Transaction History',
                       subtitle: 'Overall information of transaction History',
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const AnalyticsScreen()),
@@ -417,6 +440,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required Color iconColor,
     required String title,
     required String subtitle,
+    required Color textPrimary,
+    required Color textSecondary,
     Color? subtitleColor,
     Widget? trailing,
     required VoidCallback onTap,
@@ -448,8 +473,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppColors.lightTextPrimary,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -458,7 +483,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        color: subtitleColor ?? AppColors.lightTextSecondary,
+                        color: subtitleColor ?? textSecondary,
                         fontSize: 12,
                         fontWeight: subtitleColor != null ? FontWeight.w600 : FontWeight.w400,
                       ),
@@ -467,9 +492,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
               trailing ??
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.lightTextSecondary,
+                    color: textSecondary,
                     size: 22,
                   ),
             ],
@@ -479,13 +504,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildDivider() {
-    return const Divider(
+  Widget _buildDivider(Color borderColor) {
+    return Divider(
       height: 1,
       thickness: 1,
       indent: 68,
       endIndent: 16,
-      color: AppColors.lightBorder,
+      color: borderColor,
     );
   }
 }

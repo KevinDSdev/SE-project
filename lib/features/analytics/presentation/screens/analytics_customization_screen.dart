@@ -20,8 +20,16 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
     final selectedPeriod = ref.watch(selectedPeriodProvider);
     final accentColor = ref.watch(accentColorProvider).color;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -38,22 +46,22 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         size: 26,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Analytics Customization',
                     style: TextStyle(
-                      color: AppColors.lightTextPrimary,
+                      color: textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
@@ -63,10 +71,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // Section 1: Main Dashboard Customization
-              const Text(
+              Text(
                 'Main Dashboard Customization',
                 style: TextStyle(
-                  color: AppColors.lightTextPrimary,
+                  color: textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -76,9 +84,9 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,10 +94,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Chart Style & Data Grouping',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -122,17 +130,17 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Default Period & Saved Filters',
                       style: TextStyle(
-                        color: AppColors.lightTextPrimary,
+                        color: textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -141,16 +149,16 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: AppColors.lightSubContainer,
+                        color: subContainer,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.lightBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Row(
                         children: [
-                          _buildPeriodPill(ref, AnalyticsPeriod.weekly, 'Weekly', selectedPeriod, accentColor),
-                          _buildPeriodPill(ref, AnalyticsPeriod.monthly, 'Monthly', selectedPeriod, accentColor),
-                          _buildPeriodPill(ref, AnalyticsPeriod.yearly, 'Yearly', selectedPeriod, accentColor),
-                          _buildPeriodPill(ref, AnalyticsPeriod.custom, 'Custom', selectedPeriod, accentColor),
+                          _buildPeriodPill(ref, AnalyticsPeriod.weekly, 'Weekly', selectedPeriod, accentColor, textSecondary),
+                          _buildPeriodPill(ref, AnalyticsPeriod.monthly, 'Monthly', selectedPeriod, accentColor, textSecondary),
+                          _buildPeriodPill(ref, AnalyticsPeriod.yearly, 'Yearly', selectedPeriod, accentColor, textSecondary),
+                          _buildPeriodPill(ref, AnalyticsPeriod.custom, 'Custom', selectedPeriod, accentColor, textSecondary),
                         ],
                       ),
                     ),
@@ -160,10 +168,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
               const SizedBox(height: 22),
 
               // Section 2: Sub Dashboard Customization
-              const Text(
+              Text(
                 'Sub Dashboard Customization',
                 style: TextStyle(
-                  color: AppColors.lightTextPrimary,
+                  color: textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -173,9 +181,9 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.lightBorder),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,10 +191,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Chart Style & Data Grouping',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -194,7 +202,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                         Text(
                           'Overall Trend',
                           style: TextStyle(
-                            color: accentColor,
+                            color: const Color(0xFF38BDF8),
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                           ),
@@ -213,10 +221,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Chart Style & Data Grouping',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -259,9 +267,9 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -296,9 +304,9 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Row(
                     children: [
@@ -322,10 +330,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Customize Dashboard Layout Cards',
                               style: TextStyle(
-                                color: AppColors.lightTextPrimary,
+                                color: textPrimary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -342,9 +350,9 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right_rounded,
-                        color: AppColors.lightTextSecondary,
+                        color: textSecondary,
                         size: 24,
                       ),
                     ],
@@ -361,11 +369,11 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        backgroundColor: Colors.white,
-                        content: const Text(
+                        backgroundColor: cardBg,
+                        content: Text(
                           'Analytics customization saved and applied.',
                           style: TextStyle(
-                            color: AppColors.lightTextPrimary,
+                            color: textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -410,6 +418,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
     String label,
     AnalyticsPeriod current,
     Color accentColor,
+    Color textSecondary,
   ) {
     final isSel = current == period;
 
@@ -428,7 +437,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: isSel ? const Color(0xFF0C0F14) : AppColors.lightTextSecondary,
+                color: isSel ? const Color(0xFF0C0F14) : textSecondary,
                 fontSize: 12,
                 fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
               ),

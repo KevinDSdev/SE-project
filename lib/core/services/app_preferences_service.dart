@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferencesService {
   static const String _keyAccentColor = 'ecorp_accent_color';
+  static const String _keyDarkMode = 'ecorp_dark_mode';
   static const String _keyActiveWidgets = 'ecorp_active_widgets';
   static const String _keyMainChartStyle = 'ecorp_main_chart_style';
   static const String _keyDefaultPeriod = 'ecorp_default_period';
@@ -22,6 +23,16 @@ class AppPreferencesService {
 
   static int? getAccentColor() {
     return _prefs?.getInt(_keyAccentColor);
+  }
+
+  // Dark Mode Theme (default: true)
+  static Future<void> saveDarkMode(bool isDark) async {
+    await init();
+    await _prefs?.setBool(_keyDarkMode, isDark);
+  }
+
+  static bool? getDarkMode() {
+    return _prefs?.getBool(_keyDarkMode);
   }
 
   // Active Widgets
