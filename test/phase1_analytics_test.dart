@@ -17,6 +17,8 @@ import 'package:prot/features/navigation/main_wrapper.dart';
 import 'package:prot/features/profile/presentation/profile_screen.dart';
 import 'package:prot/features/settings/presentation/screens/app_info_screen.dart';
 import 'package:prot/features/settings/presentation/settings_screen.dart';
+import 'package:prot/features/settings/providers/settings_provider.dart';
+import 'package:prot/features/budget/presentation/budget_setup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -33,7 +35,7 @@ void main() {
     );
   }
 
-  testWidgets('Financial Analytics Dashboard renders properly with 5 quick actions',
+  testWidgets('Financial Analytics Dashboard renders properly with 4 quick actions',
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget(const FinancialAnalyticsScreen()));
 
@@ -42,12 +44,12 @@ void main() {
     expect(find.text('Income'), findsWidgets);
     expect(find.text('Expenses'), findsWidgets);
     expect(find.text('Goal Savings'), findsWidgets);
-    expect(find.text('Income Prediction'), findsOneWidget);
     expect(find.text('Expenses Prediction'), findsOneWidget);
+    expect(find.text('Anomaly Detection'), findsOneWidget);
     expect(find.text('Import Statements'), findsOneWidget);
     expect(find.text('Export Hub'), findsOneWidget);
-    expect(find.text('Anomaly Detection'), findsOneWidget);
-    // Verified: Transaction History quick action is removed from dashboard
+    // Verified: Income Prediction and Transaction History are removed from dashboard per latest design
+    expect(find.text('Income Prediction'), findsNothing);
     expect(find.text('Transaction History'), findsNothing);
   });
 
@@ -58,16 +60,19 @@ void main() {
     expect(find.text('App Settings'), findsOneWidget);
     expect(find.text('Dark Mode Theme'), findsOneWidget);
     expect(find.text('Primary Accent Color'), findsOneWidget);
-    expect(find.text('Customize Widgets'), findsOneWidget);
-    expect(find.text('Customize Analytical Dashboard'), findsOneWidget);
+    expect(find.text('Customize Analytics Dashboards'), findsOneWidget);
+    expect(find.text('Set Layout'), findsOneWidget);
     expect(find.text('Notifications & Alerts'), findsOneWidget);
     expect(find.text('Daily Log Reminder Time'), findsOneWidget);
+    expect(find.text('Set Reminder'), findsOneWidget);
     expect(find.text('GPS Location Suggestions'), findsOneWidget);
     expect(find.text('Cloud Real-time Auto-Sync'), findsOneWidget);
     expect(find.text('Local Encrypted Database'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
+    expect(find.text('Restore Local Data'), findsOneWidget);
+    expect(find.text('Restore'), findsOneWidget);
     expect(find.text('Biometric Face ID / Fingerprint'), findsOneWidget);
     expect(find.text('App Information'), findsOneWidget);
-    expect(find.text('System Version'), findsOneWidget);
   });
 
   testWidgets('Dashboard Widgets screen renders active and available list with taps',
@@ -110,6 +115,8 @@ void main() {
     expect(find.text('Overall Trend'), findsOneWidget);
     expect(find.text('Category Breakdown'), findsOneWidget);
     expect(find.text('Customize Sectors & Categories'), findsOneWidget);
+    expect(find.text('Set Dashboard Layout'), findsOneWidget);
+    expect(find.text('Save & Apply Customization'), findsOneWidget);
   });
 
   testWidgets('Categories Customization screen renders tabs and items',
@@ -185,35 +192,52 @@ void main() {
     expect(find.text('Other Active Savings Targets'), findsOneWidget);
   });
 
-  testWidgets('Prediction Analysis toggles between Expenses and Income',
+  testWidgets('Expenses Prediction Analysis renders categories and forecast chart without income toggle',
       (WidgetTester tester) async {
-    await tester.pumpWidget(createTestWidget(const PredictionAnalysisScreen(
-      initialMode: PredictionMode.expenses,
-    )));
+    await tester.pumpWidget(createTestWidget(const PredictionAnalysisScreen()));
 
     expect(find.text('Expenses Prediction Analysis'), findsOneWidget);
-    expect(find.text('Expenses Forecast'), findsOneWidget);
-    expect(find.text('Income Forecast'), findsOneWidget);
-    expect(find.text('Nov 2026 Expected Outflow'), findsOneWidget);
-    expect(find.text('LKR 330,000'), findsOneWidget);
+    expect(find.text('Expected Next Month Expense'), findsOneWidget);
+    expect(find.text('LKR 68,000'), findsOneWidget);
+    expect(find.text('Past 5 Months vs. Nov Forecast'), findsOneWidget);
+    expect(find.text('All Outflows'), findsOneWidget);
+    expect(find.text('Food & Grocery'), findsOneWidget);
+    expect(find.text('Transport'), findsOneWidget);
+    expect(find.text('Biils'), findsOneWidget);
 
-    // Tap to switch to Income Forecast
-    await tester.tap(find.text('Income Forecast'));
+    // Verify Income Prediction screen/tab is completely removed
+    expect(find.text('Income Forecast'), findsNothing);
+    expect(find.text('Income Prediction Analysis'), findsNothing);
+  });
+
+  testWidgets(
+      'Financial Analytics Dashboard updates chart and data when switching period (Weekly, Monthly, Yearly)',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget(const FinancialAnalyticsScreen()));
+
+    // Default is Monthly
+    expect(find.text('Income vs Expenses (May – Oct)'), findsOneWidget);
+
+    // Switch to Weekly
+    await tester.tap(find.text('Weekly'));
     await tester.pumpAndSettle();
+    expect(find.text('Income vs Expenses (Weekly)'), findsOneWidget);
 
-    expect(find.text('Income Prediction Analysis'), findsOneWidget);
-    expect(find.text('Nov 2026 Expected Inflow'), findsOneWidget);
-    expect(find.text('LKR 540,000'), findsOneWidget);
+    // Switch to Yearly
+    await tester.tap(find.text('Yearly'));
+    await tester.pumpAndSettle();
+    expect(find.text('Income vs Expenses (2021 – 2026)'), findsOneWidget);
   });
 
   testWidgets('Spending Anomaly Analysis renders detected anomalies and spikes',
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget(const SpendingAnomalyScreen()));
 
-    expect(find.text('Spending Anomaly Analysis'), findsOneWidget);
+    expect(find.text('Anomaly Analysis'), findsOneWidget);
     expect(find.text('Unusual Spendings'), findsOneWidget);
     expect(find.text('Category Spike Breakdown'), findsOneWidget);
     expect(find.text('Flagged Transactions'), findsOneWidget);
+    expect(find.text('Dismiss'), findsOneWidget);
     expect(find.text('CEB Electricity Bill'), findsOneWidget);
     expect(find.text('Pizza Hut'), findsOneWidget);
   });
@@ -240,5 +264,42 @@ void main() {
     expect(find.text('Analytics'), findsOneWidget);
     expect(find.text('Goals'), findsOneWidget);
     expect(find.text('Profile'), findsOneWidget);
+  });
+
+  test('Global accent color provider updates and supports Green, Blue, Purple', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    // Initial default should be Neon Lime Green
+    expect(container.read(accentColorProvider).name, 'Neon Lime Green');
+    expect(container.read(accentColorProvider).color, const Color(0xFF98E836));
+
+    // Switch to Electric Blue
+    final blueOption = kAccentColors.firstWhere((c) => c.name == 'Electric Blue');
+    container.read(accentColorProvider.notifier).setColor(blueOption);
+    expect(container.read(accentColorProvider).name, 'Electric Blue');
+    expect(container.read(accentColorProvider).color, const Color(0xFF38BDF8));
+
+    // Switch to Royal Purple
+    final purpleOption = kAccentColors.firstWhere((c) => c.name == 'Royal Purple');
+    container.read(accentColorProvider.notifier).setColor(purpleOption);
+    expect(container.read(accentColorProvider).name, 'Royal Purple');
+    expect(container.read(accentColorProvider).color, const Color(0xFF9353D3));
+  });
+
+  testWidgets('Categories Customization navigates to BudgetSetupScreen for expense categories',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget(
+      const CategoriesCustomizationScreen(initialTab: CustomizationTab.expenseCategories),
+    ));
+
+    expect(find.text('+ Add Custom Expense Source or Category'), findsOneWidget);
+
+    // Tap Add Custom Expense Category
+    await tester.tap(find.text('+ Add Custom Expense Source or Category'));
+    await tester.pumpAndSettle();
+
+    // Verify it navigated to BudgetSetupScreen
+    expect(find.byType(BudgetSetupScreen), findsOneWidget);
   });
 }

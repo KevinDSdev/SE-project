@@ -345,13 +345,6 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
       icon: Icons.track_changes_rounded,
     ),
     DashboardWidgetItem(
-      id: 'avail_inc_pred',
-      title: 'Income Prediction Analytics',
-      subtitle: 'Inflow forecasting model',
-      color: Color(0xFF98E836),
-      icon: Icons.insights_rounded,
-    ),
-    DashboardWidgetItem(
       id: 'avail_exp_pred',
       title: 'Expenses Prediction Analytics',
       subtitle: 'Outflow probability & spike est.',

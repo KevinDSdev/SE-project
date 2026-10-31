@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
 import '../widgets/analytics_chart_widgets.dart';
 
@@ -56,6 +57,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
   };
 
   void _showPeriodPicker(BuildContext context, String currentPeriod) {
+    final accentColor = ref.read(accentColorProvider).color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = AppColors.getCard(isDark);
     final borderColor = AppColors.getBorder(isDark);
@@ -95,7 +97,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                 ),
               ),
               trailing: currentPeriod == period
-                  ? const Icon(Icons.check, color: Color(0xFF98E836))
+                  ? Icon(Icons.check, color: accentColor)
                   : null,
               onTap: () {
                 setState(() => _customPeriodLabel = period);
@@ -110,6 +112,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = ref.watch(accentColorProvider).color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = AppColors.getBg(isDark);
     final cardBg = AppColors.getCard(isDark);
@@ -182,7 +185,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF98E836),
+                        color: accentColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

@@ -120,7 +120,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     Switch.adaptive(
                       value: isDark,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref.read(themeModeProvider.notifier).setDarkMode(val);
@@ -191,32 +191,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 10),
 
-              // 3. Customize Widgets Tile
-              _buildSettingCard(
-                cardBg: cardBg,
-                borderColor: borderColor,
-                onTap: () {
-                  Navigator.of(context).push(
-                    slideRoute(const DashboardWidgetsScreen()),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Customize Widgets',
-                      style: TextStyle(
-                        color: textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // 4. Customize Analytical Dashboard Tile
+              // 3. Customize Analytics Dashboards Tile
               _buildSettingCard(
                 cardBg: cardBg,
                 borderColor: borderColor,
@@ -229,12 +204,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Customize Analytical Dashboard',
+                      'Customize Analytics Dashboards',
                       style: TextStyle(
                         color: textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: accentColor,
+                      size: 24,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // 4. Set Layout Tile
+              _buildSettingCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                onTap: () {
+                  Navigator.of(context).push(
+                    slideRoute(const DashboardWidgetsScreen()),
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Set Layout',
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: accentColor,
+                      size: 24,
                     ),
                   ],
                 ),
@@ -276,7 +286,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     Switch.adaptive(
                       value: notificationsEnabled,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref
@@ -442,7 +452,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     Switch.adaptive(
                       value: gpsEnabled,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref
@@ -490,7 +500,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     Switch.adaptive(
                       value: cloudSync,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref.read(cloudSyncProvider.notifier).setEnabled(val);
@@ -530,12 +540,92 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                       ),
                     ),
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: cardBg,
+                            content: Text(
+                              'Local database records reset.',
+                              style: TextStyle(color: textPrimary),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: const BorderSide(color: Color(0xFFF43F5E)),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFF43F5E), width: 1.2),
+                        ),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: Color(0xFFF43F5E),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // 10b. Restore Local Data
+              _buildSettingCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Text(
-                      'Active',
+                      'Restore Local Data',
                       style: TextStyle(
-                        color: accentColor,
-                        fontSize: 13,
+                        color: textPrimary,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: cardBg,
+                            content: Text(
+                              'Local data restored successfully.',
+                              style: TextStyle(color: textPrimary),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: accentColor),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: accentColor, width: 1.2),
+                        ),
+                        child: Text(
+                          'Restore',
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -578,7 +668,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     Switch.adaptive(
                       value: biometrics,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref.read(biometricsProvider.notifier).setEnabled(val);
@@ -649,34 +739,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
 
-              // 13. System Version
-              _buildSettingCard(
-                cardBg: cardBg,
-                borderColor: borderColor,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'System Version',
-                      style: TextStyle(
-                        color: textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      'V.1.1',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 24),
             ],
           ),

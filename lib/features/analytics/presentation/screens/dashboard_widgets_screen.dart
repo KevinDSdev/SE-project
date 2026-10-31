@@ -551,6 +551,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
     Color textSecondary,
     Color subContainer,
   ) {
+    final accentColor = ref.watch(accentColorProvider).color;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -566,13 +567,13 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF98E836).withValues(alpha: 0.15),
+                  color: accentColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.bar_chart_rounded,
-                    color: Color(0xFF98E836),
+                    color: accentColor,
                     size: 20,
                   ),
                 ),

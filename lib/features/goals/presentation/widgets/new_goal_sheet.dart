@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../models/goal_model.dart';
 import '../../providers/goals_provider.dart';
 
@@ -101,6 +102,7 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = ref.watch(accentColorProvider).color;
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -300,7 +302,7 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
               child: ElevatedButton(
                 onPressed: _saveGoal,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: accentColor,
                   foregroundColor: const Color(0xFF0C0F14),
                   elevation: 0,
                   shape: RoundedRectangleBorder(

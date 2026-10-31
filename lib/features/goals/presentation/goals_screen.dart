@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/constants/app_colors.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../models/goal_model.dart';
 import '../providers/goals_provider.dart';
 import 'widgets/goal_detail_sheet.dart';
@@ -14,6 +14,7 @@ class GoalsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goalsState = ref.watch(goalsProvider);
+    final accentColor = ref.watch(accentColorProvider).color;
     final currencyFormat = NumberFormat('#,###');
 
     return Scaffold(
@@ -60,19 +61,19 @@ class GoalsScreen extends ConsumerWidget {
                           width: 1,
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.add_rounded,
-                            color: AppColors.primary,
+                            color: accentColor,
                             size: 16,
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             'New Goal',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: accentColor,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                             ),
@@ -137,6 +138,7 @@ class GoalsScreen extends ConsumerWidget {
     GoalsState state,
     NumberFormat currencyFormat,
   ) {
+    final accentColor = Theme.of(context).colorScheme.primary;
     final totalAccumulated = state.totalAccumulated;
     final target = state.portfolioTarget;
     final percentReached = state.overallProgressPercentage;
@@ -198,8 +200,8 @@ class GoalsScreen extends ConsumerWidget {
               ),
               Text(
                 '$percentReached% Reached',
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: accentColor,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
@@ -439,6 +441,7 @@ class GoalsScreen extends ConsumerWidget {
     GoalsState state,
     NumberFormat currencyFormat,
   ) {
+    final accentColor = Theme.of(context).colorScheme.primary;
     final isEnabled = state.smartAutoSaveEnabled;
 
     return Container(
@@ -458,10 +461,10 @@ class GoalsScreen extends ConsumerWidget {
               color: Color(0xFF1B2E15),
               shape: BoxShape.circle,
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.bolt_rounded,
-                color: AppColors.primary,
+                color: accentColor,
                 size: 22,
               ),
             ),
@@ -504,7 +507,7 @@ class GoalsScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 3),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: isEnabled ? AppColors.primary : const Color(0xFF222838),
+                color: isEnabled ? accentColor : const Color(0xFF222838),
               ),
               alignment: isEnabled
                   ? Alignment.centerRight

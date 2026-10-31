@@ -11,7 +11,8 @@ class AccentColorOption {
 
 const List<AccentColorOption> kAccentColors = [
   AccentColorOption(name: 'Neon Lime Green', color: Color(0xFF98E836)),
-  AccentColorOption(name: 'Electric Cyan', color: Color(0xFF38BDF8)),
+  AccentColorOption(name: 'Electric Blue', color: Color(0xFF38BDF8)),
+  AccentColorOption(name: 'Royal Purple', color: Color(0xFF9353D3)),
   AccentColorOption(name: 'Vivid Coral', color: Color(0xFFF43F5E)),
 ];
 

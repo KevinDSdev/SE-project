@@ -3,15 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../widgets/analytics_chart_widgets.dart';
 
-enum PredictionMode { expenses, income }
-
 class PredictionAnalysisScreen extends ConsumerStatefulWidget {
-  final PredictionMode initialMode;
-
-  const PredictionAnalysisScreen({
-    super.key,
-    this.initialMode = PredictionMode.expenses,
-  });
+  const PredictionAnalysisScreen({super.key});
 
   @override
   ConsumerState<PredictionAnalysisScreen> createState() =>
@@ -20,28 +13,19 @@ class PredictionAnalysisScreen extends ConsumerStatefulWidget {
 
 class _PredictionAnalysisScreenState
     extends ConsumerState<PredictionAnalysisScreen> {
-  late PredictionMode _currentMode;
-  String _selectedExpenseCategory = 'Food & Grocery';
-  String _selectedIncomeCategory = 'Salary';
+  String _selectedCategory = 'Food & Grocery';
 
-  final List<String> _expenseCategories = [
+  final List<String> _categories = [
     'All Outflows',
     'Food & Grocery',
     'Transport',
-    'Bills',
-  ];
-
-  final List<String> _incomeCategories = [
-    'All Inflows',
-    'Salary',
-    'Freelance',
-    'Rental',
+    'Biils',
   ];
 
   final List<String> _months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov*'];
 
-  // Expense forecast data
-  final List<double> _expenseBarValues = [
+  // Expense forecast data (matches 12. Expenses prediction Analysis.png exactly)
+  final List<double> _barValues = [
     61000,
     64000,
     59000,
@@ -49,35 +33,16 @@ class _PredictionAnalysisScreenState
     65000,
     68000
   ];
-  final List<String> _expenseYLabels = ['50K', '60K', '75K'];
-
-  // Income forecast data
-  final List<double> _incomeBarValues = [
-    75000,
-    80000,
-    60000,
-    90000,
-    85000,
-    100000
-  ];
-  final List<String> _incomeYLabels = ['50K', '80K', '90K'];
-
-  @override
-  void initState() {
-    super.initState();
-    _currentMode = widget.initialMode;
-  }
+  final List<String> _yLabels = ['50K', '60K', '75K'];
 
   @override
   Widget build(BuildContext context) {
-    final isExpense = _currentMode == PredictionMode.expenses;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = AppColors.getBg(isDark);
     final cardBg = AppColors.getCard(isDark);
     final borderColor = AppColors.getBorder(isDark);
     final textPrimary = AppColors.getTextPrimary(isDark);
     final textSecondary = AppColors.getTextSecondary(isDark);
-    final subContainer = AppColors.getSubContainer(isDark);
 
     return Scaffold(
       backgroundColor: bg,
@@ -111,9 +76,7 @@ class _PredictionAnalysisScreenState
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      isExpense
-                          ? 'Expenses Prediction Analysis'
-                          : 'Income Prediction Analysis',
+                      'Expenses Prediction Analysis',
                       style: TextStyle(
                         color: textPrimary,
                         fontSize: 19,
@@ -124,214 +87,51 @@ class _PredictionAnalysisScreenState
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
 
-              // Segmented Forecast Mode Switcher
-              Container(
-                height: 46,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: borderColor,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(
-                            () => _currentMode = PredictionMode.expenses),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isExpense
-                                ? const Color(0xFFF43F5E)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Expenses Forecast',
-                              style: TextStyle(
-                                color: isExpense
-                                    ? Colors.white
-                                    : textSecondary,
-                                fontSize: 13,
-                                fontWeight: isExpense
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(
-                            () => _currentMode = PredictionMode.income),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: !isExpense
-                                ? const Color(0xFF98E836)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Income Forecast',
-                              style: TextStyle(
-                                color: !isExpense
-                                    ? const Color(0xFF0C0F14)
-                                    : textSecondary,
-                                fontSize: 13,
-                                fontWeight: !isExpense
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Forecast Total Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: isExpense
-                        ? const Color(0xFFF43F5E)
-                        : const Color(0xFF98E836),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isExpense ? 'PROJECTED EXPENSES' : 'PROJECTED INFLOW',
-                          style: TextStyle(
-                            color: isExpense
-                                ? const Color(0xFFE11D48)
-                                : const Color(0xFF65A30D),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isExpense
-                                ? const Color(0xFFF43F5E).withValues(alpha: 0.15)
-                                : const Color(0xFF98E836).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            isExpense ? 'High Conf. 88%' : 'High Conf. 92%',
-                            style: TextStyle(
-                              color: isExpense
-                                  ? const Color(0xFFE11D48)
-                                  : const Color(0xFF65A30D),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isExpense ? 'LKR 330,000' : 'LKR 540,000',
-                      style: TextStyle(
-                        color: isExpense
-                            ? const Color(0xFFE11D48)
-                            : const Color(0xFF65A30D),
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isExpense
-                          ? 'Estimated variance: ± LKR 8,500 based on previous 5 months'
-                          : 'Estimated variance: ± LKR 12,000 based on incoming milestones',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Filter Chips
+              // Filter Chips (matching 12. Expenses prediction Analysis.png)
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 child: Row(
-                  children: (isExpense
-                          ? _expenseCategories
-                          : _incomeCategories)
-                      .map((cat) {
-                    final isSel = (isExpense
-                            ? _selectedExpenseCategory
-                            : _selectedIncomeCategory) ==
-                        cat;
+                  children: _categories.map((cat) {
+                    final isSel = _selectedCategory == cat;
+                    final isAll = cat == 'All Outflows';
                     return Padding(
                       padding: const EdgeInsets.only(right: 10),
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
-                            if (isExpense) {
-                              _selectedExpenseCategory = cat;
-                            } else {
-                              _selectedIncomeCategory = cat;
-                            }
+                            _selectedCategory = cat;
                           });
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 9,
+                            horizontal: 18,
+                            vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: isSel
-                                ? (isExpense
-                                    ? const Color(0xFFF43F5E)
-                                    : const Color(0xFF98E836))
+                            color: isSel && !isAll
+                                ? const Color(0xFFF43F5E)
                                 : cardBg,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(22),
                             border: Border.all(
-                              color: isSel
-                                  ? (isExpense
+                              color: isAll
+                                  ? const Color(0xFFF43F5E)
+                                  : (isSel
                                       ? const Color(0xFFF43F5E)
-                                      : const Color(0xFF98E836))
-                                  : borderColor,
+                                      : borderColor),
+                              width: isAll ? 1.5 : 1,
                             ),
                           ),
                           child: Text(
                             cat,
                             style: TextStyle(
-                              color: isSel
-                                  ? (isExpense
-                                      ? Colors.white
-                                      : const Color(0xFF0C0F14))
-                                  : textSecondary,
+                              color: isSel && !isAll
+                                  ? Colors.black
+                                  : (isAll
+                                      ? const Color(0xFFF43F5E)
+                                      : textSecondary),
                               fontSize: 13,
                               fontWeight:
                                   isSel ? FontWeight.w700 : FontWeight.w500,
@@ -343,9 +143,44 @@ class _PredictionAnalysisScreenState
                   }).toList(),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
 
-              // Forecast Chart Card
+              // Expected Next Month Expense Card (matching 12. Expenses prediction Analysis.png)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Expected Next Month Expense',
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'LKR 68,000',
+                      style: TextStyle(
+                        color: Color(0xFFF43F5E),
+                        fontSize: 34,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Past 5 Months vs. Nov Forecast Chart Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -361,12 +196,10 @@ class _PredictionAnalysisScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isExpense
-                              ? 'Nov 2026 Expected Outflow'
-                              : 'Nov 2026 Expected Inflow',
+                          'Past 5 Months vs. Nov Forecast',
                           style: TextStyle(
                             color: textPrimary,
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -375,22 +208,34 @@ class _PredictionAnalysisScreenState
                             Container(
                               width: 8,
                               height: 8,
-                              decoration: BoxDecoration(
-                                color: isExpense
-                                    ? const Color(0xFFF43F5E)
-                                    : const Color(0xFF98E836),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF38BDF8),
                                 shape: BoxShape.circle,
                               ),
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Forecast',
+                              'Actual',
                               style: TextStyle(
-                                color: isExpense
-                                    ? const Color(0xFFE11D48)
-                                    : const Color(0xFF65A30D),
+                                color: textSecondary,
                                 fontSize: 11,
-                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFF43F5E),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Est.',
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 11,
                               ),
                             ),
                           ],
@@ -400,152 +245,17 @@ class _PredictionAnalysisScreenState
                     const SizedBox(height: 16),
                     PredictionBarChartWidget(
                       months: _months,
-                      values:
-                          isExpense ? _expenseBarValues : _incomeBarValues,
-                      yAxisLabels:
-                          isExpense ? _expenseYLabels : _incomeYLabels,
-                      forecastColor: isExpense
-                          ? const Color(0xFFF43F5E)
-                          : const Color(0xFF98E836),
+                      values: _barValues,
+                      yAxisLabels: _yLabels,
+                      forecastColor: const Color(0xFFF43F5E),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
-
-              // Detected Probabilities Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: borderColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isExpense
-                          ? 'Detected Spending Probabilities'
-                          : 'Detected Inflow Probabilities',
-                      style: TextStyle(
-                        color: textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    if (isExpense) ...[
-                      _buildProbabilityItem(
-                        percentage: '60%',
-                        label: 'Single Bill Under LKR 5,000',
-                        badgeColor: const Color(0xFF98E836),
-                        borderColor: const Color(0xFF98E836),
-                        subContainer: subContainer,
-                        textColor: textPrimary,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildProbabilityItem(
-                        percentage: '20%',
-                        label: 'First Weekend Bulk Spend',
-                        badgeColor: const Color(0xFF38BDF8),
-                        borderColor: const Color(0xFF38BDF8),
-                        subContainer: subContainer,
-                        textColor: textPrimary,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildProbabilityItem(
-                        percentage: '25%',
-                        label: 'Late-Month Surge Over LKR 70K',
-                        badgeColor: const Color(0xFFF59E0B),
-                        borderColor: const Color(0xFFF59E0B),
-                        subContainer: subContainer,
-                        textColor: textPrimary,
-                      ),
-                    ] else ...[
-                      _buildProbabilityItem(
-                        percentage: '98%',
-                        label: 'Base Salary End Of The Month',
-                        badgeColor: const Color(0xFF98E836),
-                        borderColor: const Color(0xFF98E836),
-                        subContainer: subContainer,
-                        textColor: textPrimary,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildProbabilityItem(
-                        percentage: '85%',
-                        label: 'Rental Deposit Before Day 10',
-                        badgeColor: const Color(0xFF38BDF8),
-                        borderColor: const Color(0xFF38BDF8),
-                        subContainer: subContainer,
-                        textColor: textPrimary,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildProbabilityItem(
-                        percentage: '65%',
-                        label: 'Freelance Payout',
-                        badgeColor: const Color(0xFF9353D3),
-                        borderColor: const Color(0xFF9353D3),
-                        subContainer: subContainer,
-                        textColor: textPrimary,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildProbabilityItem({
-    required String percentage,
-    required String label,
-    required Color badgeColor,
-    required Color borderColor,
-    required Color subContainer,
-    required Color textColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: subContainer,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor.withValues(alpha: 0.7)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: badgeColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              percentage,
-              style: const TextStyle(
-                color: Color(0xFF0C0F14),
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

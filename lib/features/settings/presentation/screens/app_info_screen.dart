@@ -126,7 +126,7 @@ class AppInfoScreen extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF98E836),
+                            color: accentColor,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Text(
@@ -206,7 +206,7 @@ class AppInfoScreen extends ConsumerWidget {
 
                     // Item 1: Stored on Your Device
                     _buildPrivacyBanner(
-                      backgroundColor: const Color(0xFF98E836),
+                      backgroundColor: accentColor,
                       icon: Icons.check,
                       title: 'Stored on Your Device',
                       subtitle:

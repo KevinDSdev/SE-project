@@ -268,7 +268,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     // Bank SMS Auto-Sync
                     _buildGroupTile(
                       icon: Icons.chat_bubble_outline_rounded,
-                      iconColor: const Color(0xFF98E836),
+                      iconColor: accentColor,
                       title: 'Bank SMS Auto-Sync',
                       subtitle: 'Auto-log transactions from bank SMS',
                       subtitleColor: const Color(0xFF65A30D),
@@ -316,7 +316,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       textSecondary: textSecondary,
                       trailing: Switch.adaptive(
                         value: _budgetAlertsEnabled,
-                        activeColor: Colors.white,
+                        activeThumbColor: Colors.white,
                         activeTrackColor: accentColor,
                         onChanged: (val) {
                           setState(() => _budgetAlertsEnabled = val);
@@ -343,7 +343,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     // App Settings
                     _buildGroupTile(
                       icon: Icons.settings_outlined,
-                      iconColor: const Color(0xFF98E836),
+                      iconColor: accentColor,
                       title: 'App Settings',
                       subtitle: 'Preferences, accent color & notifications',
                       textPrimary: textPrimary,

@@ -27,7 +27,34 @@ class FinancialAnalyticsScreen extends ConsumerStatefulWidget {
 class _FinancialAnalyticsScreenState
     extends ConsumerState<FinancialAnalyticsScreen> {
   final NumberFormat _currencyFormat = NumberFormat('#,##,000');
-  int _selectedMonthIndex = 5; // Default October
+  int _selectedMonthIndex = 5; // Default October / last entry
+
+  final List<Map<String, dynamic>> _weeklyData = [
+    {
+      'month': 'W1',
+      'income': 120000.0,
+      'expense': 75000.0,
+      'savings': 5000.0,
+    },
+    {
+      'month': 'W2',
+      'income': 135000.0,
+      'expense': 82000.0,
+      'savings': 6000.0,
+    },
+    {
+      'month': 'W3',
+      'income': 130000.0,
+      'expense': 78000.0,
+      'savings': 4000.0,
+    },
+    {
+      'month': 'W4',
+      'income': 150000.0,
+      'expense': 83500.0,
+      'savings': 5000.0,
+    },
+  ];
 
   final List<Map<String, dynamic>> _monthlyData = [
     {
@@ -68,6 +95,45 @@ class _FinancialAnalyticsScreenState
     },
   ];
 
+  final List<Map<String, dynamic>> _yearlyData = [
+    {
+      'month': '2021',
+      'income': 4800000.0,
+      'expense': 3200000.0,
+      'savings': 200000.0,
+    },
+    {
+      'month': '2022',
+      'income': 5200000.0,
+      'expense': 3500000.0,
+      'savings': 240000.0,
+    },
+    {
+      'month': '2023',
+      'income': 5800000.0,
+      'expense': 3700000.0,
+      'savings': 280000.0,
+    },
+    {
+      'month': '2024',
+      'income': 6100000.0,
+      'expense': 3900000.0,
+      'savings': 300000.0,
+    },
+    {
+      'month': '2025',
+      'income': 6300000.0,
+      'expense': 3800000.0,
+      'savings': 320000.0,
+    },
+    {
+      'month': '2026',
+      'income': 6420000.0,
+      'expense': 3822000.0,
+      'savings': 350000.0,
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     final selectedPeriod = ref.watch(selectedPeriodProvider);
@@ -83,22 +149,33 @@ class _FinancialAnalyticsScreenState
     final textPrimary = AppColors.getTextPrimary(isDark);
     final textSecondary = AppColors.getTextSecondary(isDark);
 
-    final activeMonth = _monthlyData[_selectedMonthIndex];
-
-    // Dynamic adjustment based on selected period
-    double activeIncome = activeMonth['income'] as double;
-    double activeExpense = activeMonth['expense'] as double;
-    double activeSavings = (activeMonth['savings'] as double?) ?? 20000.0;
-
-    if (selectedPeriod == AnalyticsPeriod.weekly) {
-      activeIncome = (activeIncome / 4).roundToDouble();
-      activeExpense = (activeExpense / 4).roundToDouble();
-      activeSavings = (activeSavings / 4).roundToDouble();
-    } else if (selectedPeriod == AnalyticsPeriod.yearly) {
-      activeIncome = activeIncome * 12;
-      activeExpense = activeExpense * 12;
-      activeSavings = activeSavings * 12;
+    final List<Map<String, dynamic>> currentData;
+    final String chartTitle;
+    switch (selectedPeriod) {
+      case AnalyticsPeriod.weekly:
+        currentData = _weeklyData;
+        chartTitle = 'Income vs Expenses (Weekly)';
+        break;
+      case AnalyticsPeriod.monthly:
+        currentData = _monthlyData;
+        chartTitle = 'Income vs Expenses (May – Oct)';
+        break;
+      case AnalyticsPeriod.yearly:
+        currentData = _yearlyData;
+        chartTitle = 'Income vs Expenses (2021 – 2026)';
+        break;
+      default:
+        currentData = _monthlyData;
+        chartTitle = 'Income vs Expenses (May – Oct)';
     }
+
+    final selectedIdx = _selectedMonthIndex.clamp(0, currentData.length - 1);
+    final activeItem = currentData[selectedIdx];
+
+    final double activeIncome = (activeItem['income'] as num).toDouble();
+    final double activeExpense = (activeItem['expense'] as num).toDouble();
+    final double activeSavings =
+        ((activeItem['savings'] ?? 20000.0) as num).toDouble();
 
     final showIncome = activeIds.contains('active_income');
     final showExpense = activeIds.contains('active_expenses');
@@ -267,7 +344,7 @@ class _FinancialAnalyticsScreenState
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Income vs Expenses (May – Oct)',
+                            chartTitle,
                             style: TextStyle(
                               color: textPrimary,
                               fontSize: 14,
@@ -304,16 +381,16 @@ class _FinancialAnalyticsScreenState
                       const SizedBox(height: 16),
                       if (mainStyle == ChartVisualMode.line)
                         DualTrendLineChart(
-                          labels: _monthlyData
+                          labels: currentData
                               .map((m) => m['month'] as String)
                               .toList(),
-                          incomeValues: _monthlyData
+                          incomeValues: currentData
                               .map((m) => (m['income'] as num).toDouble())
                               .toList(),
-                          expenseValues: _monthlyData
+                          expenseValues: currentData
                               .map((m) => (m['expense'] as num).toDouble())
                               .toList(),
-                          selectedIndex: _selectedMonthIndex,
+                          selectedIndex: selectedIdx,
                           height: 155,
                         )
                       else if (mainStyle == ChartVisualMode.donut)
@@ -324,8 +401,8 @@ class _FinancialAnalyticsScreenState
                         )
                       else
                         GroupedDualBarChart(
-                          monthlyData: _monthlyData,
-                          selectedIndex: _selectedMonthIndex,
+                          monthlyData: currentData,
+                          selectedIndex: selectedIdx,
                           onSelectMonth: (index) {
                             setState(() => _selectedMonthIndex = index);
                           },
@@ -340,30 +417,9 @@ class _FinancialAnalyticsScreenState
               // Dynamically Pinned Extra Widgets from Dashboard Widgets Screen
               ..._buildPinnedWidgets(context, activeIds, cardBg, borderColor, textPrimary, textSecondary),
 
-              // Quick Actions Grid (5 cards: Exactly matching authoritative PNG reference)
+              // Quick Actions Grid (4 cards: Exactly matching 1. Financial Analytics Dashboard.png)
               Row(
                 children: [
-                  Expanded(
-                    child: _buildActionCard(
-                      title: 'Income Prediction',
-                      subtitle: 'Analysis',
-                      cardBg: cardBg,
-                      borderColor: const Color(0xFF98E836),
-                      titleColor: const Color(0xFF98E836),
-                      textSecondary: textSecondary,
-                      icon: Icons.trending_up_rounded,
-                      iconBgColor: const Color(0xFF98E836).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFF98E836),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const PredictionAnalysisScreen(
-                            initialMode: PredictionMode.income,
-                          )),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: _buildActionCard(
                       title: 'Expenses Prediction',
@@ -377,9 +433,26 @@ class _FinancialAnalyticsScreenState
                       iconColor: const Color(0xFFF43F5E),
                       onTap: () {
                         Navigator.of(context).push(
-                          slideRoute(const PredictionAnalysisScreen(
-                            initialMode: PredictionMode.expenses,
-                          )),
+                          slideRoute(const PredictionAnalysisScreen()),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      title: 'Anomaly Detection',
+                      subtitle: 'PDF, XLS',
+                      cardBg: cardBg,
+                      borderColor: const Color(0xFFF43F5E),
+                      titleColor: const Color(0xFFF43F5E),
+                      textSecondary: textSecondary,
+                      icon: Icons.warning_amber_rounded,
+                      iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
+                      iconColor: const Color(0xFFF43F5E),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          slideRoute(const SpendingAnomalyScreen()),
                         );
                       },
                     ),
@@ -426,31 +499,6 @@ class _FinancialAnalyticsScreenState
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionCard(
-                      title: 'Anomaly Detection',
-                      subtitle: 'PDF, XLS',
-                      cardBg: cardBg,
-                      borderColor: const Color(0xFFF43F5E),
-                      titleColor: const Color(0xFFF43F5E),
-                      textSecondary: textSecondary,
-                      icon: Icons.warning_amber_rounded,
-                      iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFFF43F5E),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const SpendingAnomalyScreen()),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(child: SizedBox()),
-                ],
-              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -469,23 +517,6 @@ class _FinancialAnalyticsScreenState
   ) {
     final widgets = <Widget>[];
 
-    if (activeIds.contains('avail_inc_pred')) {
-      widgets.add(_buildPinnedCard(
-        context,
-        cardBg: cardBg,
-        borderColor: borderColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        title: 'Income Prediction Analytics',
-        subtitle: 'Projected next month: LKR 540,000 (High 92%)',
-        color: const Color(0xFF98E836),
-        icon: Icons.insights_rounded,
-        onTap: () => Navigator.of(context).push(
-          slideRoute(const PredictionAnalysisScreen(initialMode: PredictionMode.income)),
-        ),
-      ));
-    }
-
     if (activeIds.contains('avail_exp_pred')) {
       widgets.add(_buildPinnedCard(
         context,
@@ -494,11 +525,11 @@ class _FinancialAnalyticsScreenState
         textPrimary: textPrimary,
         textSecondary: textSecondary,
         title: 'Expenses Prediction Analytics',
-        subtitle: 'Projected next month: LKR 330,000 (High 88%)',
+        subtitle: 'Expected next month: LKR 68,000',
         color: const Color(0xFFF43F5E),
         icon: Icons.query_stats_rounded,
         onTap: () => Navigator.of(context).push(
-          slideRoute(const PredictionAnalysisScreen(initialMode: PredictionMode.expenses)),
+          slideRoute(const PredictionAnalysisScreen()),
         ),
       ));
     }

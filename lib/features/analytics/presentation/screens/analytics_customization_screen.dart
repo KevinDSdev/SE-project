@@ -269,7 +269,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: cardBg,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: borderColor),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -293,7 +293,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
 
-              // Navigation Card 2: Want to reorder dashboard cards?
+              // Navigation Card 2: Set Dashboard Layout
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
@@ -302,57 +302,26 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                   decoration: BoxDecoration(
                     color: cardBg,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: borderColor),
+                    border: Border.all(color: accentColor.withValues(alpha: 0.5)),
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.grid_view_rounded,
-                            color: accentColor,
-                            size: 22,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Customize Dashboard Layout Cards',
-                              style: TextStyle(
-                                color: textPrimary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Add or remove active dashboard cards',
-                              style: TextStyle(
-                                color: accentColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Set Dashboard Layout',
+                        style: TextStyle(
+                          color: accentColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       Icon(
                         Icons.chevron_right_rounded,
-                        color: textSecondary,
+                        color: accentColor,
                         size: 24,
                       ),
                     ],

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
+import '../../../../core/navigation/slide_route.dart';
+import '../../../budget/presentation/budget_setup_screen.dart';
 
 enum CustomizationTab { incomeMethods, expenseCategories }
 
@@ -170,7 +172,7 @@ class _CategoriesCustomizationScreenState
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: accentColor,
-                foregroundColor: const Color(0xFF0C0F14),
+                foregroundColor: accentColor.computeLuminance() < 0.4 ? Colors.white : const Color(0xFF0C0F14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -297,7 +299,7 @@ class _CategoriesCustomizationScreenState
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: accentColor,
-                foregroundColor: const Color(0xFF0C0F14),
+                foregroundColor: accentColor.computeLuminance() < 0.4 ? Colors.white : const Color(0xFF0C0F14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -515,27 +517,34 @@ class _CategoriesCustomizationScreenState
 
                     // Add Custom Button
                     GestureDetector(
-                      onTap: () => _showAddDialog(cardBg, borderColor, textPrimary, textSecondary, subContainer, accentColor),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: accentColor,
-                            width: 1.2,
+                      onTap: () {
+                        if (isIncome) {
+                          _showAddDialog(cardBg, borderColor, textPrimary, textSecondary, subContainer, accentColor);
+                        } else {
+                          Navigator.of(context).push(
+                            slideRoute(const BudgetSetupScreen()),
+                          );
+                        }
+                      },
+                      child: CustomPaint(
+                        painter: DashedBorderPainter(color: accentColor),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            isIncome
-                                ? '+ Add Custom Income Source or Category'
-                                : '+ Add Custom Expense Source or Category',
-                            style: TextStyle(
-                              color: accentColor,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                          child: Center(
+                            child: Text(
+                              isIncome
+                                  ? '+ Add Custom Income Source or Category'
+                                  : '+ Add Custom Expense Source or Category',
+                              style: TextStyle(
+                                color: accentColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
@@ -570,7 +579,7 @@ class _CategoriesCustomizationScreenState
                     ),
                     Switch.adaptive(
                       value: applyToSub,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: accentColor,
                       onChanged: (val) {
                         ref
@@ -623,7 +632,7 @@ class _CategoriesCustomizationScreenState
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentColor,
-                    foregroundColor: const Color(0xFF0C0F14),
+                    foregroundColor: accentColor.computeLuminance() < 0.4 ? Colors.white : const Color(0xFF0C0F14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -645,4 +654,50 @@ class _CategoriesCustomizationScreenState
       ),
     );
   }
+}
+
+
+class DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double radius;
+  final double dashLength;
+  final double dashGap;
+
+  const DashedBorderPainter({
+    required this.color,
+    this.strokeWidth = 1.2,
+    this.radius = 14,
+    this.dashLength = 5,
+    this.dashGap = 3.5,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Radius.circular(radius),
+      ));
+
+    for (final metric in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        final len = (distance + dashLength < metric.length)
+            ? dashLength
+            : metric.length - distance;
+        canvas.drawPath(metric.extractPath(distance, distance + len), paint);
+        distance += dashLength + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant DashedBorderPainter oldDelegate) =>
+      color != oldDelegate.color;
 }

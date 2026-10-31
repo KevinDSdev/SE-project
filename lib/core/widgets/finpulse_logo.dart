@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 
 class FinPulseLogo extends StatelessWidget {
   final double size;
@@ -13,11 +12,13 @@ class FinPulseLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     final logoWidget = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: primary,
         borderRadius: BorderRadius.circular(size * 0.28),
       ),
       child: Center(
@@ -65,9 +66,9 @@ class FinPulseLogo extends StatelessWidget {
       height: size * 1.55,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFF131D12),
+        color: primary.withValues(alpha: 0.08),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.12),
+          color: primary.withValues(alpha: 0.18),
           width: 1.5,
         ),
       ),

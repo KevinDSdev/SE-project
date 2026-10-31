@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
 import '../widgets/analytics_chart_widgets.dart';
 
@@ -26,6 +27,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
   ];
 
   void _showTransactionDetails(FlaggedTransactionItem item) {
+    final accentColor = ref.read(accentColorProvider).color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = AppColors.getCard(isDark);
     final borderColor = AppColors.getBorder(isDark);
@@ -126,13 +128,13 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: Color(0xFF98E836)),
+                    side: BorderSide(color: accentColor),
                   ),
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF98E836),
+              backgroundColor: accentColor,
               foregroundColor: const Color(0xFF0C0F14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -179,6 +181,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
   }
 
   void _showPeriodPicker() {
+    final accentColor = ref.read(accentColorProvider).color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = AppColors.getCard(isDark);
     final borderColor = AppColors.getBorder(isDark);
@@ -218,7 +221,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                 ),
               ),
               trailing: _selectedPeriodLabel == period
-                  ? const Icon(Icons.check, color: Color(0xFF98E836))
+                  ? Icon(Icons.check, color: accentColor)
                   : null,
               onTap: () {
                 setState(() => _selectedPeriodLabel = period);
@@ -233,6 +236,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = ref.watch(accentColorProvider).color;
     final flaggedList = ref.watch(flaggedTransactionsProvider);
     final count = flaggedList.length;
 
@@ -278,7 +282,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Spending Anomaly Analysis',
+                        'Anomaly Analysis',
                         style: TextStyle(
                           color: textPrimary,
                           fontSize: 19,
@@ -295,7 +299,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF98E836),
+                        color: accentColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -312,6 +316,15 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
               ),
               const SizedBox(height: 18),
 
+              Text(
+                'Unusual Spendings',
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
               // Overview Metric Card
               Container(
                 width: double.infinity,
@@ -324,15 +337,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Unusual Spendings',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -549,132 +554,132 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
               ),
               const SizedBox(height: 18),
 
-              // Flagged Transactions Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Flagged Transactions',
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    '$count detected',
-                    style: const TextStyle(
-                      color: Color(0xFFE11D48),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              if (flaggedList.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'All flagged transactions have been reviewed.',
-                      style: TextStyle(color: textSecondary),
-                    ),
-                  ),
-                )
-              else
-                ...flaggedList.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: GestureDetector(
-                      onTap: () => _showTransactionDetails(item),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFFF43F5E).withValues(alpha: 0.3),
+              // Flagged Transactions Section Card (matching 14. Spending Anomaly Analysis.png)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Flagged Transactions',
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF43F5E).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(flaggedTransactionsProvider.notifier).dismissAll();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('All flagged transactions dismissed.'),
+                                backgroundColor: cardBg,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(color: accentColor),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.warning_amber_rounded,
-                                color: Color(0xFFF43F5E),
-                                size: 20,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: accentColor,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Text(
+                              'Dismiss',
+                              style: TextStyle(
+                                color: Color(0xFF0C0F14),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    if (flaggedList.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            'All flagged transactions have been reviewed.',
+                            style: TextStyle(color: textSecondary),
+                          ),
+                        ),
+                      )
+                    else
+                      ...flaggedList.map((item) {
+                        final isCeb = item.title.contains('Electricity') || item.title.contains('CEB');
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: GestureDetector(
+                            onTap: () => _showTransactionDetails(item),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: subContainer,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: borderColor.withValues(alpha: 0.5)),
+                              ),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    item.title,
-                                    style: TextStyle(
-                                      color: textPrimary,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: isCeb ? const Color(0xFFFEF3C7) : const Color(0xFFFEE2E2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        isCeb ? Icons.bolt_rounded : Icons.local_pizza_rounded,
+                                        color: isCeb ? const Color(0xFFD97706) : const Color(0xFFDC2626),
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      item.title,
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
                                   Text(
-                                    '${item.date} • ${item.category}',
-                                    style: TextStyle(
-                                      color: textSecondary,
-                                      fontSize: 11,
+                                    'LKR ${item.amount.toInt().toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (m) => "${m[1]},")}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFF43F5E),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'LKR ${item.amount.toInt()}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFE11D48),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '+${(((item.amount - item.baseline) / item.baseline) * 100).toStringAsFixed(0)}% spike',
-                                  style: TextStyle(
-                                    color: textSecondary,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-
+                          ),
+                        );
+                      }),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
             ],
           ),

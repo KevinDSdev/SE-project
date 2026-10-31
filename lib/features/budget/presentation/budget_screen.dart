@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../analytics/presentation/analytics_screen.dart';
 import 'budget_setup_screen.dart';
@@ -26,6 +27,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = ref.watch(accentColorProvider).color;
     return Scaffold(
       backgroundColor: const Color(0xFF0C0F14),
       body: SafeArea(
@@ -94,10 +96,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.darkBorder),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.edit_outlined,
-                          color: AppColors.primary,
+                          color: accentColor,
                           size: 20,
                         ),
                       ),
@@ -122,10 +124,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.darkBorder),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.history_rounded,
-                          color: AppColors.primary,
+                          color: accentColor,
                           size: 22,
                         ),
                       ),
@@ -144,11 +146,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Subtitle: OCTOBER 2026 • ZERO-BASED BUDGET PROGRESS
-                    const Center(
+                    Center(
                       child: Text(
                         'OCTOBER 2026 • ZERO-BASED BUDGET PROGRESS',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: accentColor,
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.8,
@@ -191,8 +193,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                 ),
                                 Text(
                                   'Assigned: LKR ${currencyFormat.format(totalAssigned)} (100%)',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
+                                  style: TextStyle(
+                                    color: accentColor,
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -215,7 +217,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                               widthFactor: 1.0,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary,
+                                  color: accentColor,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -281,10 +283,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                   ),
                                   child: Column(
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Total Available',
                                         style: TextStyle(
-                                          color: AppColors.primary,
+                                          color: accentColor,
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -320,10 +322,10 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                   ),
                                   child: Column(
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Unassigned',
                                         style: TextStyle(
-                                          color: AppColors.primary,
+                                          color: accentColor,
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -335,16 +337,16 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                         children: [
                                           Text(
                                             'LKR ${currencyFormat.format(unassigned)}',
-                                            style: const TextStyle(
-                                              color: AppColors.primary,
+                                            style: TextStyle(
+                                              color: accentColor,
                                               fontSize: 14.5,
                                               fontWeight: FontWeight.w800,
                                             ),
                                           ),
                                           const SizedBox(width: 2),
-                                          const Icon(
+                                          Icon(
                                             Icons.keyboard_arrow_down_rounded,
-                                            color: AppColors.primary,
+                                            color: accentColor,
                                             size: 16,
                                           ),
                                         ],
@@ -358,11 +360,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                           const SizedBox(height: 14),
 
                           // Zero-based badge bottom text
-                          const Center(
+                          Center(
                             child: Text(
                               '✓ ZERO-BASED BUDGET: 100% OF INCOME FULLY ASSIGNED',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: accentColor,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5,
@@ -382,7 +384,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         color: const Color(0xFF142416),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.35),
+                          color: accentColor.withValues(alpha: 0.35),
                         ),
                       ),
                       child: Row(
@@ -392,8 +394,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                             margin: const EdgeInsets.only(top: 4),
                             width: 7,
                             height: 7,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
+                            decoration: BoxDecoration(
+                              color: accentColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -502,9 +504,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       used: 10000,
                       percentSpent: 50,
                       icon: Icons.account_balance_rounded,
-                      iconColor: AppColors.primary,
-                      iconBg: const Color(0xFF1E2D18),
-                      progressColor: AppColors.primary,
+                      iconColor: accentColor,
+                      iconBg: accentColor.withValues(alpha: 0.15),
+                      progressColor: accentColor,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -562,6 +564,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     required Color progressColor,
     required VoidCallback onTap,
   }) {
+    final accentColor = ref.watch(accentColorProvider).color;
     final progress = (used / assigned).clamp(0.0, 1.0);
 
     return GestureDetector(
@@ -618,8 +621,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                   children: [
                     Text(
                       'LKR ${currencyFormat.format(available)}',
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: accentColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                       ),

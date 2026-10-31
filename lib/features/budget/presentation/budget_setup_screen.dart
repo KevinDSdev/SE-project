@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class BudgetSetupScreen extends ConsumerStatefulWidget {
   const BudgetSetupScreen({super.key});
@@ -51,6 +52,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     required double initialValue,
     required ValueChanged<double> onSaved,
   }) {
+    final accentColor = ref.read(accentColorProvider).color;
     final controller = TextEditingController(
       text: initialValue.toInt().toString(),
     );
@@ -78,8 +80,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 16),
           decoration: InputDecoration(
             prefixText: 'LKR ',
-            prefixStyle: const TextStyle(
-              color: AppColors.primary,
+            prefixStyle: TextStyle(
+              color: accentColor,
               fontWeight: FontWeight.w700,
             ),
             filled: true,
@@ -90,7 +92,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: accentColor),
             ),
           ),
         ),
@@ -104,7 +106,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: accentColor,
               foregroundColor: const Color(0xFF0C0F14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -127,6 +129,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   }
 
   void _showAddFixedBillDialog() {
+    final accentColor = ref.read(accentColorProvider).color;
     final nameController = TextEditingController();
     final amountController = TextEditingController();
 
@@ -171,8 +174,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 prefixText: 'LKR ',
-                prefixStyle: const TextStyle(
-                  color: AppColors.primary,
+                prefixStyle: TextStyle(
+                  color: accentColor,
                   fontWeight: FontWeight.w700,
                 ),
                 hintText: 'Amount',
@@ -197,7 +200,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: accentColor,
               foregroundColor: const Color(0xFF0C0F14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -230,6 +233,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = ref.watch(accentColorProvider).color;
     return Scaffold(
       backgroundColor: const Color(0xFF0C0F14),
       body: SafeArea(
@@ -281,10 +285,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.darkBorder),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.edit_outlined,
-                        color: AppColors.primary,
+                        color: accentColor,
                         size: 20,
                       ),
                     ),
@@ -358,7 +362,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                 color: const Color(0xFF181C26),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: AppColors.primary,
+                                  color: accentColor,
                                   width: 1.5,
                                 ),
                               ),
@@ -388,7 +392,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         color: const Color(0xFF142416),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.35),
+                          color: accentColor.withValues(alpha: 0.35),
                         ),
                       ),
                       child: Row(
@@ -399,16 +403,16 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                               Container(
                                 width: 8,
                                 height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primary,
+                                decoration: BoxDecoration(
+                                  color: accentColor,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'Remaining to Allocate:',
                                 style: TextStyle(
-                                  color: AppColors.primary,
+                                  color: accentColor,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -541,8 +545,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         ),
                         Text(
                           'Total: LKR ${currencyFormat.format(_totalFixed)}',
-                          style: const TextStyle(
-                            color: AppColors.primary,
+                          style: TextStyle(
+                            color: accentColor,
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                           ),
@@ -601,11 +605,11 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                   style: BorderStyle.solid,
                                 ),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
                                   '+ Add New Fixed Bill',
                                   style: TextStyle(
-                                    color: AppColors.primary,
+                                    color: accentColor,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -631,7 +635,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: accentColor,
                     foregroundColor: const Color(0xFF0C0F14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -640,9 +644,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Budget updated successfully!'),
-                        backgroundColor: AppColors.primary,
+                      SnackBar(
+                        content: const Text('Budget updated successfully!'),
+                        backgroundColor: accentColor,
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
