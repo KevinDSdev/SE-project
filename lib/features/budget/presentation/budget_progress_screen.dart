@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
+import 'shared_budget_overview_screen.dart';
 
 /// Screen 04 - Budget Progress Display
 /// Recreated to match Figma reference image '04 - Budget Progress Display.png'
@@ -377,6 +378,40 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
+                ),
+              ),
+            ),
+
+            // Shared Budget Button pinned at bottom matching Screen 04 design
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentColor,
+                    foregroundColor: const Color(0xFF0C0F14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const SharedBudgetOverviewScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Shared Budget',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
                 ),
               ),
             ),
