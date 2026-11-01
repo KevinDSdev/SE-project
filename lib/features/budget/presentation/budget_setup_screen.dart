@@ -738,60 +738,90 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
               ),
             ),
 
-            // Save & Update Budget Button (Pinned at bottom)
+            // Bottom Action Buttons matching updated Screen 01 design
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accentColor,
-                    foregroundColor: const Color(0xFF0C0F14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(27),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Budget saved & updated successfully!',
-                          style: TextStyle(
-                            color: Color(0xFF0C0F14),
-                            fontWeight: FontWeight.w700,
-                          ),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Button 1: Add Recurring & Subscription (Dark pill button)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1F222B),
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(
+                          color: Color(0xFF282D3B),
+                          width: 1.2,
                         ),
-                        backgroundColor: accentColor,
-                        behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Add Recurring & Subscription',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            backgroundColor: const Color(0xFF1E2332),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Add Recurring & Subscription',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                    );
-
-                    // If opened as a pushed screen, pop or go to progress
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    } else {
-                      // Navigate to Budget Progress screen (Screen 04)
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const BudgetProgressScreen(),
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Save & Update Budget',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+
+                  // Button 2: View Budget Progress (Solid accent color button)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: const Color(0xFF0C0F14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const BudgetProgressScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'View Budget Progress',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -5,40 +5,65 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
-import '../../analytics/presentation/analytics_screen.dart';
-import 'budget_setup_screen.dart';
 
+/// Screen 04 - Budget Progress Display
+/// Recreated to match Figma reference image '04 - Budget Progress Display.png'
 class BudgetProgressScreen extends ConsumerStatefulWidget {
-  const BudgetProgressScreen({super.key});
+  final double? totalIncome;
+  final double? totalAssigned;
+  final double? totalUsed;
+  final double? totalAvailable;
+  final double? unassigned;
+
+  const BudgetProgressScreen({
+    super.key,
+    this.totalIncome,
+    this.totalAssigned,
+    this.totalUsed,
+    this.totalAvailable,
+    this.unassigned,
+  });
 
   @override
-  ConsumerState<BudgetProgressScreen> createState() => _BudgetProgressScreenState();
+  ConsumerState<BudgetProgressScreen> createState() =>
+      _BudgetProgressScreenState();
 }
 
 class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
   final currencyFormat = NumberFormat('#,##0', 'en_US');
 
-  // Budget progress data matching design
-  final double totalIncome = 100000;
-  final double totalAssigned = 100000;
-  final double totalUsed = 42000;
-  final double totalAvailable = 58000;
-  final double unassigned = 0;
+  late double _totalIncome;
+  late double _totalAssigned;
+  late double _totalUsed;
+  late double _totalAvailable;
+  late double _unassigned;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default values strictly matching Figma Screen 04
+    _totalIncome = widget.totalIncome ?? 100000;
+    _totalAssigned = widget.totalAssigned ?? 100000;
+    _totalUsed = widget.totalUsed ?? 42000;
+    _totalAvailable = widget.totalAvailable ?? 58000;
+    _unassigned = widget.unassigned ?? 0;
+  }
 
   @override
   Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0C0F14),
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar with TWO buttons on top right
+            // Top App Bar with single Back button and centered/left-aligned title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(
                 children: [
-                  // Back button
+                  // Back button '<'
                   GestureDetector(
                     onTap: () {
                       if (Navigator.of(context).canPop()) {
@@ -52,85 +77,28 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         color: const Color(0xFF161922),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFF262C38)),
                       ),
                       child: const Center(
                         child: Icon(
-                          Icons.arrow_back_ios_new_rounded,
+                          Icons.chevron_left_rounded,
                           color: Colors.white,
-                          size: 18,
+                          size: 26,
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 14),
 
-                  // Title: "Budget Progress"
-                  const Expanded(
-                    child: Center(
-                      child: Text(
-                        'Budget Progress',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Right Button 1: Edit Budget
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const BudgetSetupScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.edit_outlined,
-                          color: accentColor,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Right Button 2: Analytics Link
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AnalyticsScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.bar_chart_rounded,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                      ),
+                  // Screen Title: "Budget Progress"
+                  const Text(
+                    'Budget Progress',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
                     ),
                   ),
                 ],
@@ -145,29 +113,15 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
 
-                    // Subtitle: OCTOBER 2026 • ZERO-BASED BUDGET PROGRESS
-                    Center(
-                      child: Text(
-                        'OCTOBER 2026 • ZERO-BASED BUDGET PROGRESS',
-                        style: TextStyle(
-                          color: accentColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Top Summary Card (Zero-Based Budget Progress)
+                    // Top Summary Card
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: const Color(0xFF131722),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(
                           color: const Color(0xFF1E2332),
                           width: 1.2,
@@ -176,85 +130,63 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Top Row: Total Income & Assigned
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Total Income',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'LKR ${currencyFormat.format(totalIncome)}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                'Total Income: LKR ${currencyFormat.format(_totalIncome)}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  const Text(
-                                    'Assigned Budget',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'LKR ${currencyFormat.format(totalAssigned)}',
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                'Assigned: LKR ${currencyFormat.format(_totalAssigned)}',
+                                style: TextStyle(
+                                  color: accentColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
 
-                          // Progress Bar
+                          // Top Progress Bar
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                             child: SizedBox(
-                              height: 10,
+                              height: 8,
                               child: LinearProgressIndicator(
-                                value: totalUsed / totalIncome,
+                                value: _totalIncome > 0
+                                    ? (_totalUsed / _totalIncome).clamp(0.0, 1.0)
+                                    : 0.0,
                                 backgroundColor: const Color(0xFF1F2536),
-                                valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(accentColor),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
-                          // 3 Metric Pills
+                          // 3 Metric Cards: Total Used, Total Available, Unassigned
                           Row(
                             children: [
+                              // Metric 1: Total Used (Amber)
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 12,
-                                    horizontal: 8,
+                                    horizontal: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF191D2A),
-                                    borderRadius: BorderRadius.circular(14),
+                                    color: const Color(0xFF171A24),
+                                    borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: const Color(0xFF262E42),
+                                      color: const Color(0xFFF59E0B),
+                                      width: 1.2,
                                     ),
                                   ),
                                   child: Column(
@@ -262,36 +194,41 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                                       const Text(
                                         'Total Used',
                                         style: TextStyle(
-                                          color: AppColors.textSecondary,
+                                          color: Color(0xFFF59E0B),
                                           fontSize: 11,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 6),
                                       Text(
-                                        'LKR ${currencyFormat.format(totalUsed)}',
+                                        'LKR ${currencyFormat.format(_totalUsed)}',
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 13.5,
+                                          fontSize: 12.5,
                                           fontWeight: FontWeight.w700,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
+
+                              // Metric 2: Total Available (Lime Green)
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 12,
-                                    horizontal: 8,
+                                    horizontal: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF191D2A),
-                                    borderRadius: BorderRadius.circular(14),
+                                    color: const Color(0xFF171A24),
+                                    borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: accentColor.withValues(alpha: 0.35),
+                                      color: accentColor,
+                                      width: 1.2,
                                     ),
                                   ),
                                   child: Column(
@@ -304,31 +241,36 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 6),
                                       Text(
-                                        'LKR ${currencyFormat.format(totalAvailable)}',
-                                        style: TextStyle(
-                                          color: accentColor,
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w800,
+                                        'LKR ${currencyFormat.format(_totalAvailable)}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
+
+                              // Metric 3: Unassigned (Coral Red)
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 12,
-                                    horizontal: 8,
+                                    horizontal: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF191D2A),
-                                    borderRadius: BorderRadius.circular(14),
+                                    color: const Color(0xFF171A24),
+                                    borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: const Color(0xFF262E42),
+                                      color: const Color(0xFFEF4444),
+                                      width: 1.2,
                                     ),
                                   ),
                                   child: Column(
@@ -336,19 +278,21 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                                       const Text(
                                         'Unassigned',
                                         style: TextStyle(
-                                          color: AppColors.textSecondary,
+                                          color: Color(0xFFEF4444),
                                           fontSize: 11,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 6),
                                       Text(
-                                        'LKR ${currencyFormat.format(unassigned)}',
+                                        'LKR ${currencyFormat.format(_unassigned)}',
                                         style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 13.5,
+                                          color: Colors.white,
+                                          fontSize: 12.5,
                                           fontWeight: FontWeight.w700,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
@@ -361,7 +305,7 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Category Progress Header
+                    // Section Header: "CATEGORY PROGRESS (5 CATEGORIES)"
                     const Text(
                       'CATEGORY PROGRESS (5 CATEGORIES)',
                       style: TextStyle(
@@ -371,112 +315,67 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
                         letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
 
-                    // Category Cards
+                    // 1. Bills
                     _buildCategoryCard(
                       title: 'Bills',
                       assigned: 30000,
                       available: 15000,
                       used: 15000,
-                      icon: Icons.receipt_long_rounded,
+                      iconWidget: _buildCardIcon(
+                        icon: Icons.receipt_long_rounded,
+                        iconColor: const Color(0xFF6366F1),
+                        bgColor: Colors.white,
+                      ),
                       barColor: const Color(0xFF38BDF8),
-                      iconColor: const Color(0xFF38BDF8),
-                      bgColor: const Color(0xFF162738),
                     ),
                     const SizedBox(height: 12),
 
+                    // 2. Groceries
                     _buildCategoryCard(
                       title: 'Groceries',
                       assigned: 25000,
                       available: 13000,
                       used: 12000,
-                      icon: Icons.shopping_basket_rounded,
+                      iconWidget: _buildCardIcon(
+                        icon: Icons.shopping_basket_rounded,
+                        iconColor: const Color(0xFFEA580C),
+                        bgColor: Colors.white,
+                      ),
                       barColor: const Color(0xFFF59E0B),
-                      iconColor: const Color(0xFFF59E0B),
-                      bgColor: const Color(0xFF2E2218),
                     ),
                     const SizedBox(height: 12),
 
+                    // 3. Transport
                     _buildCategoryCard(
                       title: 'Transport',
                       assigned: 15000,
                       available: 10000,
                       used: 5000,
-                      icon: Icons.directions_car_rounded,
+                      iconWidget: _buildCardIcon(
+                        icon: Icons.directions_bus_filled_rounded,
+                        iconColor: const Color(0xFF0284C7),
+                        bgColor: Colors.white,
+                      ),
                       barColor: const Color(0xFF38BDF8),
-                      iconColor: const Color(0xFF38BDF8),
-                      bgColor: const Color(0xFF162738),
                     ),
                     const SizedBox(height: 12),
 
+                    // 4. Savings
                     _buildCategoryCard(
                       title: 'Savings',
                       assigned: 20000,
                       available: 10000,
                       used: 10000,
-                      icon: Icons.savings_rounded,
+                      iconWidget: _buildCardIcon(
+                        icon: Icons.savings_rounded,
+                        iconColor: const Color(0xFF0D9488),
+                        bgColor: Colors.white,
+                      ),
                       barColor: accentColor,
-                      iconColor: accentColor,
-                      bgColor: const Color(0xFF142416),
                     ),
                     const SizedBox(height: 24),
-
-                    // Zero-Based Budget Banner
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: const Color(0xFF1E2332),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: accentColor.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.check_circle_rounded,
-                              color: accentColor,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '✓ ZERO-BASED BUDGET: 100% ASSIGNED',
-                                  style: TextStyle(
-                                    color: accentColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  'Your income is fully allocated across categories.',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
                   ],
                 ),
               ),
@@ -487,23 +386,44 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
     );
   }
 
+  Widget _buildCardIcon({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+  }) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          color: iconColor,
+          size: 22,
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryCard({
     required String title,
     required double assigned,
     required double available,
     required double used,
-    required IconData icon,
+    required Widget iconWidget,
     required Color barColor,
-    required Color iconColor,
-    required Color bgColor,
   }) {
-    final progress = (used / assigned).clamp(0.0, 1.0);
+    final progress = assigned > 0 ? (used / assigned).clamp(0.0, 1.0) : 0.0;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF131722),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: const Color(0xFF1E2332),
           width: 1.2,
@@ -514,15 +434,7 @@ class _BudgetProgressScreenState extends ConsumerState<BudgetProgressScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: iconColor, size: 20),
-              ),
+              iconWidget,
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

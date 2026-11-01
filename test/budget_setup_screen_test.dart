@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prot/core/theme/app_theme.dart';
 import 'package:prot/features/budget/presentation/add_budget_category_screen.dart';
 import 'package:prot/features/budget/presentation/add_fixed_bill_screen.dart';
+import 'package:prot/features/budget/presentation/budget_progress_screen.dart';
 import 'package:prot/features/budget/presentation/budget_screen.dart';
 import 'package:prot/features/budget/presentation/budget_setup_screen.dart';
 import 'package:prot/features/budget/presentation/edit_budget_category_screen.dart';
@@ -58,8 +59,9 @@ void main() {
     expect(find.text('LKR 25,000'), findsOneWidget);
     expect(find.text('+ Add New Fixed Bill'), findsOneWidget);
 
-    // 6. Save & Update Budget Bottom Button
-    expect(find.text('Save & Update Budget'), findsOneWidget);
+    // 6. Bottom Action Buttons matching updated Screen 01 design
+    expect(find.text('Add Recurring & Subscription'), findsOneWidget);
+    expect(find.text('View Budget Progress'), findsOneWidget);
   });
 
   testWidgets('BudgetScreen entry point renders BudgetSetupScreen', (tester) async {
@@ -297,5 +299,104 @@ void main() {
     // Verify returned to BudgetSetupScreen
     expect(find.byType(BudgetSetupScreen), findsOneWidget);
     expect(find.text('Monthly Budget Setup'), findsOneWidget);
+  });
+
+  testWidgets('Tapping View Budget Progress navigates to BudgetProgressScreen (04) and back returns', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetSetupScreen()));
+    await tester.pumpAndSettle();
+
+    // Tap View Budget Progress button
+    final viewProgressBtn = find.text('View Budget Progress');
+    expect(viewProgressBtn, findsOneWidget);
+    await tester.ensureVisible(viewProgressBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(viewProgressBtn);
+    await tester.pumpAndSettle();
+
+    // Verify BudgetProgressScreen is opened
+    expect(find.byType(BudgetProgressScreen), findsOneWidget);
+    expect(find.text('Budget Progress'), findsOneWidget);
+    expect(find.text('Total Income: LKR 100,000'), findsOneWidget);
+    expect(find.text('Assigned: LKR 100,000'), findsOneWidget);
+    expect(find.text('Total Used'), findsOneWidget);
+    expect(find.text('Total Available'), findsOneWidget);
+    expect(find.text('Unassigned'), findsOneWidget);
+    expect(find.text('CATEGORY PROGRESS (5 CATEGORIES)'), findsOneWidget);
+    expect(find.text('Bills'), findsOneWidget);
+    expect(find.text('Groceries'), findsOneWidget);
+    expect(find.text('Transport'), findsOneWidget);
+    expect(find.text('Savings'), findsOneWidget);
+
+    // Tap back button '<'
+    final backBtn = find.byIcon(Icons.chevron_left_rounded);
+    expect(backBtn, findsOneWidget);
+    await tester.tap(backBtn);
+    await tester.pumpAndSettle();
+
+    // Verify returned to BudgetSetupScreen
+    expect(find.byType(BudgetSetupScreen), findsOneWidget);
+    expect(find.text('Monthly Budget Setup'), findsOneWidget);
+  });
+
+  testWidgets('BudgetProgressScreen standalone renders default values matching Screen 04 reference', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetProgressScreen()));
+    await tester.pumpAndSettle();
+
+    // Screen title and top bar
+    expect(find.text('Budget Progress'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_left_rounded), findsOneWidget);
+
+    // Summary Card values
+    expect(find.text('Total Income: LKR 100,000'), findsOneWidget);
+    expect(find.text('Assigned: LKR 100,000'), findsOneWidget);
+
+    // 3 Metric Cards
+    expect(find.text('Total Used'), findsOneWidget);
+    expect(find.text('LKR 42,000'), findsOneWidget);
+    expect(find.text('Total Available'), findsOneWidget);
+    expect(find.text('LKR 58,000'), findsOneWidget);
+    expect(find.text('Unassigned'), findsOneWidget);
+    expect(find.text('LKR 0'), findsOneWidget);
+
+    // Category progress header
+    expect(find.text('CATEGORY PROGRESS (5 CATEGORIES)'), findsOneWidget);
+
+    // Categories
+    expect(find.text('Bills'), findsOneWidget);
+    expect(find.text('Assigned: LKR 30,000'), findsOneWidget);
+    expect(find.text('LKR 15,000'), findsOneWidget);
+
+    expect(find.text('Groceries'), findsOneWidget);
+    expect(find.text('Assigned: LKR 25,000'), findsOneWidget);
+    expect(find.text('LKR 13,000'), findsOneWidget);
+
+    expect(find.text('Transport'), findsOneWidget);
+    expect(find.text('Assigned: LKR 15,000'), findsOneWidget);
+
+    expect(find.text('Savings'), findsOneWidget);
+    expect(find.text('Assigned: LKR 20,000'), findsOneWidget);
+
+    // Both Transport and Savings have LKR 10,000 available
+    expect(find.text('LKR 10,000'), findsNWidgets(2));
+
+    // Verify no obsolete zero-based budget banner or edit buttons
+    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byIcon(Icons.bar_chart_rounded), findsNothing);
+  });
+
+  testWidgets('Tapping Add Recurring & Subscription shows snackbar on BudgetSetupScreen', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetSetupScreen()));
+    await tester.pumpAndSettle();
+
+    final recurringBtn = find.text('Add Recurring & Subscription');
+    expect(recurringBtn, findsOneWidget);
+    await tester.ensureVisible(recurringBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(recurringBtn);
+    await tester.pump();
+
+    // Verify SnackBar shown
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('Add Recurring & Subscription'), findsNWidgets(2)); // Button & snackbar
   });
 }
