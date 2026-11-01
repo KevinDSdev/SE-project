@@ -2,32 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../models/budget_category_model.dart';
+import '../models/fixed_bill_model.dart';
 import 'add_budget_category_screen.dart';
+import 'add_fixed_bill_screen.dart';
 import 'budget_progress_screen.dart';
 import 'edit_budget_category_screen.dart';
-
-/// Data class representing a Fixed Monthly Bill
-class FixedBillItem {
-  final String id;
-  String title;
-  double amount;
-  String? provider;
-  String? dueDate;
-  Widget iconWidget;
-
-  FixedBillItem({
-    required this.id,
-    required this.title,
-    required this.amount,
-    this.provider,
-    this.dueDate,
-    required this.iconWidget,
-  });
-}
+import 'edit_fixed_bill_screen.dart';
 
 /// Screen 01 – Budget Setup Screen
 /// Faithfully reproduces Figma Screen 01 from "Dhare Screens/New folder/01 - Budget Setup Screen .png"
@@ -51,7 +34,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   late List<BudgetCategoryModel> _variableExpenses;
 
   // Fixed Monthly Bills matching Figma Screen 01
-  late List<FixedBillItem> _fixedBills;
+  late List<FixedBillModel> _fixedBills;
 
   @override
   void initState() {
@@ -97,70 +80,43 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     ];
 
     _fixedBills = [
-      FixedBillItem(
+      FixedBillModel(
         id: 'apartment_rent',
         title: 'Apartment Rent',
         amount: 120000,
-        provider: 'Landlord',
+        provider: 'Mr. Sandun (Landlord)',
         dueDate: 'Day 1 of every month',
-        iconWidget: _buildLeadingIcon(
-          bgColor: Colors.white,
-          child: const Center(
-            child: Icon(
-              Icons.apartment_rounded,
-              color: Color(0xFF334155),
-              size: 22,
-            ),
-          ),
-        ),
+        category: 'Rent',
+        icon: Icons.apartment_rounded,
+        iconColor: const Color(0xFF334155),
+        iconBg: Colors.white,
+        isPaid: false,
       ),
-      FixedBillItem(
+      FixedBillModel(
         id: 'ceb_bills',
         title: 'CEB Electricity & Water',
         amount: 45000,
         provider: 'CEB / NWSDB',
         dueDate: 'Day 10 of every month',
-        iconWidget: _buildLeadingIcon(
-          bgColor: const Color(0xFFFEF08A),
-          child: const Center(
-            child: Icon(
-              Icons.bolt_rounded,
-              color: Color(0xFFDC2626),
-              size: 24,
-            ),
-          ),
-        ),
+        category: 'Electricity',
+        icon: Icons.bolt_rounded,
+        iconColor: const Color(0xFFDC2626),
+        iconBg: const Color(0xFFFEF08A),
+        isPaid: false,
       ),
-      FixedBillItem(
+      FixedBillModel(
         id: 'dialog_insurance',
         title: 'Dialog & Insurance',
         amount: 25000,
         provider: 'Dialog Axiata & Ceylinco',
         dueDate: 'Day 15 of every month',
-        iconWidget: _buildLeadingIcon(
-          bgColor: Colors.white,
-          child: const Center(
-            child: Icon(
-              Icons.change_history_rounded,
-              color: Color(0xFFE11D48),
-              size: 22,
-            ),
-          ),
-        ),
+        category: 'Internet',
+        icon: Icons.change_history_rounded,
+        iconColor: const Color(0xFFE11D48),
+        iconBg: Colors.white,
+        isPaid: false,
       ),
     ];
-  }
-
-  Widget _buildLeadingIcon({required Color bgColor, required Widget child}) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: child,
-    );
   }
 
   double get _totalVariable =>
@@ -172,7 +128,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   double get _remainingToAllocate =>
       _monthlyIncome - (_totalVariable + _totalFixed + _baselineSavings);
 
-  // Navigate to Add Budget Category Screen
+  // Navigate to Add Budget Category Screen (Screen 02A)
   Future<void> _navigateToAddCategory() async {
     final newCategory = await Navigator.of(context).push<BudgetCategoryModel>(
       MaterialPageRoute(
@@ -190,7 +146,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     }
   }
 
-  // Navigate to Edit Budget Category Screen
+  // Navigate to Edit Budget Category Screen (Screen 02B)
   Future<void> _navigateToEditCategory(BudgetCategoryModel category) async {
     final result = await Navigator.of(context).push<CategoryEditResult>(
       MaterialPageRoute(
@@ -217,15 +173,52 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     }
   }
 
-  // Edit Amount Dialog for Monthly Income & Fixed Bills
-  void _showEditAmountDialog({
-    required String title,
-    required double initialValue,
-    required ValueChanged<double> onSaved,
-  }) {
+  // Navigate to Add Fixed Bill Screen (Screen 03A)
+  Future<void> _navigateToAddFixedBill() async {
+    final newBill = await Navigator.of(context).push<FixedBillModel>(
+      MaterialPageRoute(
+        builder: (_) => const AddFixedBillScreen(),
+      ),
+    );
+
+    if (newBill != null) {
+      setState(() {
+        _fixedBills.add(newBill);
+      });
+    }
+  }
+
+  // Navigate to Edit Fixed Bill Screen (Screen 03B)
+  Future<void> _navigateToEditFixedBill(FixedBillModel bill) async {
+    final result = await Navigator.of(context).push<FixedBillEditResult>(
+      MaterialPageRoute(
+        builder: (_) => EditFixedBillScreen(
+          bill: bill,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      if (result.isDeleted) {
+        setState(() {
+          _fixedBills.removeWhere((b) => b.id == bill.id);
+        });
+      } else if (result.updatedBill != null) {
+        setState(() {
+          final index = _fixedBills.indexWhere((b) => b.id == bill.id);
+          if (index != -1) {
+            _fixedBills[index] = result.updatedBill!;
+          }
+        });
+      }
+    }
+  }
+
+  // Edit Amount Dialog for Monthly Income
+  void _showEditIncomeDialog() {
     final accentColor = ref.read(accentColorProvider).color;
     final controller = TextEditingController(
-      text: initialValue.toInt().toString(),
+      text: _monthlyIncome.toInt().toString(),
     );
 
     showDialog(
@@ -236,9 +229,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: Color(0xFF262B36)),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
+        title: const Text(
+          'Monthly Income',
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -285,8 +278,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             ),
             onPressed: () {
               final val =
-                  double.tryParse(controller.text.trim()) ?? initialValue;
-              onSaved(val);
+                  double.tryParse(controller.text.trim()) ?? _monthlyIncome;
+              setState(() => _monthlyIncome = val);
               Navigator.pop(ctx);
             },
             child: const Text(
@@ -296,406 +289,6 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  // Add Fixed Bill Modal (Matching Screen 03A)
-  void _showAddFixedBillSheet() {
-    final accentColor = ref.read(accentColorProvider).color;
-    final nameController = TextEditingController();
-    final providerController = TextEditingController();
-    final amountController = TextEditingController();
-
-    String selectedDueDate = 'Day 5 of every month';
-    final dueDates = [
-      'Day 1 of every month',
-      'Day 5 of every month',
-      'Day 10 of every month',
-      'Day 15 of every month',
-      'Day 25 of every month',
-    ];
-
-    int selectedIconIdx = 0;
-    final fixedIcons = [
-      {
-        'name': 'Internet',
-        'icon': Icons.language_rounded,
-        'color': const Color(0xFF0284C7),
-        'bg': Colors.white,
-      },
-      {
-        'name': 'Insurance',
-        'icon': Icons.security_rounded,
-        'color': const Color(0xFF0D9488),
-        'bg': Colors.white,
-      },
-      {
-        'name': 'Rent',
-        'icon': Icons.home_rounded,
-        'color': const Color(0xFF334155),
-        'bg': Colors.white,
-      },
-      {
-        'name': 'Medicine',
-        'icon': Icons.medical_services_rounded,
-        'color': const Color(0xFF0284C7),
-        'bg': Colors.white,
-      },
-      {
-        'name': 'Phone',
-        'icon': Icons.phone_in_talk_rounded,
-        'color': const Color(0xFFDC2626),
-        'bg': Colors.white,
-      },
-      {
-        'name': 'Other',
-        'icon': Icons.more_horiz_rounded,
-        'color': Colors.white,
-        'bg': const Color(0xFF1E2332),
-      },
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF0C0F14),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Handle bar
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white24,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Add Fixed Bill',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(ctx),
-                          child: const Icon(Icons.close_rounded,
-                              color: Colors.white70),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Bill Name
-                    const Text(
-                      'Bill Name',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: nameController,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'e.g., Internet, Insurance',
-                        hintStyle: const TextStyle(
-                            color: Colors.white30, fontSize: 13),
-                        filled: true,
-                        fillColor: const Color(0xFF131722),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1E2332)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: accentColor),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Biller / Provider Name
-                    const Text(
-                      'Biller / Provider Name',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: providerController,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'e.g., SLT-Mobitel',
-                        hintStyle: const TextStyle(
-                            color: Colors.white30, fontSize: 13),
-                        filled: true,
-                        fillColor: const Color(0xFF131722),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1E2332)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: accentColor),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Monthly Amount
-                    const Text(
-                      'Monthly Amount',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        prefixText: 'LKR ',
-                        prefixStyle: TextStyle(
-                          color: accentColor,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        hintText: '0.00',
-                        hintStyle: const TextStyle(
-                            color: Colors.white30, fontSize: 13),
-                        filled: true,
-                        fillColor: const Color(0xFF131722),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1E2332)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: accentColor),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Due Date
-                    const Text(
-                      'Due Date',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
-                        borderRadius: BorderRadius.circular(10),
-                        border:
-                            Border.all(color: const Color(0xFF1E2332)),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedDueDate,
-                          dropdownColor: const Color(0xFF161922),
-                          icon: const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: Colors.white70),
-                          isExpanded: true,
-                          items: dueDates.map((date) {
-                            return DropdownMenuItem<String>(
-                              value: date,
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                      Icons.calendar_month_rounded,
-                                      color: Colors.white54,
-                                      size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    date,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13.5),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setModalState(
-                                  () => selectedDueDate = val);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Category & Icon
-                    const Text(
-                      'Category & Icon',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(fixedIcons.length, (idx) {
-                        final isSelected = idx == selectedIconIdx;
-                        final iconData = fixedIcons[idx];
-                        return GestureDetector(
-                          onTap: () =>
-                              setModalState(() => selectedIconIdx = idx),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: iconData['bg'] as Color,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: isSelected
-                                      ? Border.all(
-                                          color: accentColor, width: 2)
-                                      : Border.all(
-                                          color: Colors.transparent),
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    iconData['icon'] as IconData,
-                                    color: iconData['color'] as Color,
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                iconData['name'] as String,
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? accentColor
-                                      : Colors.white60,
-                                  fontSize: 10.5,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Add Fixed Bill Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: accentColor,
-                          foregroundColor: const Color(0xFF0C0F14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
-                          ),
-                        ),
-                        onPressed: () {
-                          final name = nameController.text.trim();
-                          final amount = double.tryParse(
-                                  amountController.text.trim()) ??
-                              0.0;
-                          final provider = providerController.text.trim();
-                          if (name.isNotEmpty && amount > 0) {
-                            final iconInfo = fixedIcons[selectedIconIdx];
-                            setState(() {
-                              _fixedBills.add(
-                                FixedBillItem(
-                                  id: 'bill_${DateTime.now().millisecondsSinceEpoch}',
-                                  title: name,
-                                  amount: amount,
-                                  provider: provider.isNotEmpty
-                                      ? provider
-                                      : null,
-                                  dueDate: selectedDueDate,
-                                  iconWidget: _buildLeadingIcon(
-                                    bgColor: iconInfo['bg'] as Color,
-                                    child: Center(
-                                      child: Icon(
-                                        iconInfo['icon'] as IconData,
-                                        color: iconInfo['color'] as Color,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            });
-                          }
-                          Navigator.pop(ctx);
-                        },
-                        child: const Text(
-                          'Add Fixed Bill',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
@@ -810,12 +403,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                             ],
                           ),
                           GestureDetector(
-                            onTap: () => _showEditAmountDialog(
-                              title: 'Monthly Income',
-                              initialValue: _monthlyIncome,
-                              onSaved: (val) =>
-                                  setState(() => _monthlyIncome = val),
-                            ),
+                            onTap: _showEditIncomeDialog,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 18,
@@ -917,7 +505,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Items List: Tapping on any category opens Edit Budget Category Screen
+                          // Items List: Tapping on any category opens Edit Budget Category Screen (02B)
                           ..._variableExpenses.map((category) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 14),
@@ -1051,32 +639,43 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                           ),
                           const SizedBox(height: 14),
 
-                          // Items List
+                          // Items List: Tapping on any fixed bill opens Edit Fixed Bill Screen (03B)
                           ..._fixedBills.map((bill) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 14),
-                              child: Row(
-                                children: [
-                                  bill.iconWidget,
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Text(
-                                      bill.title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w600,
+                              child: InkWell(
+                                onTap: () => _navigateToEditFixedBill(bill),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: bill.iconBg,
+                                        borderRadius:
+                                            BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          bill.icon,
+                                          color: bill.iconColor,
+                                          size: 22,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => _showEditAmountDialog(
-                                      title: '${bill.title} Amount',
-                                      initialValue: bill.amount,
-                                      onSaved: (v) =>
-                                          setState(() => bill.amount = v),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Text(
+                                        bill.title,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     ),
-                                    child: Container(
+                                    Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 14,
                                         vertical: 8,
@@ -1098,15 +697,15 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           }),
 
-                          // Add New Fixed Bill Button (Dashed outline)
+                          // Add New Fixed Bill Button (Navigates to Screen 03A)
                           GestureDetector(
-                            onTap: _showAddFixedBillSheet,
+                            onTap: _navigateToAddFixedBill,
                             child: CustomPaint(
                               painter: DashedBorderPainter(
                                 color: accentColor,

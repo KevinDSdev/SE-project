@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prot/core/theme/app_theme.dart';
 import 'package:prot/features/budget/presentation/add_budget_category_screen.dart';
+import 'package:prot/features/budget/presentation/add_fixed_bill_screen.dart';
 import 'package:prot/features/budget/presentation/budget_screen.dart';
 import 'package:prot/features/budget/presentation/budget_setup_screen.dart';
 import 'package:prot/features/budget/presentation/edit_budget_category_screen.dart';
+import 'package:prot/features/budget/presentation/edit_fixed_bill_screen.dart';
 import 'package:prot/features/navigation/main_wrapper.dart';
 
 void main() {
@@ -167,5 +169,133 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BudgetSetupScreen), findsOneWidget);
+  });
+
+  testWidgets('Tapping Apartment Rent fixed bill opens EditFixedBillScreen (03B) with its data', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetSetupScreen()));
+    await tester.pumpAndSettle();
+
+    // Tap Apartment Rent
+    final rentItem = find.text('Apartment Rent');
+    expect(rentItem, findsOneWidget);
+    await tester.ensureVisible(rentItem);
+    await tester.pumpAndSettle();
+    await tester.tap(rentItem);
+    await tester.pumpAndSettle();
+
+    // Verify EditFixedBillScreen (03B) is opened with Apartment Rent details
+    expect(find.byType(EditFixedBillScreen), findsOneWidget);
+    expect(find.text('Edit Fixed Bill'), findsOneWidget);
+    expect(find.text('Monthly Fixed Bill'), findsOneWidget);
+    expect(find.text('Pending'), findsOneWidget);
+    expect(find.text('Paid'), findsOneWidget);
+    expect(find.text('Mr. Sandun (Landlord)'), findsOneWidget);
+    expect(find.text('120,000'), findsOneWidget);
+    expect(find.text('Day 1 of every month'), findsOneWidget);
+    expect(find.text('Save Changes'), findsOneWidget);
+    expect(find.text('Delete Fixed Bill'), findsOneWidget);
+
+    // Tap back button
+    final backBtn = find.byIcon(Icons.chevron_left_rounded);
+    expect(backBtn, findsOneWidget);
+    await tester.tap(backBtn);
+    await tester.pumpAndSettle();
+
+    // Returns to BudgetSetupScreen
+    expect(find.byType(BudgetSetupScreen), findsOneWidget);
+    expect(find.text('Monthly Budget Setup'), findsOneWidget);
+  });
+
+  testWidgets('Tapping CEB Electricity & Water opens EditFixedBillScreen with CEB data', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetSetupScreen()));
+    await tester.pumpAndSettle();
+
+    // Tap CEB Electricity & Water
+    final cebItem = find.text('CEB Electricity & Water');
+    expect(cebItem, findsOneWidget);
+    await tester.ensureVisible(cebItem);
+    await tester.pumpAndSettle();
+    await tester.tap(cebItem);
+    await tester.pumpAndSettle();
+
+    // Verify EditFixedBillScreen displays CEB details
+    expect(find.byType(EditFixedBillScreen), findsOneWidget);
+    expect(find.text('Edit Fixed Bill'), findsOneWidget);
+    expect(find.text('CEB Electricity & Water'), findsNWidgets(2)); // Header & field
+    expect(find.text('45,000'), findsOneWidget);
+    expect(find.text('Day 10 of every month'), findsOneWidget);
+
+    // Tap back button
+    final backBtn = find.byIcon(Icons.chevron_left_rounded);
+    expect(backBtn, findsOneWidget);
+    await tester.tap(backBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BudgetSetupScreen), findsOneWidget);
+  });
+
+  testWidgets('Tapping Save Changes on EditFixedBillScreen navigates back and updates Screen 01', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetSetupScreen()));
+    await tester.pumpAndSettle();
+
+    // Tap Apartment Rent
+    final rentItem = find.text('Apartment Rent');
+    await tester.ensureVisible(rentItem);
+    await tester.pumpAndSettle();
+    await tester.tap(rentItem);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EditFixedBillScreen), findsOneWidget);
+
+    // Tap Save Changes
+    final saveBtn = find.text('Save Changes');
+    expect(saveBtn, findsOneWidget);
+    await tester.ensureVisible(saveBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(saveBtn);
+    await tester.pumpAndSettle();
+
+    // Verify navigated back to Screen 01
+    expect(find.byType(BudgetSetupScreen), findsOneWidget);
+    expect(find.text('Monthly Budget Setup'), findsOneWidget);
+    expect(find.text('Apartment Rent'), findsOneWidget);
+  });
+
+  testWidgets('Tapping Add Fixed Bill navigates to AddFixedBillScreen (03A) and back', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetSetupScreen()));
+    await tester.pumpAndSettle();
+
+    // Tap Add Fixed Bill
+    final addBillBtn = find.text('+ Add New Fixed Bill');
+    expect(addBillBtn, findsOneWidget);
+    await tester.ensureVisible(addBillBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(addBillBtn);
+    await tester.pumpAndSettle();
+
+    // Verify AddFixedBillScreen (03A) is opened
+    expect(find.byType(AddFixedBillScreen), findsOneWidget);
+    expect(find.text('Add Fixed Bill'), findsNWidgets(2)); // Title & Button
+    expect(find.text('Bill Name'), findsOneWidget);
+    expect(find.text('Biller / Provider Name'), findsOneWidget);
+    expect(find.text('Monthly Amount'), findsOneWidget);
+    expect(find.text('Due Date'), findsOneWidget);
+    expect(find.text('Category & Icon'), findsOneWidget);
+    expect(find.text('Internet'), findsOneWidget);
+    expect(find.text('Insurance'), findsOneWidget);
+    expect(find.text('Rent'), findsOneWidget);
+    expect(find.text('medicine'), findsOneWidget);
+    expect(find.text('Phone'), findsOneWidget);
+    expect(find.text('Other'), findsOneWidget);
+
+    // Tap back button
+    final backBtn = find.byIcon(Icons.chevron_left_rounded);
+    expect(backBtn, findsOneWidget);
+    await tester.tap(backBtn);
+    await tester.pumpAndSettle();
+
+    // Verify returned to BudgetSetupScreen
+    expect(find.byType(BudgetSetupScreen), findsOneWidget);
+    expect(find.text('Monthly Budget Setup'), findsOneWidget);
   });
 }
