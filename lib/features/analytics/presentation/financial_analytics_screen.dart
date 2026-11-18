@@ -209,7 +209,7 @@ class _FinancialAnalyticsScreenState
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -241,7 +241,8 @@ class _FinancialAnalyticsScreenState
                   color: cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: borderColor,
+                    color: accentColor,
+                    width: 1.2,
                   ),
                 ),
                 child: Row(
@@ -298,7 +299,7 @@ class _FinancialAnalyticsScreenState
                           title: 'Expenses',
                           amount: _currencyFormat.format(activeExpense.toInt()),
                           color: const Color(0xFFF43F5E),
-                          textColor: Colors.white,
+                          textColor: const Color(0xFF0C0F14),
                           onTap: () {
                             Navigator.of(context).push(
                               slideRoute(const ExpenseAnalyticsScreen()),
@@ -397,7 +398,7 @@ class _FinancialAnalyticsScreenState
                         DonutBreakdownChart(
                           income: activeIncome,
                           expenses: activeExpense,
-                          height: 155,
+                          height: 205,
                         )
                       else
                         GroupedDualBarChart(
@@ -414,8 +415,17 @@ class _FinancialAnalyticsScreenState
                 const SizedBox(height: 18),
               ],
 
-              // Dynamically Pinned Extra Widgets from Dashboard Widgets Screen
-              ..._buildPinnedWidgets(context, activeIds, cardBg, borderColor, textPrimary, textSecondary),
+              // Dynamically Pinned Specialized Dashboards from Dashboard Layout Screen
+              ..._buildPinnedWidgets(
+                context,
+                activeIds,
+                isDark,
+                cardBg,
+                borderColor,
+                textPrimary,
+                textSecondary,
+                ref.watch(subTrendChartStyleProvider),
+              ),
 
               // Quick Actions Grid (4 cards: Exactly matching 1. Financial Analytics Dashboard.png)
               Row(
@@ -428,9 +438,9 @@ class _FinancialAnalyticsScreenState
                       borderColor: const Color(0xFFF43F5E),
                       titleColor: const Color(0xFFF43F5E),
                       textSecondary: textSecondary,
-                      icon: Icons.query_stats_rounded,
-                      iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFFF43F5E),
+                      icon: Icons.troubleshoot_rounded,
+                      iconBgColor: Colors.white,
+                      iconColor: const Color(0xFFE11D48),
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const PredictionAnalysisScreen()),
@@ -448,8 +458,8 @@ class _FinancialAnalyticsScreenState
                       titleColor: const Color(0xFFF43F5E),
                       textSecondary: textSecondary,
                       icon: Icons.warning_amber_rounded,
-                      iconBgColor: const Color(0xFFF43F5E).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFFF43F5E),
+                      iconBgColor: Colors.white,
+                      iconColor: const Color(0xFFF97316),
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const SpendingAnomalyScreen()),
@@ -471,8 +481,8 @@ class _FinancialAnalyticsScreenState
                       titleColor: const Color(0xFF38BDF8),
                       textSecondary: textSecondary,
                       icon: Icons.file_download_outlined,
-                      iconBgColor: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFF38BDF8),
+                      iconBgColor: const Color(0xFF0EA5E9),
+                      iconColor: Colors.white,
                       onTap: () {
                         ImportStatementsDialog.show(context);
                       },
@@ -488,8 +498,8 @@ class _FinancialAnalyticsScreenState
                       titleColor: const Color(0xFF38BDF8),
                       textSecondary: textSecondary,
                       icon: Icons.file_upload_outlined,
-                      iconBgColor: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                      iconColor: const Color(0xFF38BDF8),
+                      iconBgColor: const Color(0xFF2563EB),
+                      iconColor: Colors.white,
                       onTap: () {
                         Navigator.of(context).push(
                           slideRoute(const ReportExportScreen()),
@@ -510,169 +520,476 @@ class _FinancialAnalyticsScreenState
   List<Widget> _buildPinnedWidgets(
     BuildContext context,
     Set<String> activeIds,
+    bool isDark,
     Color cardBg,
     Color borderColor,
     Color textPrimary,
     Color textSecondary,
+    ChartVisualMode subTrendStyle,
   ) {
     final widgets = <Widget>[];
+    const months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
 
-    if (activeIds.contains('avail_exp_pred')) {
-      widgets.add(_buildPinnedCard(
-        context,
-        cardBg: cardBg,
-        borderColor: borderColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        title: 'Expenses Prediction Analytics',
-        subtitle: 'Expected next month: LKR 68,000',
-        color: const Color(0xFFF43F5E),
-        icon: Icons.query_stats_rounded,
-        onTap: () => Navigator.of(context).push(
-          slideRoute(const PredictionAnalysisScreen()),
-        ),
-      ));
-    }
-
-    if (activeIds.contains('avail_anomaly')) {
-      widgets.add(_buildPinnedCard(
-        context,
-        cardBg: cardBg,
-        borderColor: borderColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        title: 'Anomaly Detection Analytics',
-        subtitle: '1 unusual spending spike flagged in Oct',
-        color: const Color(0xFFF59E0B),
-        icon: Icons.warning_amber_rounded,
-        onTap: () => Navigator.of(context).push(
-          slideRoute(const SpendingAnomalyScreen()),
-        ),
-      ));
-    }
-
+    // 1. Income Analytics Specialized Dashboard Card
     if (activeIds.contains('avail_inc_analytics')) {
-      widgets.add(_buildPinnedCard(
-        context,
-        cardBg: cardBg,
-        borderColor: borderColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        title: 'Income Analytics Details',
-        subtitle: 'Primary Salary, Rent Inflow, Freelance',
-        color: const Color(0xFF98E836),
-        icon: Icons.pie_chart_outline_rounded,
-        onTap: () => Navigator.of(context).push(
-          slideRoute(const IncomeAnalyticsScreen()),
-        ),
-      ));
-    }
-
-    if (activeIds.contains('avail_exp_analytics')) {
-      widgets.add(_buildPinnedCard(
-        context,
-        cardBg: cardBg,
-        borderColor: borderColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        title: 'Expenses Analytics Details',
-        subtitle: 'Food & Groceries, Transport, Utilities',
-        color: const Color(0xFFF43F5E),
-        icon: Icons.analytics_outlined,
-        onTap: () => Navigator.of(context).push(
-          slideRoute(const ExpenseAnalyticsScreen()),
-        ),
-      ));
-    }
-
-    if (activeIds.contains('avail_goal_analytics')) {
-      widgets.add(_buildPinnedCard(
-        context,
-        cardBg: cardBg,
-        borderColor: borderColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
-        title: 'Goal Savings Analytics Details',
-        subtitle: 'Emergency Fund, Vehicle, Vacation',
-        color: const Color(0xFF38BDF8),
-        icon: Icons.track_changes_rounded,
-        onTap: () => Navigator.of(context).push(
-          slideRoute(const GoalSavingsAnalyticsScreen()),
-        ),
-      ));
-    }
-
-    return widgets;
-  }
-
-  Widget _buildPinnedCard(
-    BuildContext context, {
-    required Color cardBg,
-    required Color borderColor,
-    required Color textPrimary,
-    required Color textSecondary,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: borderColor),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 20),
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              slideRoute(const IncomeAnalyticsScreen()),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF152512) : cardBg,
+                borderRadius: BorderRadius.circular(22),
+                border:
+                    Border.all(color: const Color(0xFF98E836), width: 1.5),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'INCOME ANALYTICS • TOTAL',
+                        style: TextStyle(
+                          color: Color(0xFF98E836),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        color: const Color(0xFF98E836).withValues(alpha: 0.8),
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'LKR 535,000',
+                    style: TextStyle(
+                      color: Color(0xFF98E836),
+                      fontSize: 25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  AdaptiveTrendChart(
+                    mode: subTrendStyle,
+                    labels: months,
+                    values: const [65000, 70000, 72000, 90000, 83000, 155000],
+                    color: const Color(0xFF98E836),
+                    selectedIndex: 5,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 2. Expenses Analytics Specialized Dashboard Card
+    if (activeIds.contains('avail_exp_analytics')) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              slideRoute(const ExpenseAnalyticsScreen()),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF281519) : cardBg,
+                borderRadius: BorderRadius.circular(22),
+                border:
+                    Border.all(color: const Color(0xFFFF6464), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'EXPENSE ANALYTICS • TOTAL',
+                        style: TextStyle(
+                          color: Color(0xFFFF6464),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        color: const Color(0xFFFF6464).withValues(alpha: 0.8),
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'LKR 318,500',
+                    style: TextStyle(
+                      color: Color(0xFFFF6464),
+                      fontSize: 25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  AdaptiveTrendChart(
+                    mode: subTrendStyle,
+                    labels: months,
+                    values: const [54000, 68500, 38000, 46000, 62000, 50000],
+                    color: const Color(0xFFFF6464),
+                    selectedIndex: 5,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 3. Goal Savings Analytics Specialized Dashboard Card
+    if (activeIds.contains('avail_goal_analytics')) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              slideRoute(const GoalSavingsAnalyticsScreen()),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF10212B) : cardBg,
+                borderRadius: BorderRadius.circular(22),
+                border:
+                    Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'GOAL SAVINGS ANALYTICS • TOTAL',
+                        style: TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        color: const Color(0xFF38BDF8).withValues(alpha: 0.8),
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'LKR 2,450,000',
+                    style: TextStyle(
+                      color: Color(0xFF38BDF8),
+                      fontSize: 25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  AdaptiveTrendChart(
+                    mode: subTrendStyle,
+                    labels: months,
+                    values: const [
+                      250000,
+                      320000,
+                      380000,
+                      440000,
+                      480000,
+                      580000
+                    ],
+                    color: const Color(0xFF38BDF8),
+                    selectedIndex: 5,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 4. Income Prediction Analytics Specialized Dashboard Card
+    if (activeIds.contains('avail_inc_pred')) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: const Color(0xFF98E836).withValues(alpha: 0.6),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      title,
+                      'Expected Next Month Income',
                       style: TextStyle(
                         color: textPrimary,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 11,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.circle,
+                          color: Color(0xFF38BDF8),
+                          size: 8,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Actual',
+                          style: TextStyle(color: textSecondary, fontSize: 11),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.circle,
+                          color: Color(0xFF98E836),
+                          size: 8,
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Est.',
+                          style: TextStyle(
+                            color: Color(0xFF98E836),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: textSecondary,
-                size: 20,
-              ),
-            ],
+                const SizedBox(height: 6),
+                const Text(
+                  'LKR 165,000',
+                  style: TextStyle(
+                    color: Color(0xFF98E836),
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const PredictionBarChartWidget(
+                  months: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov*'],
+                  values: [135000, 142000, 148000, 138000, 155000, 165000],
+                  yAxisLabels: ['120K', '145K', '170K'],
+                  forecastColor: Color(0xFF98E836),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    // 5. Expenses Prediction Analytics Specialized Dashboard Card
+    if (activeIds.contains('avail_exp_pred')) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              slideRoute(const PredictionAnalysisScreen()),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: const Color(0xFFF43F5E).withValues(alpha: 0.6),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Expected Next Month Expense',
+                        style: TextStyle(
+                          color: textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.circle,
+                            color: Color(0xFF38BDF8),
+                            size: 8,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Actual',
+                            style:
+                                TextStyle(color: textSecondary, fontSize: 11),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.circle,
+                            color: Color(0xFFF43F5E),
+                            size: 8,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Est.',
+                            style: TextStyle(
+                              color: Color(0xFFF43F5E),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'LKR 68,000',
+                    style: TextStyle(
+                      color: Color(0xFFF43F5E),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const PredictionBarChartWidget(
+                    months: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov*'],
+                    values: [61000, 64000, 59000, 67000, 65000, 68000],
+                    yAxisLabels: ['50K', '60k', '75K'],
+                    forecastColor: Color(0xFFF43F5E),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 6. Anomaly Detection Analytics Specialized Dashboard Card
+    if (activeIds.contains('avail_anomaly')) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              slideRoute(const SpendingAnomalyScreen()),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF281519) : cardBg,
+                borderRadius: BorderRadius.circular(22),
+                border:
+                    Border.all(color: const Color(0xFFF43F5E), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '2 Anomalies',
+                        style: TextStyle(
+                          color: textPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF43F5E),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'LKR 30,000 Spike',
+                          style: TextStyle(
+                            color: Color(0xFF0C0F14),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'LKR 200,000',
+                    style: TextStyle(
+                      color: Color(0xFFFF5C6C),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  CurvedTrendLineChart(
+                    labels: months,
+                    values: const [
+                      120000,
+                      125000,
+                      124000,
+                      145000,
+                      138000,
+                      200000
+                    ],
+                    lineColor: const Color(0xFFF43F5E),
+                    selectedIndex: 5,
+                    height: 115,
+                    valueFormatter: (v) => '',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return widgets;
   }
 
   Widget _buildPeriodItem(

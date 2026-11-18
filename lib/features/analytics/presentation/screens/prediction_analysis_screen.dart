@@ -33,7 +33,7 @@ class _PredictionAnalysisScreenState
     65000,
     68000
   ];
-  final List<String> _yLabels = ['50K', '60K', '75K'];
+  final List<String> _yLabels = ['50K', '60k', '75K'];
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +63,7 @@ class _PredictionAnalysisScreenState
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -90,15 +90,18 @@ class _PredictionAnalysisScreenState
               const SizedBox(height: 20),
 
               // Filter Chips (matching 12. Expenses prediction Analysis.png)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: _categories.map((cat) {
-                    final isSel = _selectedCategory == cat;
-                    final isAll = cat == 'All Outflows';
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
+              Row(
+                children: _categories.map((cat) {
+                  final isSel = _selectedCategory == cat;
+                  final isAll = cat == 'All Outflows';
+                  final displayLabel =
+                      cat == 'Food & Grocery' ? 'Food &\nGrocery' : cat;
+                  return Expanded(
+                    flex: isAll ? 13 : 10,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: cat == _categories.last ? 0 : 8,
+                      ),
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
@@ -106,42 +109,44 @@ class _PredictionAnalysisScreenState
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
+                          height: 40,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           decoration: BoxDecoration(
                             color: isSel && !isAll
-                                ? const Color(0xFFF43F5E)
+                                ? const Color(0xFFFF6464)
                                 : cardBg,
-                            borderRadius: BorderRadius.circular(22),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isAll
-                                  ? const Color(0xFFF43F5E)
+                                  ? const Color(0xFFFF6464)
                                   : (isSel
-                                      ? const Color(0xFFF43F5E)
+                                      ? const Color(0xFFFF6464)
                                       : borderColor),
-                              width: isAll ? 1.5 : 1,
+                              width: isAll ? 1.4 : 1,
                             ),
                           ),
                           child: Text(
-                            cat,
+                            displayLabel,
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: isSel && !isAll
-                                  ? Colors.black
+                                  ? const Color(0xFF0C0F14)
                                   : (isAll
-                                      ? const Color(0xFFF43F5E)
+                                      ? const Color(0xFFFF6464)
                                       : textSecondary),
-                              fontSize: 13,
-                              fontWeight:
-                                  isSel ? FontWeight.w700 : FontWeight.w500,
+                              fontSize: 11.5,
+                              height: 1.1,
+                              fontWeight: isSel || isAll
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                           ),
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
+                    ),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 20),
 

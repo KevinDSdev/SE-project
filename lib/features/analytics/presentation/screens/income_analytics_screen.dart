@@ -156,7 +156,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                           height: 42,
                           decoration: BoxDecoration(
                             color: cardBg,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: borderColor),
                           ),
                           child: Icon(
@@ -207,7 +207,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: cardBg,
+                  color: isDark ? const Color(0xFF152512) : cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: const Color(0xFF98E836), width: 1.5),
                 ),
@@ -217,7 +217,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                     const Text(
                       'TOTAL',
                       style: TextStyle(
-                        color: Color(0xFF65A30D),
+                        color: Color(0xFF98E836),
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.5,
@@ -227,7 +227,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                     const Text(
                       'LKR 535,000',
                       style: TextStyle(
-                        color: Color(0xFF65A30D),
+                        color: Color(0xFF98E836),
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                       ),
@@ -239,7 +239,6 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       values: _totalTrend,
                       color: const Color(0xFF98E836),
                       selectedIndex: 5,
-                      valueFormatter: (v) => v.toInt().toString(),
                     ),
                   ],
                 ),
@@ -341,7 +340,6 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       values: currentStream['values'] as List<double>,
                       barColor: currentStream['color'] as Color,
                       selectedIndex: 5,
-                      valueFormatter: (v) => v.toInt().toString(),
                     ),
                   ],
                 ),
@@ -373,7 +371,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       dotColor: const Color(0xFF98E836),
                       name: 'Primary Salary',
                       amount: 'LKR 450,000',
-                      amountColor: const Color(0xFF65A30D),
+                      amountColor: const Color(0xFF98E836),
                       textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
@@ -381,7 +379,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       dotColor: const Color(0xFF38BDF8),
                       name: 'Kandy Annex Rent',
                       amount: 'LKR 55,000',
-                      amountColor: const Color(0xFF0284C7),
+                      amountColor: const Color(0xFF38BDF8),
                       textColor: textPrimary,
                     ),
                     const SizedBox(height: 12),
@@ -389,7 +387,7 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       dotColor: const Color(0xFF9353D3),
                       name: 'Freelance Income',
                       amount: 'LKR 30,000',
-                      amountColor: const Color(0xFF7E22CE),
+                      amountColor: const Color(0xFFA855F7),
                       textColor: textPrimary,
                     ),
                   ],

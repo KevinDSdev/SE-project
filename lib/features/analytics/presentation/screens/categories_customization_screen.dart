@@ -117,7 +117,7 @@ class _CategoriesCustomizationScreenState
                       height: 32,
                       decoration: BoxDecoration(
                         color: c,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: isSel
                             ? Border.all(color: Colors.white, width: 3)
                             : null,
@@ -266,7 +266,7 @@ class _CategoriesCustomizationScreenState
                       height: 32,
                       decoration: BoxDecoration(
                         color: c,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: isSel
                             ? Border.all(color: Colors.white, width: 3)
                             : null,
@@ -316,7 +316,6 @@ class _CategoriesCustomizationScreenState
   Widget build(BuildContext context) {
     final incomeItems = ref.watch(incomeMethodsProvider);
     final expenseItems = ref.watch(expenseCategoriesProvider);
-    final applyToSub = ref.watch(applySubDashboardsLayoutProvider);
     final accentColor = ref.watch(accentColorProvider).color;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -349,7 +348,7 @@ class _CategoriesCustomizationScreenState
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -553,44 +552,7 @@ class _CategoriesCustomizationScreenState
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Apply Layout to All 3 Sub-Dashboards Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: borderColor),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Apply Layout to All 3 Sub-Dashboards',
-                        style: TextStyle(
-                          color: textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Switch.adaptive(
-                      value: applyToSub,
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: accentColor,
-                      onChanged: (val) {
-                        ref
-                            .read(applySubDashboardsLayoutProvider.notifier)
-                            .setVal(val);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 180),
 
               // Save & Apply Customization Button
               SizedBox(

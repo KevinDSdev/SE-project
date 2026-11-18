@@ -44,48 +44,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Profile',
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        slideRoute(const SettingsScreen()),
-                      );
-                    },
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: cardBg,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Icon(
-                        Icons.settings_outlined,
-                        color: textSecondary,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                'Profile',
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
               ),
               const SizedBox(height: 18),
 
               // User Profile Card (Reference: Profile Screen (LKR).png)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(22),
@@ -94,22 +67,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 64,
+                      height: 64,
                       decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.15),
+                        color: Colors.transparent,
                         shape: BoxShape.circle,
-                        border: Border.all(color: accentColor, width: 2),
+                        border: Border.all(color: accentColor, width: 2.5),
                       ),
                       child: Center(
                         child: Icon(
-                          Icons.person,
+                          Icons.person_outline_rounded,
                           color: accentColor,
-                          size: 30,
+                          size: 38,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +92,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             style: TextStyle(
                               color: textPrimary,
                               fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 3),
@@ -192,7 +165,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           Text(
                             'Auto-Track',
                             style: TextStyle(
-                              color: accentColor,
+                              color: textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -229,8 +202,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 TextSpan(
                                   text: 'Good',
                                   style: TextStyle(
-                                    color: accentColor,
-                                    fontSize: 11,
+                                    color: textPrimary,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -256,8 +229,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     // Bank Accounts
                     _buildGroupTile(
-                      icon: Icons.home_rounded,
+                      icon: Icons.home_outlined,
                       iconColor: const Color(0xFF38BDF8),
+                      chevronColor: accentColor,
                       title: 'Bank Accounts',
                       subtitle: 'Commercial Bank, Sampath, HNB',
                       textPrimary: textPrimary,
@@ -267,11 +241,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _buildDivider(borderColor),
                     // Bank SMS Auto-Sync
                     _buildGroupTile(
-                      icon: Icons.chat_bubble_outline_rounded,
+                      icon: Icons.sms_outlined,
                       iconColor: accentColor,
+                      hasIconBorder: true,
+                      chevronColor: accentColor,
                       title: 'Bank SMS Auto-Sync',
                       subtitle: 'Auto-log transactions from bank SMS',
-                      subtitleColor: const Color(0xFF65A30D),
+                      subtitleColor: accentColor,
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                       trailing: Container(
@@ -297,8 +273,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _buildDivider(borderColor),
                     // Primary Currency
                     _buildGroupTile(
-                      icon: Icons.currency_exchange_rounded,
+                      icon: Icons.tag_rounded,
                       iconColor: const Color(0xFFF59E0B),
+                      chevronColor: accentColor,
                       title: 'Primary Currency',
                       subtitle: 'Sri Lankan Rupee (LKR / Rs.)',
                       textPrimary: textPrimary,
@@ -309,14 +286,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     // Budget Limit Alerts
                     _buildGroupTile(
                       icon: Icons.notifications_none_rounded,
-                      iconColor: const Color(0xFF9353D3),
+                      iconColor: const Color(0xFFB088F6),
+                      chevronColor: accentColor,
                       title: 'Budget Limit Alerts',
                       subtitle: 'Notify at 80% and 100% threshold',
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                       trailing: Switch.adaptive(
                         value: _budgetAlertsEnabled,
-                        activeThumbColor: Colors.white,
+                        activeThumbColor: const Color(0xFF0C0F14),
                         activeTrackColor: accentColor,
                         onChanged: (val) {
                           setState(() => _budgetAlertsEnabled = val);
@@ -344,8 +322,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _buildGroupTile(
                       icon: Icons.settings_outlined,
                       iconColor: accentColor,
+                      chevronColor: accentColor,
                       title: 'App Settings',
-                      subtitle: 'Preferences, accent color & notifications',
+                      subtitle: 'Preferences, dark theme & notifications',
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                       onTap: () {
@@ -359,6 +338,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _buildGroupTile(
                       icon: Icons.description_outlined,
                       iconColor: const Color(0xFF64748B),
+                      chevronColor: accentColor,
                       title: 'Download Statements',
                       subtitle: 'Monthly PDF & CSV tax reports',
                       textPrimary: textPrimary,
@@ -373,7 +353,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     // Transaction History
                     _buildGroupTile(
                       icon: Icons.receipt_long_outlined,
-                      iconColor: const Color(0xFF9353D3),
+                      iconColor: const Color(0xFFB088F6),
+                      customIconWidget: const Text(
+                        'H',
+                        style: TextStyle(
+                          color: Color(0xFFB088F6),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      chevronColor: accentColor,
                       title: 'Transaction History',
                       subtitle: 'Overall information of transaction History',
                       textPrimary: textPrimary,
@@ -408,6 +397,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
+                    backgroundColor:
+                        isDark ? const Color(0xFF1A1215) : cardBg,
                     side: const BorderSide(
                       color: Color(0xFFF43F5E),
                       width: 1.2,
@@ -443,6 +434,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required Color textPrimary,
     required Color textSecondary,
     Color? subtitleColor,
+    Color? chevronColor,
+    bool hasIconBorder = false,
+    Widget? customIconWidget,
     Widget? trailing,
     required VoidCallback onTap,
   }) {
@@ -461,9 +455,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
+                  border: hasIconBorder
+                      ? Border.all(color: iconColor, width: 1.5)
+                      : null,
                 ),
                 child: Center(
-                  child: Icon(icon, color: iconColor, size: 22),
+                  child: customIconWidget ??
+                      Icon(icon, color: iconColor, size: 22),
                 ),
               ),
               const SizedBox(width: 14),
@@ -485,7 +483,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: TextStyle(
                         color: subtitleColor ?? textSecondary,
                         fontSize: 12,
-                        fontWeight: subtitleColor != null ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: subtitleColor != null
+                            ? FontWeight.w500
+                            : FontWeight.w400,
                       ),
                     ),
                   ],
@@ -494,7 +494,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               trailing ??
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: textSecondary,
+                    color: chevronColor ?? textSecondary,
                     size: 22,
                   ),
             ],

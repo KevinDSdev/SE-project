@@ -103,7 +103,7 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                           height: 42,
                           decoration: BoxDecoration(
                             color: cardBg,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: borderColor),
                           ),
                           child: Icon(
@@ -154,22 +154,21 @@ class SelectExportRequirementScreen extends ConsumerWidget {
               // Selected Counter Pill
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
+                  color: accentColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: accentColor.withValues(alpha: 0.3),
+                    color: accentColor.withValues(alpha: 0.35),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    '$selectedCount of $totalCount modules selected',
-                    style: TextStyle(
-                      color: accentColor,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
+                child: Text(
+                  '$selectedCount of $totalCount modules selected',
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -178,6 +177,15 @@ class SelectExportRequirementScreen extends ConsumerWidget {
               // Module Cards List
               ...allModules.map((mod) {
                 final isChecked = selectedSet.contains(mod.id);
+                final Color iconColor = mod.id == 'trans_history'
+                    ? const Color(0xFF3B82F6)
+                    : mod.id == 'goal_savings'
+                        ? const Color(0xFFE11D48)
+                        : mod.id == 'exp_pred'
+                            ? const Color(0xFFE11D48)
+                            : mod.id == 'debt_invest'
+                                ? const Color(0xFFB45309)
+                                : const Color(0xFF65A30D);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -205,7 +213,7 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                             ),
                             child: Icon(
                               mod.icon,
-                              color: const Color(0xFF0C0F14),
+                              color: iconColor,
                               size: 22,
                             ),
                           ),
@@ -226,14 +234,16 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: isChecked
                                   ? const Color(0xFF0C0F14)
-                                  : Colors.white.withValues(alpha: 0.4),
+                                  : const Color(0xFF262B36),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: isChecked
-                                ? const Center(
+                                ? Center(
                                     child: Icon(
                                       Icons.check,
-                                      color: Colors.white,
+                                      color: mod.id == 'exp_analysis'
+                                          ? const Color(0xFFFF5268)
+                                          : Colors.white,
                                       size: 16,
                                     ),
                                   )

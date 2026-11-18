@@ -15,6 +15,14 @@ class SpendingAnomalyScreen extends ConsumerStatefulWidget {
 
 class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
   String _selectedPeriodLabel = 'Monthly : 2026';
+  String _selectedFilter = 'Food & grocery';
+
+  final List<String> _filters = [
+    'All (4)',
+    'Food & grocery',
+    'Utilities',
+    'Dining',
+  ];
 
   final List<String> _months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
   final List<double> _spikeLineValues = [
@@ -23,7 +31,15 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     124000,
     145000,
     138000,
-    200000
+    200000,
+  ];
+  final List<double> _anomalyBarValues = [
+    20000,
+    25000,
+    15000,
+    27000,
+    25000,
+    30000,
   ];
 
   void _showTransactionDetails(FlaggedTransactionItem item) {
@@ -73,9 +89,19 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow('Category', item.category, textColor: textPrimary, labelColor: textSecondary),
+            _buildDetailRow(
+              'Category',
+              item.category,
+              textColor: textPrimary,
+              labelColor: textSecondary,
+            ),
             const SizedBox(height: 10),
-            _buildDetailRow('Transaction Date', item.date, textColor: textPrimary, labelColor: textSecondary),
+            _buildDetailRow(
+              'Transaction Date',
+              item.date,
+              textColor: textPrimary,
+              labelColor: textSecondary,
+            ),
             const SizedBox(height: 10),
             _buildDetailRow(
               '6-Month Baseline',
@@ -234,10 +260,117 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     );
   }
 
+  Widget _buildAnomalyVerticalBarChart() {
+    const double height = 155;
+    const double maxVal = 30000;
+    const List<String> yLabels = ['30k', '20k', '10k'];
+
+    return SizedBox(
+      height: height,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 30,
+            height: height - 34,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: yLabels
+                  .map(
+                    (lbl) => Text(
+                      lbl,
+                      style: const TextStyle(
+                        color: Color(0xFFB0B7C3),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: List.generate(_months.length, (index) {
+                      final val = _anomalyBarValues[index];
+                      final barH = (val / maxVal) * (height - 58);
+                      final formattedVal = val
+                          .toInt()
+                          .toString()
+                          .replaceAllMapped(
+                            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                            (m) => '${m[1]},',
+                          );
+
+                      return Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              formattedVal,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              width: 30,
+                              height: barH.clamp(22, height - 58),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF38BDF8),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                Container(
+                  height: 1,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: List.generate(_months.length, (index) {
+                    return Expanded(
+                      child: Center(
+                        child: Text(
+                          _months[index],
+                          style: const TextStyle(
+                            color: Color(0xFFB0B7C3),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
-    final flaggedList = ref.watch(flaggedTransactionsProvider);
+    final flaggedList = ref
+        .watch(flaggedTransactionsProvider)
+        .where((item) => !item.isDismissed)
+        .toList();
     final count = flaggedList.length;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -270,7 +403,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                           height: 42,
                           decoration: BoxDecoration(
                             color: cardBg,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: borderColor),
                           ),
                           child: Icon(
@@ -314,18 +447,90 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
-              Text(
-                'Unusual Spendings',
-                style: TextStyle(
-                  color: textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+              // 1. Top Spike Line Chart Card (LKR 200,000)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF281519) : cardBg,
+                  borderRadius: BorderRadius.circular(22),
+                  border:
+                      Border.all(color: const Color(0xFFF43F5E), width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'LKR 200,000',
+                      style: TextStyle(
+                        color: Color(0xFFFF5C6C),
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    CurvedTrendLineChart(
+                      labels: _months,
+                      values: _spikeLineValues,
+                      lineColor: const Color(0xFFF43F5E),
+                      selectedIndex: 5,
+                      height: 120,
+                      valueFormatter: (v) => '',
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
-              // Overview Metric Card
+              const SizedBox(height: 14),
+
+              // 2. Filter Chips Row (All (4), Food & grocery, Utilities, Dining)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: _filters.map((filter) {
+                    final isSel = _selectedFilter == filter;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedFilter = filter),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSel
+                                ? const Color(0xFFFF6464)
+                                : cardBg,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSel
+                                  ? const Color(0xFFFF6464)
+                                  : borderColor,
+                            ),
+                          ),
+                          child: Text(
+                            filter,
+                            style: TextStyle(
+                              color: isSel
+                                  ? const Color(0xFF0C0F14)
+                                  : textSecondary,
+                              fontSize: 12.5,
+                              fontWeight:
+                                  isSel ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // 3. Food & Grocery - Anomaly Bar Chart Card (LKR 142,000)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -337,7 +542,63 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Food & Grocery - Anomaly',
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'LKR 142,000',
+                      style: TextStyle(
+                        color: Color(0xFFFF6464),
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildAnomalyVerticalBarChart(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
 
+              // 4. Month - October Green Pill Badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Month - October',
+                  style: TextStyle(
+                    color: Color(0xFF0C0F14),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // 5. 2 Anomalies Summary Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -345,40 +606,44 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                           '$count Anomalies',
                           style: TextStyle(
                             color: textPrimary,
-                            fontSize: 24,
+                            fontSize: 25,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 7,
+                            horizontal: 16,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF43F5E),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Text(
-                            'LKR 49,700 Spike',
+                            'LKR 30,000 Spike',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0C0F14),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
-                        vertical: 12,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
                         color: subContainer,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: borderColor),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.5)
+                              : borderColor,
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -387,20 +652,20 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '6-Mo Normal Avg',
+                                  '6-Mo Normal',
                                   style: TextStyle(
                                     color: textSecondary,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 3),
                                 const Text(
-                                  'LKR 289,300',
+                                  'LKR 280,000',
                                   style: TextStyle(
-                                    color: Color(0xFF0284C7),
+                                    color: Color(0xFF38BDF8),
                                     fontSize: 15,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
@@ -408,10 +673,12 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                           ),
                           Container(
                             width: 1,
-                            height: 34,
-                            color: borderColor,
+                            height: 32,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.35)
+                                : borderColor,
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 24),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,13 +691,13 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 3),
                                 Text(
-                                  'LKR 339,000',
+                                  'LKR 300,000',
                                   style: TextStyle(
                                     color: textPrimary,
                                     fontSize: 15,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
@@ -442,119 +709,9 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
-              // Spike Line Chart Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'LKR 200,000',
-                      style: TextStyle(
-                        color: Color(0xFFE11D48),
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    CurvedTrendLineChart(
-                      labels: _months,
-                      values: _spikeLineValues,
-                      lineColor: const Color(0xFFF43F5E),
-                      selectedIndex: 5,
-                      valueFormatter: (v) => '',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Category Baseline vs. Actual Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: borderColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Category Spike Breakdown',
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.circle, color: Color(0xFF38BDF8), size: 8),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Baseline',
-                              style: TextStyle(
-                                color: textSecondary,
-                                fontSize: 10,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.circle, color: Color(0xFFF43F5E), size: 8),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Oct Spend',
-                              style: TextStyle(
-                                color: textSecondary,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const AnomalyComparisonBar(
-                      category: 'Shopping',
-                      baseline: 25000,
-                      actual: 74700,
-                      baselineLabel: 'LKR 25K',
-                      actualLabel: 'LKR 74.7K (+198%)',
-                    ),
-                    const SizedBox(height: 14),
-                    const AnomalyComparisonBar(
-                      category: 'Dining Out',
-                      baseline: 30000,
-                      actual: 48000,
-                      baselineLabel: 'LKR 30K',
-                      actualLabel: 'LKR 48K (+60%)',
-                    ),
-                    const SizedBox(height: 14),
-                    const AnomalyComparisonBar(
-                      category: 'Utilities',
-                      baseline: 28000,
-                      actual: 31000,
-                      baselineLabel: 'LKR 28K',
-                      actualLabel: 'LKR 31K (+10%)',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Flagged Transactions Section Card (matching 14. Spending Anomaly Analysis.png)
+              // 6. Flagged Transactions Section Card (matching 14. Spending Anomaly Analysis.png)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -579,10 +736,14 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            ref.read(flaggedTransactionsProvider.notifier).dismissAll();
+                            ref
+                                .read(flaggedTransactionsProvider.notifier)
+                                .dismissAll();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('All flagged transactions dismissed.'),
+                                content: const Text(
+                                  'All flagged transactions dismissed.',
+                                ),
                                 backgroundColor: cardBg,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
@@ -593,17 +754,20 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: accentColor,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Text(
                               'Dismiss',
                               style: TextStyle(
                                 color: Color(0xFF0C0F14),
                                 fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),
@@ -623,31 +787,41 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                       )
                     else
                       ...flaggedList.map((item) {
-                        final isCeb = item.title.contains('Electricity') || item.title.contains('CEB');
+                        final isCeb = item.title.contains('Electricity') ||
+                            item.title.contains('CEB');
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: GestureDetector(
                             onTap: () => _showTransactionDetails(item),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                               decoration: BoxDecoration(
                                 color: subContainer,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: borderColor.withValues(alpha: 0.5)),
+                                border: Border.all(
+                                  color: borderColor.withValues(alpha: 0.6),
+                                ),
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 36,
-                                    height: 36,
+                                    width: 30,
+                                    height: 30,
                                     decoration: BoxDecoration(
-                                      color: isCeb ? const Color(0xFFFEF3C7) : const Color(0xFFFEE2E2),
-                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Center(
                                       child: Icon(
-                                        isCeb ? Icons.bolt_rounded : Icons.local_pizza_rounded,
-                                        color: isCeb ? const Color(0xFFD97706) : const Color(0xFFDC2626),
+                                        isCeb
+                                            ? Icons.wb_sunny_rounded
+                                            : Icons.local_pizza_rounded,
+                                        color: isCeb
+                                            ? const Color(0xFFD97706)
+                                            : const Color(0xFFDC2626),
                                         size: 20,
                                       ),
                                     ),
@@ -666,7 +840,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                                   Text(
                                     'LKR ${item.amount.toInt().toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (m) => "${m[1]},")}',
                                     style: const TextStyle(
-                                      color: Color(0xFFF43F5E),
+                                      color: Color(0xFFFF5C6C),
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                     ),

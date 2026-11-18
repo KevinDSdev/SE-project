@@ -4,12 +4,55 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
 
-class DashboardWidgetsScreen extends ConsumerWidget {
+class DashboardWidgetsScreen extends ConsumerStatefulWidget {
   const DashboardWidgetsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final widgetsState = ref.watch(dashboardWidgetsProvider);
+  ConsumerState<DashboardWidgetsScreen> createState() =>
+      _DashboardWidgetsScreenState();
+}
+
+class _DashboardWidgetsScreenState
+    extends ConsumerState<DashboardWidgetsScreen> {
+  late List<DashboardWidgetItem> _draftActive;
+  late List<DashboardWidgetItem> _draftAvailable;
+
+  @override
+  void initState() {
+    super.initState();
+    final current = ref.read(dashboardWidgetsProvider);
+    _draftActive = [...current.activeWidgets];
+    _draftAvailable = [...current.availableWidgets];
+  }
+
+  void _removeActive(String id) {
+    final index = _draftActive.indexWhere((w) => w.id == id);
+    if (index == -1) return;
+    setState(() {
+      final item = _draftActive.removeAt(index);
+      _draftAvailable.add(item);
+    });
+  }
+
+  void _addAvailable(String id) {
+    final index = _draftAvailable.indexWhere((w) => w.id == id);
+    if (index == -1) return;
+    setState(() {
+      final item = _draftAvailable.removeAt(index);
+      _draftActive.add(item);
+    });
+  }
+
+  void _resetDraft() {
+    final def = ref.read(dashboardWidgetsProvider.notifier).defaultState;
+    setState(() {
+      _draftActive = [...def.activeWidgets];
+      _draftAvailable = [...def.availableWidgets];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -42,7 +85,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                           height: 42,
                           decoration: BoxDecoration(
                             color: cardBg,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: borderColor),
                           ),
                           child: Icon(
@@ -65,12 +108,12 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      ref.read(dashboardWidgetsProvider.notifier).reset();
+                      _resetDraft();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           backgroundColor: cardBg,
                           content: Text(
-                            'Dashboard cards reset to default layout.',
+                            'Reset to default layout. Tap Save Preferences to apply.',
                             style: TextStyle(
                               color: textPrimary,
                               fontSize: 13,
@@ -112,15 +155,15 @@ class DashboardWidgetsScreen extends ConsumerWidget {
               Text(
                 'Active Dashboard Layout',
                 style: TextStyle(
-                  color: textPrimary,
-                  fontSize: 16,
+                  color: textSecondary,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 12),
 
               // Active Layout Display
-              if (widgetsState.activeWidgets.isEmpty)
+              if (_draftActive.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -143,33 +186,33 @@ class DashboardWidgetsScreen extends ConsumerWidget {
               else
                 _buildActiveCardsLayout(
                   context,
-                  ref,
-                  widgetsState.activeWidgets,
+                  _draftActive,
                   cardBg,
                   borderColor,
                   textPrimary,
                   textSecondary,
                   subContainer,
+                  accentColor,
                 ),
 
               const SizedBox(height: 22),
 
-              // Section: Available Widgets to Add
+              // Section: Available Analytics to Add
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Available Widgets to Add',
+                    'Available Analytics to Add',
                     style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 16,
+                      color: textSecondary,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     'Tap + to pin',
                     style: TextStyle(
-                      color: textSecondary,
+                      color: textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -179,7 +222,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
               const SizedBox(height: 12),
 
               // Available widgets list
-              if (widgetsState.availableWidgets.isEmpty)
+              if (_draftAvailable.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -199,32 +242,32 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   ),
                 )
               else
-                ...widgetsState.availableWidgets.map((item) {
+                ..._draftAvailable.map((item) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
+                        horizontal: 12,
+                        vertical: 7,
                       ),
                       decoration: BoxDecoration(
                         color: cardBg,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(24),
                         border: Border.all(color: borderColor),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 38,
-                            height: 38,
+                            width: 28,
+                            height: 28,
                             decoration: BoxDecoration(
-                              color: item.color.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(7),
                             ),
                             child: Icon(
                               item.icon,
                               color: item.color,
-                              size: 20,
+                              size: 18,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -233,48 +276,33 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                               item.title,
                               style: TextStyle(
                                 color: textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              ref
-                                  .read(dashboardWidgetsProvider.notifier)
-                                  .addAvailable(item.id);
-                            },
+                            onTap: () => _addAvailable(item.id),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                                horizontal: 14,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: accentColor.withValues(alpha: 0.15),
+                                color: accentColor.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: accentColor,
                                   width: 1.2,
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.add,
-                                    size: 14,
-                                    color: accentColor,
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    'Add',
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                '+ Add',
+                                style: TextStyle(
+                                  color: accentColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
@@ -292,7 +320,9 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
-                    ref.read(dashboardWidgetsProvider.notifier).savePreferences();
+                    ref
+                        .read(dashboardWidgetsProvider.notifier)
+                        .applyState(_draftActive, _draftAvailable);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         backgroundColor: cardBg,
@@ -340,24 +370,30 @@ class DashboardWidgetsScreen extends ConsumerWidget {
 
   Widget _buildActiveCardsLayout(
     BuildContext context,
-    WidgetRef ref,
     List<DashboardWidgetItem> activeWidgets,
     Color cardBg,
     Color borderColor,
     Color textPrimary,
     Color textSecondary,
     Color subContainer,
+    Color accentColor,
   ) {
-    final incomeItem = activeWidgets.where((w) => w.id == 'active_income').firstOrNull;
-    final expenseItem = activeWidgets.where((w) => w.id == 'active_expenses').firstOrNull;
-    final savingsItem = activeWidgets.where((w) => w.id == 'active_savings').firstOrNull;
-    final trendItem = activeWidgets.where((w) => w.id == 'active_trend').firstOrNull;
+    final incomeItem =
+        activeWidgets.where((w) => w.id == 'active_income').firstOrNull;
+    final expenseItem =
+        activeWidgets.where((w) => w.id == 'active_expenses').firstOrNull;
+    final savingsItem =
+        activeWidgets.where((w) => w.id == 'active_savings').firstOrNull;
+    final trendItem =
+        activeWidgets.where((w) => w.id == 'active_trend').firstOrNull;
 
-    final otherItems = activeWidgets.where((w) =>
-        w.id != 'active_income' &&
-        w.id != 'active_expenses' &&
-        w.id != 'active_savings' &&
-        w.id != 'active_trend').toList();
+    final otherItems = activeWidgets
+        .where((w) =>
+            w.id != 'active_income' &&
+            w.id != 'active_expenses' &&
+            w.id != 'active_savings' &&
+            w.id != 'active_trend')
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,7 +407,6 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                 if (incomeItem != null)
                   Expanded(
                     child: _buildColouredActiveCard(
-                      ref: ref,
                       item: incomeItem,
                       bg: const Color(0xFF98E836),
                       textColor: const Color(0xFF0C0F14),
@@ -382,10 +417,9 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                 if (expenseItem != null)
                   Expanded(
                     child: _buildColouredActiveCard(
-                      ref: ref,
                       item: expenseItem,
                       bg: const Color(0xFFF43F5E),
-                      textColor: Colors.white,
+                      textColor: const Color(0xFF0C0F14),
                     ),
                   ),
               ],
@@ -399,9 +433,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
             child: Row(
               children: [
                 Expanded(
-                  flex: expenseItem == null && incomeItem == null ? 1 : 1,
                   child: _buildColouredActiveCard(
-                    ref: ref,
                     item: savingsItem,
                     bg: const Color(0xFF38BDF8),
                     textColor: const Color(0xFF0C0F14),
@@ -418,14 +450,13 @@ class DashboardWidgetsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _buildTrendActiveCard(
-              context,
-              ref,
               trendItem,
               cardBg,
               borderColor,
               textPrimary,
               textSecondary,
               subContainer,
+              accentColor,
             ),
           ),
 
@@ -438,16 +469,16 @@ class DashboardWidgetsScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor),
+                border: Border.all(color: item.color.withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 34,
+                    height: 34,
                     decoration: BoxDecoration(
-                      color: item.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(item.icon, color: item.color, size: 20),
                   ),
@@ -474,7 +505,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  _buildMinusButton(ref, item.id),
+                  _buildMinusButton(item.id),
                 ],
               ),
             ),
@@ -485,7 +516,6 @@ class DashboardWidgetsScreen extends ConsumerWidget {
   }
 
   Widget _buildColouredActiveCard({
-    required WidgetRef ref,
     required DashboardWidgetItem item,
     required Color bg,
     required Color textColor,
@@ -496,62 +526,57 @@ class DashboardWidgetsScreen extends ConsumerWidget {
         color: bg,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.grid_view_rounded,
-                      size: 13,
-                      color: textColor.withValues(alpha: 0.7),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      item.title,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  item.subtitle,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.drag_indicator_rounded,
+                    size: 16,
+                    color: textColor.withValues(alpha: 0.6),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    item.title,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              _buildMinusButton(item.id),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            item.subtitle,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          _buildMinusButton(ref, item.id),
         ],
       ),
     );
   }
 
   Widget _buildTrendActiveCard(
-    BuildContext context,
-    WidgetRef ref,
     DashboardWidgetItem item,
     Color cardBg,
     Color borderColor,
     Color textPrimary,
     Color textSecondary,
     Color subContainer,
+    Color accentColor,
   ) {
-    final accentColor = ref.watch(accentColorProvider).color;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -569,12 +594,13 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: accentColor.withValues(alpha: 0.4)),
                 ),
                 child: Center(
                   child: Icon(
-                    Icons.bar_chart_rounded,
+                    Icons.drag_indicator_rounded,
                     color: accentColor,
-                    size: 20,
+                    size: 18,
                   ),
                 ),
               ),
@@ -589,16 +615,16 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              _buildMinusButton(ref, item.id),
             ],
           ),
           const SizedBox(height: 12),
           // Mini chart preview
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: subContainer,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor.withValues(alpha: 0.5)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -606,41 +632,68 @@ class DashboardWidgetsScreen extends ConsumerWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    _miniBar(16, const Color(0xFF98E836)),
-                    _miniBar(12, const Color(0xFFF43F5E)),
-                    const SizedBox(width: 8),
-                    _miniBar(20, const Color(0xFF98E836)),
-                    _miniBar(15, const Color(0xFFF43F5E)),
-                    const SizedBox(width: 8),
                     _miniBar(22, const Color(0xFF98E836)),
                     _miniBar(16, const Color(0xFFF43F5E)),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     _miniBar(26, const Color(0xFF98E836)),
                     _miniBar(18, const Color(0xFFF43F5E)),
+                    const SizedBox(width: 12),
+                    _miniBar(28, const Color(0xFF98E836)),
+                    _miniBar(15, const Color(0xFFF43F5E)),
+                    const SizedBox(width: 12),
+                    _miniBar(34, const Color(0xFF98E836)),
+                    _miniBar(20, const Color(0xFFF43F5E)),
+                    const SizedBox(width: 12),
+                    _miniBar(30, const Color(0xFF98E836)),
+                    _miniBar(20, const Color(0xFFF43F5E)),
+                    const SizedBox(width: 12),
+                    _miniBar(38, const Color(0xFF98E836)),
+                    _miniBar(22, const Color(0xFFF43F5E)),
                   ],
                 ),
-                Row(
-                  children: [
-                    const Icon(Icons.circle, color: Color(0xFF98E836), size: 7),
-                    const SizedBox(width: 4),
-                    Text(
-                      'In',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 10,
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.circle,
+                            color: Color(0xFF98E836),
+                            size: 7,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'In',
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.circle, color: Color(0xFFF43F5E), size: 7),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Ex',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 10,
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.circle,
+                            color: Color(0xFFF43F5E),
+                            size: 7,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Ex',
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -650,14 +703,12 @@ class DashboardWidgetsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMinusButton(WidgetRef ref, String id) {
+  Widget _buildMinusButton(String id) {
     return GestureDetector(
-      onTap: () {
-        ref.read(dashboardWidgetsProvider.notifier).removeActive(id);
-      },
+      onTap: () => _removeActive(id),
       child: Container(
-        width: 30,
-        height: 30,
+        width: 28,
+        height: 28,
         decoration: const BoxDecoration(
           color: Color(0xFF1E2638),
           shape: BoxShape.circle,
@@ -666,7 +717,7 @@ class DashboardWidgetsScreen extends ConsumerWidget {
           child: Icon(
             Icons.remove,
             color: Colors.white,
-            size: 18,
+            size: 16,
           ),
         ),
       ),

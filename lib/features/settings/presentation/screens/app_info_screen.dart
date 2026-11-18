@@ -35,7 +35,7 @@ class AppInfoScreen extends ConsumerWidget {
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -86,9 +86,9 @@ class AppInfoScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               _logoBar(14),
-                              _logoBar(26),
-                              _logoBar(34),
-                              _logoBar(22),
+                              _logoBar(24),
+                              _logoBar(18),
+                              _logoBar(32),
                             ],
                           ),
                         ),
@@ -276,7 +276,9 @@ class AppInfoScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
+                    Divider(color: borderColor, height: 1),
+                    const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -295,6 +297,8 @@ class AppInfoScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    Divider(color: borderColor, height: 1),
                   ],
                 ),
               ),

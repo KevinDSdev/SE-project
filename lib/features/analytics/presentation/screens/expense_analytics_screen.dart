@@ -22,7 +22,6 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
     'Food & Groceries',
     'Transport',
     'Utilities',
-    'Bills',
   ];
 
   final List<String> _months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
@@ -31,44 +30,39 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
   final Map<String, Map<String, dynamic>> _categoryData = {
     'Food & Groceries': {
       'title': 'Food & Groceries - Monthly Spend',
-      'budget': 'Monthly Budget : LKR 60,000',
-      'total': 'LKR 50,000',
-      'values': [54000.0, 68500.0, 38000.0, 46000.0, 62000.0, 50000.0],
-      'barColor': const Color(0xFFF43F5E),
-      'alternateColor': const Color(0xFFF43F5E),
-      'alternateIndex': 5,
+      'budget': 'Budget: LKR 70K',
+      'total': 'LKR 65,000',
+      'values': [14500.0, 18200.0, 12000.0, 11000.0, 5200.0, 4100.0],
+      'barColor': const Color(0xFFF59E0B),
+      'alternateColor': const Color(0xFFFF5C6C),
+      'alternateIndex': 1,
     },
     'Transport': {
       'title': 'Transport - Fuel & Rides',
-      'budget': 'Monthly Budget : LKR 25,000',
-      'total': 'LKR 21,500',
-      'values': [22000.0, 24000.0, 19000.0, 25000.0, 28000.0, 21500.0],
+      'budget': 'Budget: LKR 35K',
+      'total': 'LKR 32,500',
+      'values': [5200.0, 6100.0, 4800.0, 5500.0, 5900.0, 5000.0],
       'barColor': const Color(0xFF38BDF8),
-      'alternateColor': const Color(0xFF38BDF8),
+      'alternateColor': const Color(0xFFFF5C6C),
+      'alternateIndex': 1,
     },
     'Utilities': {
       'title': 'Utilities - Electricity & Water',
-      'budget': 'Monthly Budget : LKR 30,000',
-      'total': 'LKR 28,000',
-      'values': [25000.0, 26000.0, 27000.0, 29000.0, 31000.0, 28000.0],
+      'budget': 'Budget: LKR 50K',
+      'total': 'LKR 45,000',
+      'values': [7200.0, 8100.0, 7400.0, 7600.0, 7500.0, 7200.0],
       'barColor': const Color(0xFFF59E0B),
-      'alternateColor': const Color(0xFFF59E0B),
-    },
-    'Bills': {
-      'title': 'Bills - Telecom & Internet',
-      'budget': 'Monthly Budget : LKR 15,000',
-      'total': 'LKR 14,000',
-      'values': [12000.0, 13500.0, 14000.0, 14500.0, 15000.0, 14000.0],
-      'barColor': const Color(0xFF98E836),
-      'alternateColor': const Color(0xFF98E836),
+      'alternateColor': const Color(0xFFFF5C6C),
+      'alternateIndex': 1,
     },
     'All (6)': {
       'title': 'Total Monthly Outflow Across Categories',
-      'budget': 'Total Budget : LKR 350,000',
+      'budget': 'Budget: LKR 350K',
       'total': 'LKR 318,500',
-      'values': [280000.0, 295000.0, 260000.0, 290000.0, 305000.0, 318500.0],
-      'barColor': const Color(0xFFF43F5E),
-      'alternateColor': const Color(0xFFF43F5E),
+      'values': [54000.0, 68500.0, 38000.0, 46000.0, 62000.0, 50000.0],
+      'barColor': const Color(0xFFF59E0B),
+      'alternateColor': const Color(0xFFFF5C6C),
+      'alternateIndex': 1,
     },
   };
 
@@ -172,7 +166,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                           height: 42,
                           decoration: BoxDecoration(
                             color: cardBg,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: borderColor),
                           ),
                           child: Icon(
@@ -223,9 +217,9 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: cardBg,
+                  color: isDark ? const Color(0xFF281519) : cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
+                  border: Border.all(color: const Color(0xFFFF6464), width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +227,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     const Text(
                       'TOTAL',
                       style: TextStyle(
-                        color: Color(0xFFE11D48),
+                        color: Color(0xFFFF6464),
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.5,
@@ -243,7 +237,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     const Text(
                       'LKR 318,500',
                       style: TextStyle(
-                        color: Color(0xFFE11D48),
+                        color: Color(0xFFFF6464),
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                       ),
@@ -253,9 +247,8 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       mode: trendStyle,
                       labels: _months,
                       values: _totalTrend,
-                      color: const Color(0xFFF43F5E),
+                      color: const Color(0xFFFF6464),
                       selectedIndex: 5,
-                      valueFormatter: (v) => v.toInt().toString(),
                     ),
                   ],
                 ),
@@ -333,38 +326,37 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      currentCat['title'] as String,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Expanded(
-                          child: Text(
-                            currentCat['title'] as String,
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        Text(
+                          currentCat['total'] as String,
+                          style: const TextStyle(
+                            color: Color(0xFFFF5C6C),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Text(
                           currentCat['budget'] as String,
                           style: TextStyle(
                             color: textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      currentCat['total'] as String,
-                      style: const TextStyle(
-                        color: Color(0xFFE11D48),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
                     ),
                     const SizedBox(height: 16),
                     AdaptiveCategoryChart(
@@ -373,8 +365,10 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       values: currentCat['values'] as List<double>,
                       barColor: currentCat['barColor'] as Color,
                       alternateBarColor: currentCat['alternateColor'] as Color?,
-                      selectedIndex: (currentCat['alternateIndex'] as int?) ?? 5,
-                      valueFormatter: (v) => v.toInt().toString(),
+                      labelColor: const Color(0xFFE2E8F0),
+                      selectedLabelColor: const Color(0xFFFF5C6C),
+                      selectedMonthColor: const Color(0xFFB0B7C3),
+                      selectedIndex: (currentCat['alternateIndex'] as int?) ?? 1,
                     ),
                   ],
                 ),
@@ -394,7 +388,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Categories Breakdown',
+                      'Categories Distribution',
                       style: TextStyle(
                         color: textPrimary,
                         fontSize: 16,
@@ -403,35 +397,35 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     ),
                     const SizedBox(height: 16),
                     _buildExpenseRow(
-                      dotColor: const Color(0xFFF43F5E),
-                      name: 'Food & Groceries',
-                      amount: 'LKR 118,500',
-                      amountColor: const Color(0xFFE11D48),
-                      textColor: textPrimary,
+                      dotColor: Colors.white,
+                      name: 'Housing & Rent',
+                      amount: 'LKR 120,000',
+                      amountColor: textPrimary,
+                      textColor: textSecondary,
                     ),
                     const SizedBox(height: 12),
                     _buildExpenseRow(
-                      dotColor: const Color(0xFF38BDF8),
-                      name: 'Transport',
+                      dotColor: const Color(0xFFFF5C6C),
+                      name: 'Food & Groceries',
                       amount: 'LKR 65,000',
-                      amountColor: const Color(0xFF0284C7),
-                      textColor: textPrimary,
+                      amountColor: const Color(0xFFFF5C6C),
+                      textColor: textSecondary,
                     ),
                     const SizedBox(height: 12),
                     _buildExpenseRow(
                       dotColor: const Color(0xFFF59E0B),
-                      name: 'Utilities',
+                      name: 'Utilities (CEB & Water)',
                       amount: 'LKR 45,000',
-                      amountColor: const Color(0xFFD97706),
-                      textColor: textPrimary,
+                      amountColor: const Color(0xFFF59E0B),
+                      textColor: textSecondary,
                     ),
                     const SizedBox(height: 12),
                     _buildExpenseRow(
-                      dotColor: const Color(0xFF98E836),
-                      name: 'Bills & Subscriptions',
-                      amount: 'LKR 90,000',
-                      amountColor: const Color(0xFF65A30D),
-                      textColor: textPrimary,
+                      dotColor: const Color(0xFF38BDF8),
+                      name: 'Travel & Transport',
+                      amount: 'LKR 32,500',
+                      amountColor: const Color(0xFF38BDF8),
+                      textColor: textSecondary,
                     ),
                   ],
                 ),

@@ -55,7 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -66,31 +66,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'App Settings',
-                        style: TextStyle(
-                          color: textPrimary,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Application preferences, security, sync & notifications',
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'App Settings',
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+              Text(
+                'Application preferences, security, sync & notifications',
+                style: TextStyle(
+                  color: textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 14),
 
               // SECTION 1: THEME & APPEARANCE
               _buildSectionHeader('THEME & APPEARANCE', textSecondary),
@@ -103,7 +98,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.nightlight_round,
+                      Icons.nightlight_outlined,
                       color: accentColor,
                       size: 22,
                     ),
@@ -346,8 +341,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
+                          color: accentColor.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: accentColor, width: 1.2),
                         ),
                         child: Text(
@@ -560,8 +555,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
+                          color: const Color(0xFFF43F5E).withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: const Color(0xFFF43F5E), width: 1.2),
                         ),
                         child: const Text(
@@ -614,8 +609,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
+                          color: accentColor.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: accentColor, width: 1.2),
                         ),
                         child: Text(
@@ -723,8 +718,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
+                        color: accentColor.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: accentColor, width: 1.2),
                       ),
                       child: Text(

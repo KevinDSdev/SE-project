@@ -345,6 +345,13 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
       icon: Icons.track_changes_rounded,
     ),
     DashboardWidgetItem(
+      id: 'avail_inc_pred',
+      title: 'Income Prediction Analytics',
+      subtitle: 'Inflow forecast & trend',
+      color: Color(0xFF98E836),
+      icon: Icons.manage_search_rounded,
+    ),
+    DashboardWidgetItem(
       id: 'avail_exp_pred',
       title: 'Expenses Prediction Analytics',
       subtitle: 'Outflow probability & spike est.',
@@ -413,6 +420,20 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
     final activeIds = state.activeWidgets.map((w) => w.id).toList();
     AppPreferencesService.saveActiveWidgets(activeIds);
   }
+
+  void applyState(
+    List<DashboardWidgetItem> active,
+    List<DashboardWidgetItem> available,
+  ) {
+    state = state.copyWith(activeWidgets: active, availableWidgets: available);
+    final activeIds = active.map((w) => w.id).toList();
+    AppPreferencesService.saveActiveWidgets(activeIds);
+  }
+
+  DashboardWidgetsState get defaultState => const DashboardWidgetsState(
+        activeWidgets: _defaultActive,
+        availableWidgets: _defaultAvailable,
+      );
 
   void reset() {
     state = const DashboardWidgetsState(
@@ -554,16 +575,16 @@ class FlaggedTransactionsNotifier extends Notifier<List<FlaggedTransactionItem>>
           id: 'anom_1',
           title: 'CEB Electricity Bill',
           category: 'Utilities (CEB)',
-          amount: 28500,
-          baseline: 14000,
+          amount: 13000,
+          baseline: 8000,
           date: '18 Oct 2026',
         ),
         FlaggedTransactionItem(
           id: 'anom_2',
           title: 'Pizza Hut',
           category: 'Dining & Takeout',
-          amount: 21200,
-          baseline: 6500,
+          amount: 17000,
+          baseline: 5000,
           date: '22 Oct 2026',
         ),
       ];

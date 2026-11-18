@@ -9,15 +9,61 @@ import '../widgets/analytics_chart_widgets.dart';
 import 'categories_customization_screen.dart';
 import 'dashboard_widgets_screen.dart';
 
-class AnalyticsCustomizationScreen extends ConsumerWidget {
+class AnalyticsCustomizationScreen extends ConsumerStatefulWidget {
   const AnalyticsCustomizationScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mainStyle = ref.watch(mainChartStyleProvider);
-    final subTrendStyle = ref.watch(subTrendChartStyleProvider);
-    final subCategoryStyle = ref.watch(subCategoryChartStyleProvider);
-    final selectedPeriod = ref.watch(selectedPeriodProvider);
+  ConsumerState<AnalyticsCustomizationScreen> createState() =>
+      _AnalyticsCustomizationScreenState();
+}
+
+class _AnalyticsCustomizationScreenState
+    extends ConsumerState<AnalyticsCustomizationScreen> {
+  late ChartVisualMode _draftMainStyle;
+  late ChartVisualMode _draftSubTrendStyle;
+  late ChartVisualMode _draftSubCategoryStyle;
+  late AnalyticsPeriod _draftPeriod;
+
+  @override
+  void initState() {
+    super.initState();
+    _draftMainStyle = ref.read(mainChartStyleProvider);
+    _draftSubTrendStyle = ref.read(subTrendChartStyleProvider);
+    _draftSubCategoryStyle = ref.read(subCategoryChartStyleProvider);
+    _draftPeriod = ref.read(selectedPeriodProvider);
+  }
+
+  void _savePreferences(Color cardBg, Color textPrimary, Color accentColor) {
+    ref.read(mainChartStyleProvider.notifier).setStyle(_draftMainStyle);
+    ref.read(subTrendChartStyleProvider.notifier).setStyle(_draftSubTrendStyle);
+    ref
+        .read(subCategoryChartStyleProvider.notifier)
+        .setStyle(_draftSubCategoryStyle);
+    ref.read(selectedPeriodProvider.notifier).setPeriod(_draftPeriod);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: cardBg,
+        content: Text(
+          'Analytics preferences saved successfully.',
+          style: TextStyle(
+            color: textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: accentColor),
+        ),
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -47,7 +93,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -97,7 +143,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                         Text(
                           'Chart Style & Data Grouping',
                           style: TextStyle(
-                            color: textPrimary,
+                            color: textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -114,10 +160,10 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 14),
                     ChartStylePicker(
-                      selected: mainStyle,
+                      selected: _draftMainStyle,
                       activeColor: accentColor,
                       onSelected: (mode) {
-                        ref.read(mainChartStyleProvider.notifier).setStyle(mode);
+                        setState(() => _draftMainStyle = mode);
                       },
                     ),
                   ],
@@ -140,7 +186,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     Text(
                       'Default Period & Saved Filters',
                       style: TextStyle(
-                        color: textPrimary,
+                        color: textSecondary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -151,14 +197,38 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: subContainer,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: borderColor),
+                        border: Border.all(color: accentColor, width: 1.2),
                       ),
                       child: Row(
                         children: [
-                          _buildPeriodPill(ref, AnalyticsPeriod.weekly, 'Weekly', selectedPeriod, accentColor, textSecondary),
-                          _buildPeriodPill(ref, AnalyticsPeriod.monthly, 'Monthly', selectedPeriod, accentColor, textSecondary),
-                          _buildPeriodPill(ref, AnalyticsPeriod.yearly, 'Yearly', selectedPeriod, accentColor, textSecondary),
-                          _buildPeriodPill(ref, AnalyticsPeriod.custom, 'Custom', selectedPeriod, accentColor, textSecondary),
+                          _buildPeriodPill(
+                            AnalyticsPeriod.weekly,
+                            'Weekly',
+                            _draftPeriod,
+                            accentColor,
+                            textSecondary,
+                          ),
+                          _buildPeriodPill(
+                            AnalyticsPeriod.monthly,
+                            'Monthly',
+                            _draftPeriod,
+                            accentColor,
+                            textSecondary,
+                          ),
+                          _buildPeriodPill(
+                            AnalyticsPeriod.yearly,
+                            'Yearly',
+                            _draftPeriod,
+                            accentColor,
+                            textSecondary,
+                          ),
+                          _buildPeriodPill(
+                            AnalyticsPeriod.custom,
+                            'Custom',
+                            _draftPeriod,
+                            accentColor,
+                            textSecondary,
+                          ),
                         ],
                       ),
                     ),
@@ -194,43 +264,13 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                         Text(
                           'Chart Style & Data Grouping',
                           style: TextStyle(
-                            color: textPrimary,
+                            color: textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           'Overall Trend',
-                          style: TextStyle(
-                            color: const Color(0xFF38BDF8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    ChartStylePicker(
-                      selected: subTrendStyle,
-                      activeColor: const Color(0xFF38BDF8),
-                      onSelected: (mode) {
-                        ref.read(subTrendChartStyleProvider.notifier).setStyle(mode);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Chart Style & Data Grouping',
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          'Category Breakdown',
                           style: TextStyle(
                             color: accentColor,
                             fontSize: 12,
@@ -241,10 +281,30 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 14),
                     ChartStylePicker(
-                      selected: subCategoryStyle,
+                      selected: _draftSubTrendStyle,
+                      activeColor: const Color(0xFF38BDF8),
+                      onSelected: (mode) {
+                        setState(() => _draftSubTrendStyle = mode);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Category Breakdown',
+                        style: TextStyle(
+                          color: accentColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ChartStylePicker(
+                      selected: _draftSubCategoryStyle,
                       activeColor: accentColor,
                       onSelected: (mode) {
-                        ref.read(subCategoryChartStyleProvider.notifier).setStyle(mode);
+                        setState(() => _draftSubCategoryStyle = mode);
                       },
                     ),
                   ],
@@ -265,14 +325,18 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: accentColor.withValues(alpha: 0.5)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 15,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(18),
+                    border:
+                        Border.all(color: accentColor.withValues(alpha: 0.4)),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
                       Text(
                         'Customize Sectors & Categories',
@@ -282,10 +346,13 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: accentColor,
-                        size: 24,
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Icon(
+                          Icons.chevron_right_rounded,
+                          color: accentColor,
+                          size: 24,
+                        ),
                       ),
                     ],
                   ),
@@ -302,14 +369,18 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: accentColor.withValues(alpha: 0.5)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 15,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(18),
+                    border:
+                        Border.all(color: accentColor.withValues(alpha: 0.4)),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
                       Text(
                         'Set Dashboard Layout',
@@ -319,43 +390,27 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: accentColor,
-                        size: 24,
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Icon(
+                          Icons.chevron_right_rounded,
+                          color: accentColor,
+                          size: 24,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-              // Save & Apply Customization Button
+              // Save Preferences Button
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: cardBg,
-                        content: Text(
-                          'Analytics customization saved and applied.',
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: accentColor),
-                        ),
-                      ),
-                    );
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () =>
+                      _savePreferences(cardBg, textPrimary, accentColor),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentColor,
                     foregroundColor: const Color(0xFF0C0F14),
@@ -365,9 +420,9 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
                     elevation: 0,
                   ),
                   child: const Text(
-                    'Save & Apply Customization',
+                    'Save Preferences',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -382,7 +437,6 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
   }
 
   Widget _buildPeriodPill(
-    WidgetRef ref,
     AnalyticsPeriod period,
     String label,
     AnalyticsPeriod current,
@@ -394,7 +448,7 @@ class AnalyticsCustomizationScreen extends ConsumerWidget {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+          setState(() => _draftPeriod = period);
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),

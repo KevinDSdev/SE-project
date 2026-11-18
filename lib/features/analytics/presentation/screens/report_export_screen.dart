@@ -366,7 +366,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                       height: 42,
                       decoration: BoxDecoration(
                         color: cardBg,
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
                       ),
                       child: Icon(
@@ -400,53 +400,65 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  _buildFormatCard(
-                    ref: ref,
-                    title: 'PDF Report',
-                    subtitle: 'Charts & Insights',
-                    icon: Icons.picture_as_pdf_rounded,
-                    iconColor: const Color(0xFFF43F5E),
-                    formatKey: 'PDF Report',
-                    selectedFormat: exportPrefs.format,
-                    accentColor: accentColor,
-                    cardBg: cardBg,
-                    borderColor: borderColor,
-                    textPrimary: textPrimary,
-                    textSecondary: textSecondary,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildFormatCard(
-                    ref: ref,
-                    title: 'Excel (.XLSX)',
-                    subtitle: 'Pivots & Ledger',
-                    icon: Icons.table_view_rounded,
-                    iconColor: const Color(0xFF98E836),
-                    formatKey: 'Excel (.XLSX)',
-                    selectedFormat: exportPrefs.format,
-                    accentColor: accentColor,
-                    cardBg: cardBg,
-                    borderColor: borderColor,
-                    textPrimary: textPrimary,
-                    textSecondary: textSecondary,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildFormatCard(
-                    ref: ref,
-                    title: 'Raw Data',
-                    subtitle: 'Comma-separated',
-                    icon: Icons.data_object_rounded,
-                    iconColor: const Color(0xFF00E5FF),
-                    formatKey: 'Raw Data',
-                    selectedFormat: exportPrefs.format,
-                    accentColor: accentColor,
-                    cardBg: cardBg,
-                    borderColor: borderColor,
-                    textPrimary: textPrimary,
-                    textSecondary: textSecondary,
-                  ),
-                ],
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Row(
+                  children: [
+                    _buildFormatCard(
+                      ref: ref,
+                      title: 'PDF Report',
+                      subtitle: 'Charts & Insights',
+                      icon: Icons.picture_as_pdf_rounded,
+                      iconColor: const Color(0xFFF43F5E),
+                      formatKey: 'PDF Report',
+                      selectedFormat: exportPrefs.format,
+                      accentColor: accentColor,
+                      cardBg: cardBg,
+                      borderColor: borderColor,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildFormatCard(
+                      ref: ref,
+                      title: 'Excel (.XLSX)',
+                      subtitle: 'Pivots & Ledger',
+                      icon: Icons.table_view_rounded,
+                      iconColor: const Color(0xFF98E836),
+                      formatKey: 'Excel (.XLSX)',
+                      selectedFormat: exportPrefs.format,
+                      accentColor: accentColor,
+                      cardBg: cardBg,
+                      borderColor: borderColor,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildFormatCard(
+                      ref: ref,
+                      title: 'Raw Data',
+                      subtitle: 'Comma-separated',
+                      icon: Icons.description_rounded,
+                      iconColor: const Color(0xFF38BDF8),
+                      formatKey: 'Raw Data',
+                      selectedFormat: exportPrefs.format,
+                      accentColor: accentColor,
+                      cardBg: cardBg,
+                      borderColor: borderColor,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -565,48 +577,57 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const SelectExportRequirementScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: accentColor,
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Select Analysis to Export (${exportPrefs.selectedRequirements.length} selected)',
-                        style: TextStyle(
-                          color: accentColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: borderColor),
+                ),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const SelectExportRequirementScreen(),
                       ),
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.chevron_right_rounded,
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 15),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
                         color: accentColor,
-                        size: 20,
+                        width: 1.2,
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Select Analysis to Export',
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: accentColor,
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: 60),
 
               // Generate & Download Report Button
               SizedBox(
@@ -688,6 +709,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
     required Color borderColor,
     required Color textPrimary,
     required Color textSecondary,
+    required bool isDark,
   }) {
     final isSelected = selectedFormat == formatKey;
 
@@ -697,16 +719,20 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
           ref.read(exportPreferencesProvider.notifier).setFormat(formatKey);
         },
         child: Container(
-          height: 120,
+          height: 112,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(18),
+            color: isSelected
+                ? accentColor.withValues(alpha: 0.14)
+                : (isDark ? const Color(0xFF141820) : cardBg),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
                   ? accentColor
-                  : borderColor,
-              width: isSelected ? 2 : 1,
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.65)
+                      : borderColor),
+              width: isSelected ? 1.8 : 1,
             ),
           ),
           child: Stack(
@@ -722,7 +748,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                       Text(
                         title,
                         style: TextStyle(
-                          color: textPrimary,
+                          color: isSelected ? textPrimary : textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
@@ -733,8 +759,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 10,
+                          color: isSelected ? accentColor : textSecondary,
+                          fontSize: 9.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

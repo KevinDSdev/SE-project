@@ -241,58 +241,79 @@ class _DualLinePainter extends CustomPainter {
 }
 
 // -------------------------------------------------------------
-// 3. Donut Breakdown Chart (Main dashboard donut mode)
+// 3. Donut Breakdown Chart (Large, high-visibility donut mode)
 // -------------------------------------------------------------
 class DonutBreakdownChart extends StatelessWidget {
   final double income;
   final double expenses;
   final double height;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final String primaryLabel;
+  final String secondaryLabel;
+  final String centerTitle;
 
   const DonutBreakdownChart({
     super.key,
     required this.income,
     required this.expenses,
-    this.height = 155,
+    this.height = 200,
+    this.primaryColor = kColorLime,
+    this.secondaryColor = kColorRose,
+    this.primaryLabel = 'Income Stream',
+    this.secondaryLabel = 'Expense Outflow',
+    this.centerTitle = 'Inflow',
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = AppColors.getTextPrimary(isDark);
     final total = income + expenses == 0 ? 1.0 : income + expenses;
-    final inRatio = income / total;
+    final inRatio = (income / total).clamp(0.0, 1.0);
+    final effectiveHeight = height < 195 ? 195.0 : height;
+    final ringSize = (effectiveHeight - 28).clamp(145.0, 180.0);
 
     return SizedBox(
-      height: height,
+      height: effectiveHeight,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: height - 36,
-            height: height - 36,
+            width: ringSize,
+            height: ringSize,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                CircularProgressIndicator(
-                  value: 1.0,
-                  strokeWidth: 14,
-                  color: kColorRose,
-                ),
-                CircularProgressIndicator(
-                  value: inRatio,
-                  strokeWidth: 14,
-                  color: kColorLime,
+                SizedBox.expand(
+                  child: CustomPaint(
+                    painter: _LargeDonutPainter(
+                      primaryRatio: inRatio,
+                      primaryColor: primaryColor,
+                      secondaryColor: secondaryColor,
+                      strokeWidth: 22,
+                    ),
+                  ),
                 ),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Inflow',
-                        style:
-                            TextStyle(color: Color(0xFF8E95A3), fontSize: 10)),
                     Text(
-                      '${(inRatio * 100).toInt()}%',
+                      centerTitle,
                       style: const TextStyle(
-                          color: kColorLime,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800),
+                        color: Color(0xFF8E95A3),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${(inRatio * 100).round()}%',
+                      style: TextStyle(
+                        color: primaryColor,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ],
                 ),
@@ -300,47 +321,126 @@ class DonutBreakdownChart extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 24),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _legendItem('Income Stream', kColorLime,
-                  'LKR ${NumberFormat('#,###').format(income.toInt())}'),
-              const SizedBox(height: 12),
-              _legendItem('Expense Outflow', kColorRose,
-                  'LKR ${NumberFormat('#,###').format(expenses.toInt())}'),
-            ],
+          Flexible(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _legendItem(
+                  primaryLabel,
+                  primaryColor,
+                  'LKR ${NumberFormat('#,###').format(income.toInt())}',
+                  textPrimary,
+                ),
+                const SizedBox(height: 16),
+                _legendItem(
+                  secondaryLabel,
+                  secondaryColor,
+                  'LKR ${NumberFormat('#,###').format(expenses.toInt())}',
+                  textPrimary,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _legendItem(String label, Color color, String amount) {
+  Widget _legendItem(
+    String label,
+    Color color,
+    String amount,
+    Color textPrimary,
+  ) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 10,
-          height: 10,
+          width: 12,
+          height: 12,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style:
-                    const TextStyle(color: Color(0xFF8E95A3), fontSize: 11)),
-            Text(amount,
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700)),
-          ],
+                  color: Color(0xFF8E95A3),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                amount,
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+}
+
+class _LargeDonutPainter extends CustomPainter {
+  final double primaryRatio;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final double strokeWidth;
+
+  _LargeDonutPainter({
+    required this.primaryRatio,
+    required this.primaryColor,
+    required this.secondaryColor,
+    this.strokeWidth = 22,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.shortestSide - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final bgPaint = Paint()
+      ..color = secondaryColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    final fgPaint = Paint()
+      ..color = primaryColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(rect, 0, 6.2831853, false, bgPaint);
+    if (primaryRatio > 0) {
+      canvas.drawArc(
+        rect,
+        -1.5707963,
+        6.2831853 * primaryRatio,
+        false,
+        fgPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LargeDonutPainter oldDelegate) =>
+      oldDelegate.primaryRatio != primaryRatio ||
+      oldDelegate.primaryColor != primaryColor ||
+      oldDelegate.secondaryColor != secondaryColor;
 }
 
 // -------------------------------------------------------------
@@ -364,6 +464,9 @@ class CurvedTrendLineChart extends StatelessWidget {
     this.valueFormatter,
   });
 
+  static String _defaultCommaFormat(double v) =>
+      NumberFormat('#,###').format(v.toInt());
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -376,7 +479,7 @@ class CurvedTrendLineChart extends StatelessWidget {
               values: values,
               lineColor: lineColor,
               selectedIndex: selectedIndex,
-              valueFormatter: valueFormatter ?? (v) => v.toInt().toString(),
+              valueFormatter: valueFormatter ?? _defaultCommaFormat,
             ),
           ),
         ),
@@ -390,7 +493,7 @@ class CurvedTrendLineChart extends StatelessWidget {
                 child: Text(
                   labels[index],
                   style: TextStyle(
-                    color: isSelected ? lineColor : const Color(0xFF8E95A3),
+                    color: isSelected ? lineColor : const Color(0xFFB0B7C3),
                     fontSize: 12,
                     fontWeight:
                         isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -426,31 +529,35 @@ class _CurvedLinePainter extends CustomPainter {
     final double maxVal = values.reduce((a, b) => a > b ? a : b);
     final double range = (maxVal - minVal) == 0 ? 1 : (maxVal - minVal);
 
-    const double topPad = 26;
-    const double btmPad = 12;
+    const double leftRightPad = 18;
+    const double topPad = 28;
+    const double btmPad = 8;
     final double chartHeight = size.height - topPad - btmPad;
-    final double stepX = size.width / (values.length - 1);
+    final double usableWidth = size.width - (leftRightPad * 2);
+    final double stepX =
+        values.length > 1 ? usableWidth / (values.length - 1) : 0;
 
     final List<Offset> points = [];
     for (int i = 0; i < values.length; i++) {
       final double normalized = (values[i] - minVal) / range;
-      final double x = i * stepX;
-      final double y = size.height - btmPad - (normalized * chartHeight);
+      final double x = leftRightPad + (i * stepX);
+      final double y =
+          size.height - btmPad - 12 - (normalized * (chartHeight - 12));
       points.add(Offset(x, y));
     }
 
-    // Area gradient
+    // Area fill under curve
     final Path areaPath = Path();
-    areaPath.moveTo(points.first.dx, size.height);
+    final double baselineY = size.height - 2;
+    areaPath.moveTo(points.first.dx, baselineY);
     areaPath.lineTo(points.first.dx, points.first.dy);
 
     for (int i = 0; i < points.length - 1; i++) {
       final p1 = points[i];
       final p2 = points[i + 1];
-      final cpx = (p1.dx + p2.dx) / 2;
-      areaPath.cubicTo(cpx, p1.dy, cpx, p2.dy, p2.dx, p2.dy);
+      areaPath.lineTo(p2.dx, p2.dy);
     }
-    areaPath.lineTo(points.last.dx, size.height);
+    areaPath.lineTo(points.last.dx, baselineY);
     areaPath.close();
 
     final Paint areaPaint = Paint()
@@ -458,27 +565,36 @@ class _CurvedLinePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          lineColor.withValues(alpha: 0.35),
-          lineColor.withValues(alpha: 0.0),
+          lineColor.withValues(alpha: 0.28),
+          lineColor.withValues(alpha: 0.08),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawPath(areaPath, areaPaint);
 
-    // Smooth curve
+    // Subtle bottom axis line
+    final Paint axisPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.08)
+      ..strokeWidth = 1;
+    canvas.drawLine(
+      Offset(4, baselineY),
+      Offset(size.width - 4, baselineY),
+      axisPaint,
+    );
+
+    // Straight/smooth connecting line
     final Path linePath = Path();
     linePath.moveTo(points.first.dx, points.first.dy);
     for (int i = 0; i < points.length - 1; i++) {
-      final p1 = points[i];
       final p2 = points[i + 1];
-      final cpx = (p1.dx + p2.dx) / 2;
-      linePath.cubicTo(cpx, p1.dy, cpx, p2.dy, p2.dx, p2.dy);
+      linePath.lineTo(p2.dx, p2.dy);
     }
 
     final Paint linePaint = Paint()
       ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(linePath, linePaint);
 
     // Nodes and labels
@@ -488,29 +604,35 @@ class _CurvedLinePainter extends CustomPainter {
 
       if (isSelected) {
         final glowPaint = Paint()
-          ..color = lineColor.withValues(alpha: 0.4)
+          ..color = const Color(0xFF0C0F14)
           ..style = PaintingStyle.fill;
-        canvas.drawCircle(pt, 8, glowPaint);
+        canvas.drawCircle(pt, 6, glowPaint);
+
+        final dotFill = Paint()
+          ..color = lineColor
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(pt, 4.5, dotFill);
+      } else {
+        final innerPaint = Paint()
+          ..color = const Color(0xFF141820)
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(pt, 4.5, innerPaint);
+
+        final ringPaint = Paint()
+          ..color = lineColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.2;
+        canvas.drawCircle(pt, 4.5, ringPaint);
       }
-
-      final dotPaint = Paint()
-        ..color = lineColor
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(pt, isSelected ? 4.5 : 3.5, dotPaint);
-
-      final innerPaint = Paint()
-        ..color = const Color(0xFF0C0F14)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(pt, isSelected ? 2.5 : 1.8, innerPaint);
 
       final label = valueFormatter(values[i]);
       if (label.isNotEmpty) {
         final textSpan = TextSpan(
           text: label,
           style: TextStyle(
-            color: isSelected ? lineColor : const Color(0xFF8E95A3),
+            color: lineColor,
             fontSize: 10,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: FontWeight.w700,
           ),
         );
         final textPainter = TextPainter(
@@ -522,7 +644,7 @@ class _CurvedLinePainter extends CustomPainter {
         final textOffset = Offset(
           (pt.dx - textPainter.width / 2)
               .clamp(0, size.width - textPainter.width),
-          pt.dy - textPainter.height - 6,
+          pt.dy - textPainter.height - 8,
         );
         textPainter.paint(canvas, textOffset);
       }
@@ -541,6 +663,9 @@ class SingleCategoryBarChart extends StatelessWidget {
   final List<double> values;
   final Color barColor;
   final Color? alternateBarColor;
+  final Color? labelColor;
+  final Color? selectedLabelColor;
+  final Color? selectedMonthColor;
   final int selectedIndex;
   final double height;
   final String Function(double)? valueFormatter;
@@ -551,10 +676,16 @@ class SingleCategoryBarChart extends StatelessWidget {
     required this.values,
     required this.barColor,
     this.alternateBarColor,
+    this.labelColor,
+    this.selectedLabelColor,
+    this.selectedMonthColor,
     this.selectedIndex = 5,
-    this.height = 140,
+    this.height = 150,
     this.valueFormatter,
   });
+
+  static String _defaultCommaFormat(double v) =>
+      NumberFormat('#,###').format(v.toInt());
 
   @override
   Widget build(BuildContext context) {
@@ -566,56 +697,88 @@ class SingleCategoryBarChart extends StatelessWidget {
 
     return SizedBox(
       height: height,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(months.length, (index) {
-          final month = months[index];
-          final val = values[index];
-          final isSelected = index == selectedIndex;
-          final barH = (val / maxVal) * (height - 54);
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(months.length, (index) {
+                final val = values[index];
+                final isSelected = index == selectedIndex;
+                final barH = (val / maxVal) * (height - 62);
 
-          final color = (alternateBarColor != null && !isSelected)
-              ? alternateBarColor!
-              : barColor;
+                final color = isSelected
+                    ? (alternateBarColor ?? barColor)
+                    : barColor;
 
-          return Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  valueFormatter?.call(val) ??
-                      (val >= 1000
-                          ? '${(val / 1000).toStringAsFixed(0)}k'
-                          : val.toInt().toString()),
-                  style: TextStyle(
-                    color: isSelected ? barColor : const Color(0xFF8E95A3),
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                final topTextColor = isSelected
+                    ? (selectedLabelColor ?? alternateBarColor ?? barColor)
+                    : (labelColor ?? barColor);
+
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        (valueFormatter ?? _defaultCommaFormat)(val),
+                        style: TextStyle(
+                          color: topTextColor,
+                          fontSize: 10,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 30,
+                        height: barH.clamp(12, height - 62),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  width: 22,
-                  height: barH.clamp(8, height - 54),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  month,
-                  style: TextStyle(
-                    color: isSelected ? barColor : const Color(0xFF8E95A3),
-                    fontSize: 12,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ],
+                );
+              }),
             ),
-          );
-        }),
+          ),
+          Container(
+            height: 1,
+            color: Colors.white.withValues(alpha: 0.06),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: List.generate(months.length, (index) {
+              final month = months[index];
+              final isSelected = index == selectedIndex;
+              final mColor = isSelected
+                  ? (selectedMonthColor ??
+                      alternateBarColor ??
+                      barColor)
+                  : const Color(0xFFB0B7C3);
+              return Expanded(
+                child: Center(
+                  child: Text(
+                    month,
+                    style: TextStyle(
+                      color: mColor,
+                      fontSize: 11.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            height: 1,
+            color: Colors.white.withValues(alpha: 0.05),
+          ),
+        ],
       ),
     );
   }
@@ -644,8 +807,12 @@ class AdaptiveTrendChart extends StatelessWidget {
     this.height = 145,
   });
 
+  static String _defaultCommaFormat(double v) =>
+      NumberFormat('#,###').format(v.toInt());
+
   @override
   Widget build(BuildContext context) {
+    final fmt = valueFormatter ?? _defaultCommaFormat;
     switch (mode) {
       case ChartVisualMode.bar:
         return SingleCategoryBarChart(
@@ -654,17 +821,25 @@ class AdaptiveTrendChart extends StatelessWidget {
           barColor: color,
           selectedIndex: selectedIndex,
           height: height,
-          valueFormatter: valueFormatter,
+          valueFormatter: fmt,
         );
       case ChartVisualMode.donut:
         final total = values.fold<double>(0, (a, b) => a + b);
         final latest = values.isNotEmpty
             ? values[selectedIndex.clamp(0, values.length - 1)]
             : 0.0;
+        final latestLabel = labels.isNotEmpty
+            ? labels[selectedIndex.clamp(0, labels.length - 1)]
+            : 'Current';
         return DonutBreakdownChart(
           income: latest,
           expenses: (total - latest).clamp(0, double.infinity),
-          height: height,
+          primaryColor: color,
+          secondaryColor: color.withValues(alpha: 0.25),
+          primaryLabel: '$latestLabel Period',
+          secondaryLabel: 'Prior 5 Months',
+          centerTitle: latestLabel,
+          height: 205,
         );
       case ChartVisualMode.line:
         return CurvedTrendLineChart(
@@ -673,7 +848,7 @@ class AdaptiveTrendChart extends StatelessWidget {
           lineColor: color,
           selectedIndex: selectedIndex,
           height: height,
-          valueFormatter: valueFormatter ?? (v) => v.toInt().toString(),
+          valueFormatter: fmt,
         );
     }
   }
@@ -685,6 +860,9 @@ class AdaptiveCategoryChart extends StatelessWidget {
   final List<double> values;
   final Color barColor;
   final Color? alternateBarColor;
+  final Color? labelColor;
+  final Color? selectedLabelColor;
+  final Color? selectedMonthColor;
   final int selectedIndex;
   final double height;
   final String Function(double)? valueFormatter;
@@ -696,13 +874,20 @@ class AdaptiveCategoryChart extends StatelessWidget {
     required this.values,
     required this.barColor,
     this.alternateBarColor,
+    this.labelColor,
+    this.selectedLabelColor,
+    this.selectedMonthColor,
     this.selectedIndex = 5,
-    this.height = 145,
+    this.height = 150,
     this.valueFormatter,
   });
 
+  static String _defaultCommaFormat(double v) =>
+      NumberFormat('#,###').format(v.toInt());
+
   @override
   Widget build(BuildContext context) {
+    final fmt = valueFormatter ?? _defaultCommaFormat;
     switch (mode) {
       case ChartVisualMode.line:
         return CurvedTrendLineChart(
@@ -711,17 +896,25 @@ class AdaptiveCategoryChart extends StatelessWidget {
           lineColor: barColor,
           selectedIndex: selectedIndex,
           height: height,
-          valueFormatter: valueFormatter ?? (v) => v.toInt().toString(),
+          valueFormatter: fmt,
         );
       case ChartVisualMode.donut:
         final total = values.fold<double>(0, (a, b) => a + b);
         final latest = values.isNotEmpty
             ? values[selectedIndex.clamp(0, values.length - 1)]
             : 0.0;
+        final latestMonth = months.isNotEmpty
+            ? months[selectedIndex.clamp(0, months.length - 1)]
+            : 'Selected';
         return DonutBreakdownChart(
           income: latest,
           expenses: (total - latest).clamp(0, double.infinity),
-          height: height,
+          primaryColor: alternateBarColor ?? barColor,
+          secondaryColor: barColor.withValues(alpha: 0.25),
+          primaryLabel: '$latestMonth Share',
+          secondaryLabel: 'Other Months',
+          centerTitle: latestMonth,
+          height: 205,
         );
       case ChartVisualMode.bar:
         return SingleCategoryBarChart(
@@ -729,9 +922,12 @@ class AdaptiveCategoryChart extends StatelessWidget {
           values: values,
           barColor: barColor,
           alternateBarColor: alternateBarColor,
+          labelColor: labelColor,
+          selectedLabelColor: selectedLabelColor,
+          selectedMonthColor: selectedMonthColor,
           selectedIndex: selectedIndex,
           height: height,
-          valueFormatter: valueFormatter,
+          valueFormatter: fmt,
         );
     }
   }
@@ -770,8 +966,8 @@ class PredictionBarChartWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 36,
-            height: height - 28,
+            width: 34,
+            height: height - 38,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -780,7 +976,7 @@ class PredictionBarChartWidget extends StatelessWidget {
                     (lbl) => Text(
                       lbl,
                       style: const TextStyle(
-                        color: Color(0xFF8E95A3),
+                        color: Color(0xFFB0B7C3),
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
@@ -790,73 +986,79 @@ class PredictionBarChartWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(months.length, (index) {
-                final month = months[index];
-                final val = values[index];
-                final isForecast = index == months.length - 1;
-                final isCurrentActual = index == 3; // Sep
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: List.generate(months.length, (index) {
+                      final val = values[index];
+                      final isForecast = index == months.length - 1;
+                      final Color barCol =
+                          isForecast ? forecastColor : kColorSky;
 
-                Color barCol;
-                if (isForecast) {
-                  barCol = forecastColor;
-                } else if (isCurrentActual) {
-                  barCol = kColorSky;
-                } else {
-                  barCol = const Color(0xFF1E3547);
-                }
+                      // Exaggerate relative differences slightly for visual match with design
+                      final double minVal =
+                          values.reduce((a, b) => a < b ? a : b) * 0.72;
+                      final double norm =
+                          ((val - minVal) / (maxVal - minVal)).clamp(0.35, 1.0);
+                      final barH = norm * (height - 62);
 
-                final barH = (val / maxVal) * (height - 52);
-
-                return Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        val >= 1000
-                            ? '${(val / 1000).toStringAsFixed(0)},000'
-                            : val.toInt().toString(),
-                        style: TextStyle(
-                          color: isForecast
-                              ? forecastColor
-                              : (isCurrentActual
-                                  ? kColorSky
-                                  : Colors.white),
-                          fontSize: 10,
-                          fontWeight: isForecast || isCurrentActual
-                              ? FontWeight.w700
-                              : FontWeight.w500,
+                      return Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              NumberFormat('#,###').format(val.toInt()),
+                              style: TextStyle(
+                                color: isForecast ? forecastColor : Colors.white,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              width: 30,
+                              height: barH.clamp(24, height - 62),
+                              decoration: BoxDecoration(
+                                color: barCol,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        width: 24,
-                        height: barH.clamp(10, height - 52),
-                        decoration: BoxDecoration(
-                          color: barCol,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        month,
-                        style: TextStyle(
-                          color: isForecast
-                              ? forecastColor
-                              : (isCurrentActual
-                                  ? kColorSky
-                                  : const Color(0xFF8E95A3)),
-                          fontSize: 12,
-                          fontWeight: isForecast || isCurrentActual
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                      );
+                    }),
                   ),
-                );
-              }),
+                ),
+                Container(
+                  height: 1,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: List.generate(months.length, (index) {
+                    final month = months[index];
+                    final isForecast = index == months.length - 1;
+                    return Expanded(
+                      child: Center(
+                        child: Text(
+                          month,
+                          style: TextStyle(
+                            color: isForecast
+                                ? forecastColor
+                                : const Color(0xFFB0B7C3),
+                            fontSize: 12,
+                            fontWeight:
+                                isForecast ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
           ),
         ],
@@ -895,6 +1097,7 @@ class AnomalyComparisonBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -904,7 +1107,7 @@ class AnomalyComparisonBar extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: AppColors.lightTextPrimary,
+                color: AppColors.getTextPrimary(isDark),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -940,7 +1143,7 @@ class AnomalyComparisonBar extends StatelessWidget {
                   flex: ((100000 - (avgAmount + (hasSpike ? spikeAmount : 0))) * 10)
                       .clamp(0, 1000000)
                       .toInt(),
-                  child: Container(color: AppColors.lightBorder),
+                  child: Container(color: AppColors.getBorder(isDark)),
                 ),
               ],
             ),
@@ -968,29 +1171,47 @@ class ChartStylePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Expanded(
           child: _buildItem(
+            isDark: isDark,
             mode: ChartVisualMode.bar,
             title: 'Bar Graph',
-            icon: Icons.bar_chart_rounded,
+            iconWidget: const Icon(
+              Icons.bar_chart_rounded,
+              color: kColorLime,
+              size: 26,
+            ),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _buildItem(
+            isDark: isDark,
             mode: ChartVisualMode.line,
             title: 'Line Trend',
-            icon: Icons.show_chart_rounded,
+            iconWidget: const Icon(
+              Icons.show_chart_rounded,
+              color: kColorSky,
+              size: 26,
+            ),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _buildItem(
+            isDark: isDark,
             mode: ChartVisualMode.donut,
             title: 'Donut Ring',
-            icon: Icons.donut_large_rounded,
+            iconWidget: SizedBox(
+              width: 22,
+              height: 22,
+              child: CustomPaint(
+                painter: _TwoToneDonutIconPainter(),
+              ),
+            ),
           ),
         ),
       ],
@@ -998,25 +1219,31 @@ class ChartStylePicker extends StatelessWidget {
   }
 
   Widget _buildItem({
+    required bool isDark,
     required ChartVisualMode mode,
     required String title,
-    required IconData icon,
+    required Widget iconWidget,
   }) {
     final isSelected = selected == mode;
+    final unselectedBg =
+        isDark ? const Color(0xFF1E222D) : const Color(0xFFF1F5F9);
+    final unselectedBorder =
+        isDark ? const Color(0xFF2B303E) : const Color(0xFFE2E8F0);
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return GestureDetector(
       onTap: () => onSelected(mode),
       child: Container(
         height: 86,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? activeColor.withValues(alpha: 0.12)
-              : const Color(0xFFF1F5F9),
+              ? activeColor.withValues(alpha: 0.18)
+              : unselectedBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? activeColor : const Color(0xFFE2E8F0),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? activeColor : unselectedBorder,
+            width: isSelected ? 1.8 : 1,
           ),
         ),
         child: Stack(
@@ -1025,20 +1252,13 @@ class ChartStylePicker extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  icon,
-                  color: isSelected ? activeColor : kColorPurple,
-                  size: 26,
-                ),
+                iconWidget,
                 Text(
                   title,
                   style: TextStyle(
-                    color: isSelected
-                        ? const Color(0xFF0F172A)
-                        : const Color(0xFF64748B),
+                    color: textColor,
                     fontSize: 12,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -1048,8 +1268,8 @@ class ChartStylePicker extends StatelessWidget {
                 top: 0,
                 right: 0,
                 child: Container(
-                  width: 18,
-                  height: 18,
+                  width: 16,
+                  height: 16,
                   decoration: BoxDecoration(
                     color: activeColor,
                     shape: BoxShape.circle,
@@ -1058,7 +1278,7 @@ class ChartStylePicker extends StatelessWidget {
                     child: Icon(
                       Icons.check,
                       color: Color(0xFF0C0F14),
-                      size: 13,
+                      size: 11,
                     ),
                   ),
                 ),
@@ -1068,4 +1288,26 @@ class ChartStylePicker extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TwoToneDonutIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(2, 2, size.width - 4, size.height - 4);
+    final purplePaint = Paint()
+      ..color = const Color(0xFFB088F6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2;
+    final greenPaint = Paint()
+      ..color = kColorLime
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(rect, 0, 6.28318, false, purplePaint);
+    canvas.drawArc(rect, -1.57, 2.2, false, greenPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
