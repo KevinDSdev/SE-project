@@ -30,6 +30,7 @@ class AppColors {
   static const Color lightSurface = Color(0xFFFFFFFF); // Clean white card surface
   static const Color lightCard = Color(0xFFFFFFFF);
   static const Color lightSubContainer = Color(0xFFF1F5F9); // Inner container / pill container
+  static const Color lightInput = Color(0xFFF1F5F9);
   static const Color lightBorder = Color(0xFFE2E8F0); // Subtle slate borders
   static const Color lightTextPrimary = Color(0xFF0F172A); // High-contrast dark text
   static const Color lightTextSecondary = Color(0xFF64748B); // Slate muted text
@@ -44,9 +45,11 @@ class AppColors {
   static Color getBg(bool isDark) => isDark ? darkBg : lightBg;
   static Color getCard(bool isDark) => isDark ? darkCard : lightCard;
   static Color getBorder(bool isDark) => isDark ? darkBorder : lightBorder;
+  static Color getInput(bool isDark) => isDark ? darkInput : lightInput;
   static Color getSubContainer(bool isDark) => isDark ? darkSubContainer : lightSubContainer;
   static Color getTextPrimary(bool isDark) => isDark ? darkTextPrimary : lightTextPrimary;
   static Color getTextSecondary(bool isDark) => isDark ? darkTextSecondary : lightTextSecondary;
+  static Color getTextMuted(bool isDark) => isDark ? darkTextMuted : lightTextMuted;
 
   // Status & Feedback Colors
   static const Color success = Color(0xFF98E836);
@@ -63,4 +66,16 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+}
+
+extension AppThemeColorsExtension on BuildContext {
+  bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
+  Color get bgColor => AppColors.getBg(isDarkMode);
+  Color get cardColor => AppColors.getCard(isDarkMode);
+  Color get borderColor => AppColors.getBorder(isDarkMode);
+  Color get inputColor => AppColors.getInput(isDarkMode);
+  Color get subContainerColor => AppColors.getSubContainer(isDarkMode);
+  Color get textPrimaryColor => AppColors.getTextPrimary(isDarkMode);
+  Color get textSecondaryColor => AppColors.getTextSecondary(isDarkMode);
+  Color get textMutedColor => AppColors.getTextMuted(isDarkMode);
 }

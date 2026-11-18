@@ -157,8 +157,16 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -175,23 +183,23 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: AppColors.darkCard,
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close_rounded,
-                        color: Colors.white,
+                        color: textPrimary,
                         size: 20,
                       ),
                     ),
                   ),
 
                   // Title
-                  const Text(
+                  Text(
                     'Scan Receipt',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.3,
@@ -208,13 +216,15 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: _isAutoMode
-                            ? const Color(0xFF192A13)
-                            : AppColors.darkCard,
+                            ? (isDark
+                                ? const Color(0xFF192A13)
+                                : AppColors.primary.withValues(alpha: 0.15))
+                            : cardBg,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _isAutoMode
                               ? AppColors.primary.withValues(alpha: 0.6)
-                              : AppColors.darkBorder,
+                              : borderColor,
                         ),
                       ),
                       child: Row(
@@ -225,7 +235,7 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                             size: 16,
                             color: _isAutoMode
                                 ? AppColors.primary
-                                : AppColors.textSecondary,
+                                : textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -233,7 +243,7 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                             style: TextStyle(
                               color: _isAutoMode
                                   ? AppColors.primary
-                                  : AppColors.textSecondary,
+                                  : textSecondary,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
@@ -259,7 +269,7 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF12151D),
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: AppColors.darkBorder, width: 1.5),
+                    border: Border.all(color: borderColor, width: 1.5),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
@@ -342,18 +352,18 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
             const SizedBox(height: 16),
 
             // Instruction Heading & Subtitle
-            const Text(
+            Text(
               'Align all 4 corners of receipt inside box',
               style: TextStyle(
-                color: Colors.white,
+                color: textPrimary,
                 fontSize: 15.5,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Amount, merchant & date will be extracted automatically',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+              style: TextStyle(color: textSecondary, fontSize: 12.5),
             ),
             const SizedBox(height: 28),
 
@@ -374,25 +384,25 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                           width: 58,
                           height: 58,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1A1E29),
+                            color: subContainer,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.darkBorder,
+                              color: borderColor,
                               width: 1.2,
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.photo_library_outlined,
-                            color: Colors.white,
+                            color: textPrimary,
                             size: 24,
                           ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Gallery',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: textSecondary,
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
                         ),
@@ -433,10 +443,10 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Capture',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -454,12 +464,12 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                           width: 58,
                           height: 58,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1A1E29),
+                            color: subContainer,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: _isFlashOn
                                   ? AppColors.primary
-                                  : AppColors.darkBorder,
+                                  : borderColor,
                               width: 1.5,
                             ),
                           ),
@@ -467,7 +477,7 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                             Icons.bolt_rounded,
                             color: _isFlashOn
                                 ? AppColors.primary
-                                : Colors.white,
+                                : textPrimary,
                             size: 26,
                           ),
                         ),
@@ -478,7 +488,7 @@ class _ReceiptCaptureScreenState extends State<ReceiptCaptureScreen> {
                         style: TextStyle(
                           color: _isFlashOn
                               ? AppColors.primary
-                              : AppColors.textSecondary,
+                              : textSecondary,
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
                         ),

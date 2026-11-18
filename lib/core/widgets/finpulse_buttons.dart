@@ -62,6 +62,7 @@ class FinPulseCircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
@@ -69,9 +70,9 @@ class FinPulseCircleButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: AppColors.darkButton,
+          color: AppColors.getCard(isDark),
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.darkBorder, width: 0.8),
+          border: Border.all(color: AppColors.getBorder(isDark), width: 0.8),
         ),
         child: Center(child: icon),
       ),
@@ -89,12 +90,13 @@ class FinPulseCurrencyBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.darkButton,
+        color: AppColors.getCard(isDark),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.darkBorder, width: 0.8),
+        border: Border.all(color: AppColors.getBorder(isDark), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -110,8 +112,8 @@ class FinPulseCurrencyBadge extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.getTextPrimary(isDark),
               fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.2,
@@ -135,6 +137,11 @@ class FinPulseSocialButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inputBg = AppColors.getInput(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     return Row(
       children: [
         // Apple button
@@ -145,14 +152,14 @@ class FinPulseSocialButtons extends StatelessWidget {
             child: Container(
               height: 54,
               decoration: BoxDecoration(
-                color: AppColors.darkInput,
+                color: inputBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.darkBorder, width: 1),
+                border: Border.all(color: borderColor, width: 1),
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.apple,
-                  color: Colors.white,
+                  color: textPrimary,
                   size: 28,
                 ),
               ),
@@ -168,9 +175,9 @@ class FinPulseSocialButtons extends StatelessWidget {
             child: Container(
               height: 54,
               decoration: BoxDecoration(
-                color: AppColors.darkInput,
+                color: inputBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.darkBorder, width: 1),
+                border: Border.all(color: borderColor, width: 1),
               ),
               child: Center(
                 child: Row(

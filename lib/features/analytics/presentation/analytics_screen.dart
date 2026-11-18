@@ -60,9 +60,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   }
 
   void _showSortFilterSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.darkCard,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -79,25 +84,25 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: borderColor,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text(
+                Text(
                   'Sort Transactions',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 14),
-                _buildSortTile('Newest First', HistorySortOption.newest),
-                _buildSortTile('Oldest First', HistorySortOption.oldest),
-                _buildSortTile('Highest Amount', HistorySortOption.highest),
-                _buildSortTile('Lowest Amount', HistorySortOption.lowest),
+                _buildSortTile('Newest First', HistorySortOption.newest, textPrimary),
+                _buildSortTile('Oldest First', HistorySortOption.oldest, textPrimary),
+                _buildSortTile('Highest Amount', HistorySortOption.highest, textPrimary),
+                _buildSortTile('Lowest Amount', HistorySortOption.lowest, textPrimary),
               ],
             ),
           ),
@@ -106,7 +111,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     );
   }
 
-  Widget _buildSortTile(String title, HistorySortOption option) {
+  Widget _buildSortTile(String title, HistorySortOption option, Color textPrimary) {
     final isSelected = _selectedSort == option;
 
     return ListTile(
@@ -114,7 +119,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       title: Text(
         title,
         style: TextStyle(
-          color: isSelected ? AppColors.primary : Colors.white,
+          color: isSelected ? AppColors.primary : textPrimary,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
         ),
       ),
@@ -363,9 +368,15 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   Widget build(BuildContext context) {
     final txState = ref.watch(transactionsProvider);
     final filteredList = _applyFilters(txState.transactions);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -388,14 +399,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
+                          color: textPrimary,
                           size: 18,
                         ),
                       ),
@@ -403,10 +414,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   ),
 
                   // Title: "Transaction History"
-                  const Text(
+                  Text(
                     'Transaction History',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
                     ),
@@ -419,9 +430,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       child: const Center(
                         child: Icon(
@@ -449,16 +460,16 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.search_rounded,
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -468,14 +479,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                               onChanged: (val) {
                                 setState(() => _searchQuery = val.trim());
                               },
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textPrimary,
                                 fontSize: 14.5,
                               ),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: 'Search',
                                 hintStyle: TextStyle(
-                                  color: Color(0xFF64748B),
+                                  color: textSecondary,
                                   fontSize: 14.5,
                                 ),
                                 border: InputBorder.none,
@@ -489,9 +500,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
                               },
-                              child: const Icon(
+                              child: Icon(
                                 Icons.close_rounded,
-                                color: AppColors.textSecondary,
+                                color: textSecondary,
                                 size: 18,
                               ),
                             ),
@@ -508,10 +519,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                         vertical: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: const Color(0xFF1E2332),
+                          color: borderColor,
                           width: 1.2,
                         ),
                       ),
@@ -520,20 +531,20 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'October 2026',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: textPrimary,
                                   fontSize: 15.5,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 '142 Logged Transactions',
                                 style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: textSecondary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -545,17 +556,19 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                             children: [
                               Text(
                                 'LKR ${currencyFormat.format(txState.spentBudget)}',
-                                style: const TextStyle(
-                                  color: AppColors.primary,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? AppColors.primary
+                                      : const Color(0xFF4D7C0F),
                                   fontSize: 16.5,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
+                              Text(
                                 'Total Outflow',
                                 style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: textSecondary,
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -576,41 +589,65 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                           _buildFilterChip(
                             label: 'All (142)',
                             filter: HistoryCategoryFilter.all,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Groceries',
                             filter: HistoryCategoryFilter.groceries,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Utilities',
                             filter: HistoryCategoryFilter.utilities,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Housing',
                             filter: HistoryCategoryFilter.housing,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Transport',
                             filter: HistoryCategoryFilter.transport,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Food',
                             filter: HistoryCategoryFilter.food,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Savings',
                             filter: HistoryCategoryFilter.savings,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(width: 8),
                           _buildFilterChip(
                             label: 'Entertainment',
                             filter: HistoryCategoryFilter.entertainment,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                            textSecondary: textSecondary,
                           ),
                         ],
                       ),
@@ -625,7 +662,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                           child: Text(
                             'No transactions found',
                             style: TextStyle(
-                              color: AppColors.textSecondary.withValues(
+                              color: textSecondary.withValues(
                                 alpha: 0.8,
                               ),
                               fontSize: 14,
@@ -641,7 +678,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                         separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final item = filteredList[index];
-                          return _buildTransactionCard(item);
+                          return _buildTransactionCard(
+                            item,
+                            isDark,
+                            cardBg,
+                            borderColor,
+                            textPrimary,
+                            textSecondary,
+                          );
                         },
                       ),
                     const SizedBox(height: 20),
@@ -658,6 +702,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   Widget _buildFilterChip({
     required String label,
     required HistoryCategoryFilter filter,
+    required Color cardBg,
+    required Color borderColor,
+    required Color textSecondary,
   }) {
     final isSelected = _selectedCategory == filter;
 
@@ -668,10 +715,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : const Color(0xFF161922),
+          color: isSelected ? AppColors.primary : cardBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.darkBorder,
+            color: isSelected ? AppColors.primary : borderColor,
             width: 1,
           ),
         ),
@@ -680,7 +727,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           style: TextStyle(
             color: isSelected
                 ? const Color(0xFF0C0F14)
-                : AppColors.textSecondary,
+                : textSecondary,
             fontSize: 12.5,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
           ),
@@ -689,8 +736,17 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     );
   }
 
-  Widget _buildTransactionCard(TransactionModel item) {
+  Widget _buildTransactionCard(
+    TransactionModel item,
+    bool isDark,
+    Color cardBg,
+    Color borderColor,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
     final isIncome = item.type == TransactionType.income;
+    final incomeTextColor =
+        isDark ? AppColors.primary : const Color(0xFF4D7C0F);
 
     return GestureDetector(
       onTap: () {
@@ -704,12 +760,12 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF131722),
+          color: cardBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isIncome
-                ? AppColors.primary.withValues(alpha: 0.35)
-                : const Color(0xFF1E2332),
+                ? AppColors.primary.withValues(alpha: 0.45)
+                : borderColor,
             width: 1.2,
           ),
         ),
@@ -727,7 +783,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   Text(
                     item.merchant,
                     style: TextStyle(
-                      color: isIncome ? AppColors.primary : Colors.white,
+                      color: isIncome ? incomeTextColor : textPrimary,
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
                     ),
@@ -735,8 +791,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   const SizedBox(height: 3),
                   Text(
                     item.subtitle,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: textSecondary,
                       fontSize: 11.5,
                     ),
                   ),
@@ -748,7 +804,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             Text(
               '${isIncome ? '+' : '-'}LKR ${currencyFormat.format(item.amount)}',
               style: TextStyle(
-                color: isIncome ? AppColors.primary : Colors.white,
+                color: isIncome ? incomeTextColor : textPrimary,
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
               ),

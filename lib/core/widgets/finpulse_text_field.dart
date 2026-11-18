@@ -46,6 +46,12 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inputBg = AppColors.getInput(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final textMuted = AppColors.getTextMuted(isDark);
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
 
     return Column(
@@ -56,7 +62,7 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
               ? widget.label.toUpperCase()
               : widget.label,
           style: TextStyle(
-            color: AppColors.textSecondary,
+            color: textSecondary,
             fontSize: widget.isUppercaseLabel ? 11 : 13,
             fontWeight: FontWeight.w600,
             letterSpacing: widget.isUppercaseLabel ? 0.6 : 0.1,
@@ -65,10 +71,10 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.darkInput,
+            color: inputBg,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: hasError ? AppColors.error : AppColors.darkBorder,
+              color: hasError ? AppColors.error : borderColor,
               width: hasError ? 1.5 : 1,
             ),
           ),
@@ -82,7 +88,7 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
                   padding: const EdgeInsets.only(left: 16, right: 12),
                   child: Icon(
                     widget.prefixIcon,
-                    color: AppColors.textSecondary,
+                    color: textSecondary,
                     size: 20,
                   ),
                 ),
@@ -99,8 +105,8 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
                   keyboardType: widget.keyboardType,
                   validator: widget.validator,
                   onChanged: widget.onChanged,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -111,8 +117,8 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
                     errorBorder: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     hintText: widget.hintText,
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF5A606D),
+                    hintStyle: TextStyle(
+                      color: textMuted,
                       fontSize: 14,
                     ),
                     isDense: true,
@@ -127,7 +133,7 @@ class _FinPulseTextFieldState extends State<FinPulseTextField> {
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
                     color: _obscureText
-                        ? AppColors.textSecondary
+                        ? textSecondary
                         : AppColors.primary,
                     size: 20,
                   ),

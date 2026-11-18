@@ -98,9 +98,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -114,22 +119,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 24),
 
               // Title and Subtitle
-              const Text(
+              Text(
                 'Welcome Back',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Sign in to manage your finances',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
+                  color: textSecondary,
                 ),
               ),
               const SizedBox(height: 36),
@@ -187,7 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             border: Border.all(
                               color: _rememberMe
                                   ? AppColors.primary
-                                  : AppColors.darkBorder,
+                                  : borderColor,
                               width: 1.5,
                             ),
                           ),
@@ -200,10 +205,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               : null,
                         ),
                         const SizedBox(width: 10),
-                        const Text(
+                        Text(
                           'Remember me',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -246,21 +251,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Container(height: 1, color: AppColors.darkBorder),
+                    child: Container(height: 1, color: borderColor),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'or continue with',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                   Expanded(
-                    child: Container(height: 1, color: AppColors.darkBorder),
+                    child: Container(height: 1, color: borderColor),
                   ),
                 ],
               ),
@@ -285,10 +290,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Don't have an account? ",
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

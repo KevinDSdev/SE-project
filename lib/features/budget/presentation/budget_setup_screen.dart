@@ -53,6 +53,12 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     required ValueChanged<double> onSaved,
   }) {
     final accentColor = ref.read(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final controller = TextEditingController(
       text: initialValue.toInt().toString(),
     );
@@ -60,15 +66,15 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.darkBorder),
+          side: BorderSide(color: borderColor),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -77,7 +83,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           controller: controller,
           keyboardType: TextInputType.number,
           autofocus: true,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(color: textPrimary, fontSize: 16),
           decoration: InputDecoration(
             prefixText: 'LKR ',
             prefixStyle: TextStyle(
@@ -85,10 +91,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
               fontWeight: FontWeight.w700,
             ),
             filled: true,
-            fillColor: const Color(0xFF161922),
+            fillColor: subContainer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.darkBorder),
+              borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -99,9 +105,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -130,21 +136,27 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
 
   void _showAddFixedBillDialog() {
     final accentColor = ref.read(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final nameController = TextEditingController();
     final amountController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.darkBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Add Fixed Monthly Bill',
           style: TextStyle(
-            color: Colors.white,
+            color: textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -155,15 +167,15 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             TextField(
               controller: nameController,
               autofocus: true,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: textPrimary),
               decoration: InputDecoration(
                 hintText: 'Bill name (e.g. Gym Membership)',
-                hintStyle: const TextStyle(color: AppColors.textSecondary),
+                hintStyle: TextStyle(color: textSecondary),
                 filled: true,
-                fillColor: const Color(0xFF161922),
+                fillColor: subContainer,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                  borderSide: BorderSide(color: borderColor),
                 ),
               ),
             ),
@@ -171,7 +183,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: textPrimary),
               decoration: InputDecoration(
                 prefixText: 'LKR ',
                 prefixStyle: TextStyle(
@@ -179,12 +191,12 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                   fontWeight: FontWeight.w700,
                 ),
                 hintText: 'Amount',
-                hintStyle: const TextStyle(color: AppColors.textSecondary),
+                hintStyle: TextStyle(color: textSecondary),
                 filled: true,
-                fillColor: const Color(0xFF161922),
+                fillColor: subContainer,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                  borderSide: BorderSide(color: borderColor),
                 ),
               ),
             ),
@@ -193,9 +205,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -234,8 +246,16 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -252,14 +272,14 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
+                          color: textPrimary,
                           size: 18,
                         ),
                       ),
@@ -267,10 +287,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                   ),
 
                   // Title: "Monthly Budget Setup"
-                  const Text(
+                  Text(
                     'Monthly Budget Setup',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
@@ -281,9 +301,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF161922),
+                      color: cardBg,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.darkBorder),
+                      border: Border.all(color: borderColor),
                     ),
                     child: Center(
                       child: Icon(
@@ -315,10 +335,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         vertical: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFF1E2332),
+                          color: borderColor,
                           width: 1.2,
                         ),
                       ),
@@ -327,20 +347,20 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'Monthly Income',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: textPrimary,
                                   fontSize: 15.5,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Text(
                                 'Base salary & extras',
                                 style: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: textSecondary,
                                   fontSize: 12,
                                 ),
                               ),
@@ -359,7 +379,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                 vertical: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF181C26),
+                                color: subContainer,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: accentColor,
@@ -368,8 +388,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                               ),
                               child: Text(
                                 'LKR ${currencyFormat.format(_monthlyIncome)}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: textPrimary,
                                   fontSize: 15.5,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -389,7 +409,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF142416),
+                        color: isDark
+                            ? const Color(0xFF142416)
+                            : accentColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: accentColor.withValues(alpha: 0.35),
@@ -421,8 +443,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                           ),
                           Text(
                             'LKR ${currencyFormat.format(_remainingToAllocate)}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                             ),
@@ -435,11 +457,11 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                     // Section 1: Variable Expense Budgets
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
+                      children: [
                         Text(
                           'Variable Expense Budgets',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
@@ -447,7 +469,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         Text(
                           'Type cap below',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -462,10 +484,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFF1E2332),
+                          color: borderColor,
                           width: 1.2,
                         ),
                       ),
@@ -484,7 +506,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                   setState(() => _foodGroceries = v),
                             ),
                           ),
-                          const Divider(color: Colors.white10, height: 1),
+                          Divider(color: borderColor, height: 1),
                           _buildBudgetRow(
                             title: 'Dining & Takeout',
                             amount: _diningTakeout,
@@ -498,7 +520,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                   setState(() => _diningTakeout = v),
                             ),
                           ),
-                          const Divider(color: Colors.white10, height: 1),
+                          Divider(color: borderColor, height: 1),
                           _buildBudgetRow(
                             title: 'Travel & Transport',
                             amount: _travelTransport,
@@ -512,7 +534,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                                   setState(() => _travelTransport = v),
                             ),
                           ),
-                          const Divider(color: Colors.white10, height: 1),
+                          Divider(color: borderColor, height: 1),
                           _buildBudgetRow(
                             title: 'Shopping & Lifestyle',
                             amount: _shoppingLifestyle,
@@ -535,10 +557,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Update Fixed Monthly Bills',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
@@ -562,10 +584,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFF1E2332),
+                          color: borderColor,
                           width: 1.2,
                         ),
                       ),
@@ -573,7 +595,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                         children: [
                           for (var i = 0; i < _fixedBills.length; i++) ...[
                             if (i > 0)
-                              const Divider(color: Colors.white10, height: 1),
+                              Divider(color: borderColor, height: 1),
                             _buildBudgetRow(
                               title: _fixedBills[i]['title'] as String,
                               amount: _fixedBills[i]['amount'] as double,
@@ -598,10 +620,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF161922),
+                                color: subContainer,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.white12,
+                                  color: borderColor,
                                   style: BorderStyle.solid,
                                 ),
                               ),
@@ -673,6 +695,11 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     required Color bgColor,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -681,7 +708,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: bgColor,
+              color: isDark ? bgColor : iconColor.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: iconColor, size: 18),
@@ -690,8 +717,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -702,14 +729,14 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF161922),
+                color: subContainer,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.darkBorder),
+                border: Border.all(color: borderColor),
               ),
               child: Text(
                 'LKR ${currencyFormat.format(amount)}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
                 ),

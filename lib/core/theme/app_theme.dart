@@ -77,6 +77,20 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: accentColor,
       scaffoldBackgroundColor: AppColors.darkBg,
+      cardColor: AppColors.darkCard,
+      dividerColor: AppColors.darkBorder,
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.darkCard,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.darkBorder),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.darkCard,
+        surfaceTintColor: Colors.transparent,
+      ),
       colorScheme: ColorScheme.dark(
         primary: accentColor,
         secondary: AppColors.secondary,
@@ -202,6 +216,20 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: accentColor,
       scaffoldBackgroundColor: AppColors.lightBg,
+      cardColor: AppColors.lightCard,
+      dividerColor: AppColors.lightBorder,
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.lightCard,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.lightBorder),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.lightCard,
+        surfaceTintColor: Colors.transparent,
+      ),
       colorScheme: ColorScheme.light(
         primary: accentColor,
         secondary: AppColors.secondary,

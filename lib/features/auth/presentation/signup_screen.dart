@@ -191,34 +191,40 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     final pwdText = _passwordController.text;
     final strength = _evaluatePasswordStrength(pwdText);
-    Color segment1Color = AppColors.darkBorder;
-    Color segment2Color = AppColors.darkBorder;
-    Color segment3Color = AppColors.darkBorder;
+    Color segment1Color = borderColor;
+    Color segment2Color = borderColor;
+    Color segment3Color = borderColor;
     String strengthLabel = 'Enter password';
-    Color labelColor = AppColors.textSecondary;
+    Color labelColor = textSecondary;
 
     switch (strength) {
       case PasswordStrength.empty:
-        segment1Color = AppColors.darkBorder;
-        segment2Color = AppColors.darkBorder;
-        segment3Color = AppColors.darkBorder;
+        segment1Color = borderColor;
+        segment2Color = borderColor;
+        segment3Color = borderColor;
         strengthLabel = 'Enter password';
-        labelColor = AppColors.textSecondary;
+        labelColor = textSecondary;
         break;
       case PasswordStrength.weak:
         segment1Color = AppColors.error;
-        segment2Color = AppColors.darkBorder;
-        segment3Color = AppColors.darkBorder;
+        segment2Color = borderColor;
+        segment3Color = borderColor;
         strengthLabel = 'Weak password';
         labelColor = AppColors.error;
         break;
       case PasswordStrength.medium:
         segment1Color = AppColors.warning;
         segment2Color = AppColors.warning;
-        segment3Color = AppColors.darkBorder;
+        segment3Color = borderColor;
         strengthLabel = 'Medium strength';
         labelColor = AppColors.warning;
         break;
@@ -232,7 +238,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -247,7 +253,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 children: [
                   const FinPulseLogo(size: 54),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -256,17 +262,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: textPrimary,
                             letterSpacing: -0.4,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Join FinPulse Sri Lanka for smart budgeting',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -339,16 +345,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF232733),
+                    color: subContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         '+94 🇱🇰',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
                         ),
@@ -433,7 +439,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         border: Border.all(
                           color: _agreeTerms
                               ? AppColors.primary
-                              : AppColors.darkBorder,
+                              : borderColor,
                           width: 1.5,
                         ),
                       ),
@@ -446,12 +452,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           : null,
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text.rich(
                         TextSpan(
                           text: 'I agree to the ',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
@@ -459,15 +465,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             TextSpan(
                               text: 'Terms of Service',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            TextSpan(text: ' & '),
+                            const TextSpan(text: ' & '),
                             TextSpan(
                               text: 'Privacy Policy',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -492,21 +498,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Container(height: 1, color: AppColors.darkBorder),
+                    child: Container(height: 1, color: borderColor),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'or sign up with',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                   Expanded(
-                    child: Container(height: 1, color: AppColors.darkBorder),
+                    child: Container(height: 1, color: borderColor),
                   ),
                 ],
               ),
@@ -531,10 +537,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Already have an account? ',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

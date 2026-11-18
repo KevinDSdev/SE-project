@@ -29,6 +29,7 @@ class GroupedDualBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     double maxVal = 0;
     for (final m in monthlyData) {
       final inc = (m['income'] as num).toDouble();
@@ -66,7 +67,9 @@ class GroupedDualBarChart extends StatelessWidget {
                     ),
                     decoration: isSelected
                         ? BoxDecoration(
-                            color: const Color(0xFF1E2818).withValues(alpha: 0.8),
+                            color: isDark
+                                ? const Color(0xFF1E2818).withValues(alpha: 0.8)
+                                : kColorLime.withValues(alpha: 0.16),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: kColorLime.withValues(alpha: 0.4),
@@ -954,6 +957,10 @@ class PredictionBarChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final axisColor =
+        isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08);
     double maxVal = 0;
     for (final v in values) {
       if (v > maxVal) maxVal = v;
@@ -1012,7 +1019,7 @@ class PredictionBarChartWidget extends StatelessWidget {
                             Text(
                               NumberFormat('#,###').format(val.toInt()),
                               style: TextStyle(
-                                color: isForecast ? forecastColor : Colors.white,
+                                color: isForecast ? forecastColor : textPrimary,
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -1034,7 +1041,7 @@ class PredictionBarChartWidget extends StatelessWidget {
                 ),
                 Container(
                   height: 1,
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: axisColor,
                 ),
                 const SizedBox(height: 8),
                 Row(

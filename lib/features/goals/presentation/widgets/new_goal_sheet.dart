@@ -103,6 +103,13 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
   @override
   Widget build(BuildContext context) {
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -110,10 +117,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
         top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF121620),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: borderColor, width: 1.5)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -126,7 +133,7 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF262B36),
+                  color: borderColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -137,19 +144,19 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Create New Goal',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
-                    color: AppColors.textSecondary,
+                    color: textSecondary,
                   ),
                 ),
               ],
@@ -161,6 +168,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
               controller: _titleController,
               label: 'Goal Name',
               hint: 'e.g. Wedding Fund, New Laptop',
+              subContainer: subContainer,
+              borderColor: borderColor,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
             ),
             const SizedBox(height: 14),
 
@@ -169,6 +180,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
               controller: _subtitleController,
               label: 'Details / Description',
               hint: 'e.g. Ella Retreat • Dec 2026',
+              subContainer: subContainer,
+              borderColor: borderColor,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
             ),
             const SizedBox(height: 14),
 
@@ -181,6 +196,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
                     label: 'Target (LKR)',
                     hint: '500,000',
                     keyboardType: TextInputType.number,
+                    subContainer: subContainer,
+                    borderColor: borderColor,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -190,6 +209,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
                     label: 'Current Saved (LKR)',
                     hint: '50,000',
                     keyboardType: TextInputType.number,
+                    subContainer: subContainer,
+                    borderColor: borderColor,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
                   ),
                 ),
               ],
@@ -202,14 +225,18 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
               label: 'Monthly Contribution (LKR)',
               hint: '25,000',
               keyboardType: TextInputType.number,
+              subContainer: subContainer,
+              borderColor: borderColor,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
             ),
             const SizedBox(height: 18),
 
             // Color Selector
-            const Text(
+            Text(
               'Accent Color',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: textSecondary,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -229,7 +256,7 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
                       color: color,
                       shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: Colors.white, width: 2.5)
+                          ? Border.all(color: textPrimary, width: 2.5)
                           : null,
                     ),
                     child: isSelected
@@ -246,10 +273,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
             const SizedBox(height: 18),
 
             // Icon Selector
-            const Text(
+            Text(
               'Icon',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: textSecondary,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -272,12 +299,12 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
                             ? _colorOptions[_selectedColorIndex].withValues(
                                 alpha: 0.2,
                               )
-                            : const Color(0xFF1E2332),
+                            : subContainer,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? _colorOptions[_selectedColorIndex]
-                              : Colors.transparent,
+                              : borderColor,
                           width: 1.5,
                         ),
                       ),
@@ -285,7 +312,7 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
                         icon,
                         color: isSelected
                             ? _colorOptions[_selectedColorIndex]
-                            : AppColors.textSecondary,
+                            : textSecondary,
                         size: 22,
                       ),
                     ),
@@ -325,6 +352,10 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
     required TextEditingController controller,
     required String label,
     required String hint,
+    required Color subContainer,
+    required Color borderColor,
+    required Color textPrimary,
+    required Color textSecondary,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
@@ -332,8 +363,8 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -341,22 +372,22 @@ class _NewGoalSheetState extends ConsumerState<NewGoalSheet> {
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1F2C),
+            color: subContainer,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF262C3D)),
+            border: Border.all(color: borderColor),
           ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(
-                color: Color(0xFF646B79),
+              hintStyle: TextStyle(
+                color: textSecondary.withValues(alpha: 0.7),
                 fontSize: 13,
               ),
               contentPadding: const EdgeInsets.symmetric(

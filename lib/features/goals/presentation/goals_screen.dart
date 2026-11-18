@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../models/goal_model.dart';
 import '../providers/goals_provider.dart';
@@ -16,9 +17,13 @@ class GoalsScreen extends ConsumerWidget {
     final goalsState = ref.watch(goalsProvider);
     final accentColor = ref.watch(accentColorProvider).color;
     final currencyFormat = NumberFormat('#,###');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -30,10 +35,10 @@ class GoalsScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Savings Goals',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
@@ -54,10 +59,14 @@ class GoalsScreen extends ConsumerWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1B2E15),
+                        color: isDark
+                            ? const Color(0xFF1B2E15)
+                            : accentColor.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFF28481D),
+                          color: isDark
+                              ? const Color(0xFF28481D)
+                              : accentColor.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
@@ -94,18 +103,18 @@ class GoalsScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Active Goals',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     '${goalsState.goals.length} Targets',
-                    style: const TextStyle(
-                      color: Color(0xFF94A3B8),
+                    style: TextStyle(
+                      color: textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -139,6 +148,12 @@ class GoalsScreen extends ConsumerWidget {
     NumberFormat currencyFormat,
   ) {
     final accentColor = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final totalAccumulated = state.totalAccumulated;
     final target = state.portfolioTarget;
     final percentReached = state.overallProgressPercentage;
@@ -147,17 +162,17 @@ class GoalsScreen extends ConsumerWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF131722),
+        color: cardBg,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF1E2434), width: 1.2),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Total Savings Accumulated',
             style: TextStyle(
-              color: Color(0xFF94A3B8),
+              color: textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -165,8 +180,8 @@ class GoalsScreen extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(
             'LKR ${currencyFormat.format(totalAccumulated)}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textPrimary,
               fontSize: 30,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
@@ -179,18 +194,18 @@ class GoalsScreen extends ConsumerWidget {
               Text.rich(
                 TextSpan(
                   children: [
-                    const TextSpan(
+                    TextSpan(
                       text: 'Target: ',
                       style: TextStyle(
-                        color: Color(0xFF94A3B8),
+                        color: textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     TextSpan(
                       text: 'LKR ${currencyFormat.format(target)}',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -211,13 +226,13 @@ class GoalsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
 
           // Multi-segment Progress Bar matching design
-          _buildSegmentedProgressBar(state),
+          _buildSegmentedProgressBar(state, subContainer),
         ],
       ),
     );
   }
 
-  Widget _buildSegmentedProgressBar(GoalsState state) {
+  Widget _buildSegmentedProgressBar(GoalsState state, Color subContainer) {
     final target = state.portfolioTarget;
     final remaining = (target - state.totalAccumulated).clamp(
       0.0,
@@ -261,7 +276,7 @@ class GoalsScreen extends ConsumerWidget {
           child: Container(
             height: 7,
             decoration: BoxDecoration(
-              color: const Color(0xFF1C2232),
+              color: subContainer,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -273,7 +288,7 @@ class GoalsScreen extends ConsumerWidget {
       return Container(
         height: 7,
         decoration: BoxDecoration(
-          color: const Color(0xFF1C2232),
+          color: subContainer,
           borderRadius: BorderRadius.circular(4),
         ),
       );
@@ -289,6 +304,12 @@ class GoalsScreen extends ConsumerWidget {
     NumberFormat currencyFormat,
   ) {
     final formattedMonthly = _formatMonthly(goal.monthlyContribution);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     return GestureDetector(
       onTap: () {
@@ -303,9 +324,9 @@ class GoalsScreen extends ConsumerWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF131722),
+          color: cardBg,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF1E2332), width: 1.2),
+          border: Border.all(color: borderColor, width: 1.2),
         ),
         child: Column(
           children: [
@@ -316,7 +337,9 @@ class GoalsScreen extends ConsumerWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: goal.iconBg,
+                    color: isDark
+                        ? goal.iconBg
+                        : goal.color.withValues(alpha: 0.14),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -330,8 +353,8 @@ class GoalsScreen extends ConsumerWidget {
                     children: [
                       Text(
                         goal.title,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -339,8 +362,8 @@ class GoalsScreen extends ConsumerWidget {
                       const SizedBox(height: 3),
                       Text(
                         goal.subtitle,
-                        style: const TextStyle(
-                          color: Color(0xFF94A3B8),
+                        style: TextStyle(
+                          color: textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),
@@ -355,7 +378,9 @@ class GoalsScreen extends ConsumerWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: goal.iconBg,
+                      color: isDark
+                          ? goal.iconBg
+                          : goal.color.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -381,16 +406,16 @@ class GoalsScreen extends ConsumerWidget {
                       TextSpan(
                         text:
                             'LKR ${currencyFormat.format(goal.currentAmount)}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       TextSpan(
                         text: ' / ${currencyFormat.format(goal.targetAmount)}',
-                        style: const TextStyle(
-                          color: Color(0xFF94A3B8),
+                        style: TextStyle(
+                          color: textSecondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -415,7 +440,7 @@ class GoalsScreen extends ConsumerWidget {
               width: double.infinity,
               height: 6,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E2434),
+                color: subContainer,
                 borderRadius: BorderRadius.circular(3),
               ),
               child: FractionallySizedBox(
@@ -442,23 +467,31 @@ class GoalsScreen extends ConsumerWidget {
     NumberFormat currencyFormat,
   ) {
     final accentColor = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final isEnabled = state.smartAutoSaveEnabled;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF131722),
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF1E2332), width: 1.2),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1B2E15),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF1B2E15)
+                  : accentColor.withValues(alpha: 0.16),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -474,10 +507,10 @@ class GoalsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Smart Payday Auto-Save',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
@@ -485,8 +518,8 @@ class GoalsScreen extends ConsumerWidget {
                 const SizedBox(height: 3),
                 Text(
                   'Deposits LKR ${currencyFormat.format(state.autoSaveAmount)} on the ${state.autoSaveDayOfMonth}th',
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
+                  style: TextStyle(
+                    color: textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -507,7 +540,7 @@ class GoalsScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 3),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: isEnabled ? accentColor : const Color(0xFF222838),
+                color: isEnabled ? accentColor : subContainer,
               ),
               alignment: isEnabled
                   ? Alignment.centerRight

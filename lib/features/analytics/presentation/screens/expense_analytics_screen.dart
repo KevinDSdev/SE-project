@@ -365,7 +365,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       values: currentCat['values'] as List<double>,
                       barColor: currentCat['barColor'] as Color,
                       alternateBarColor: currentCat['alternateColor'] as Color?,
-                      labelColor: const Color(0xFFE2E8F0),
+                      labelColor: isDark ? const Color(0xFFE2E8F0) : textPrimary,
                       selectedLabelColor: const Color(0xFFFF5C6C),
                       selectedMonthColor: const Color(0xFFB0B7C3),
                       selectedIndex: (currentCat['alternateIndex'] as int?) ?? 1,
@@ -397,7 +397,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     ),
                     const SizedBox(height: 16),
                     _buildExpenseRow(
-                      dotColor: Colors.white,
+                      dotColor: textPrimary,
                       name: 'Housing & Rent',
                       amount: 'LKR 120,000',
                       amountColor: textPrimary,

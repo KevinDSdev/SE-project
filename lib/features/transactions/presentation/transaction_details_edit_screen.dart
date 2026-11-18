@@ -104,32 +104,38 @@ class _TransactionDetailsEditScreenState
   }
 
   void _confirmDelete() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.darkBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Delete Transaction?',
           style: TextStyle(
-            color: Colors.white,
+            color: textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
         ),
-        content: const Text(
+        content: Text(
           'This will remove this transaction and restore your budget balance.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          style: TextStyle(color: textSecondary, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -215,9 +221,15 @@ class _TransactionDetailsEditScreenState
       ),
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.darkCard,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -234,16 +246,16 @@ class _TransactionDetailsEditScreenState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: borderColor,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Select Budget Category',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -266,12 +278,12 @@ class _TransactionDetailsEditScreenState
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF161922),
+                          color: subContainer,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.primary
-                                : AppColors.darkBorder,
+                                : borderColor,
                             width: isSelected ? 1.5 : 1,
                           ),
                         ),
@@ -281,7 +293,9 @@ class _TransactionDetailsEditScreenState
                               width: 36,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: cat.$6,
+                                color: isDark
+                                    ? cat.$6
+                                    : cat.$5.withValues(alpha: 0.14),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(cat.$4, color: cat.$5, size: 20),
@@ -293,8 +307,8 @@ class _TransactionDetailsEditScreenState
                                 children: [
                                   Text(
                                     cat.$2,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: textPrimary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -331,19 +345,25 @@ class _TransactionDetailsEditScreenState
   }
 
   void _showEditMerchantDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final controller = TextEditingController(text: _merchantController.text);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.darkBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Edit Merchant / Payee',
           style: TextStyle(
-            color: Colors.white,
+            color: textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -351,15 +371,15 @@ class _TransactionDetailsEditScreenState
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: textPrimary),
           decoration: InputDecoration(
             hintText: 'Enter merchant name',
-            hintStyle: const TextStyle(color: AppColors.textSecondary),
+            hintStyle: TextStyle(color: textSecondary),
             filled: true,
-            fillColor: const Color(0xFF161922),
+            fillColor: subContainer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.darkBorder),
+              borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -370,9 +390,9 @@ class _TransactionDetailsEditScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -402,19 +422,25 @@ class _TransactionDetailsEditScreenState
   }
 
   void _showEditNoteDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final controller = TextEditingController(text: _noteController.text);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
+        backgroundColor: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.darkBorder),
+          side: BorderSide(color: borderColor),
         ),
-        title: const Text(
+        title: Text(
           'Edit Note & Tags',
           style: TextStyle(
-            color: Colors.white,
+            color: textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -423,15 +449,15 @@ class _TransactionDetailsEditScreenState
           controller: controller,
           autofocus: true,
           maxLines: 3,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: textPrimary),
           decoration: InputDecoration(
             hintText: 'Add note or tags (e.g. #work, #dinner)',
-            hintStyle: const TextStyle(color: AppColors.textSecondary),
+            hintStyle: TextStyle(color: textSecondary),
             filled: true,
-            fillColor: const Color(0xFF161922),
+            fillColor: subContainer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.darkBorder),
+              borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -442,9 +468,9 @@ class _TransactionDetailsEditScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(color: textSecondary),
             ),
           ),
           ElevatedButton(
@@ -472,10 +498,15 @@ class _TransactionDetailsEditScreenState
   }
 
   void _showReceiptInspector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.darkCard,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -491,7 +522,7 @@ class _TransactionDetailsEditScreenState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: borderColor,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -499,16 +530,16 @@ class _TransactionDetailsEditScreenState
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
                       'Scanned Receipt',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'OCR 100% Match',
                       style: TextStyle(
                         color: AppColors.primary,
@@ -633,11 +664,17 @@ class _TransactionDetailsEditScreenState
 
   void _showSplitBillSheet() {
     int numberOfPeople = 2;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.darkCard,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -660,16 +697,16 @@ class _TransactionDetailsEditScreenState
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white24,
+                          color: borderColor,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
                     const SizedBox(height: 18),
-                    const Text(
+                    Text(
                       'Split Bill with Friends',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
@@ -677,8 +714,8 @@ class _TransactionDetailsEditScreenState
                     const SizedBox(height: 6),
                     Text(
                       'Total: LKR ${currencyFormat.format(_amount)}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: textSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -689,7 +726,7 @@ class _TransactionDetailsEditScreenState
                       width: double.infinity,
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: subContainer,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
                           color: AppColors.primary.withValues(alpha: 0.5),
@@ -697,10 +734,10 @@ class _TransactionDetailsEditScreenState
                       ),
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             'Each person pays',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: textSecondary,
                               fontSize: 12.5,
                               fontWeight: FontWeight.w500,
                             ),
@@ -723,10 +760,10 @@ class _TransactionDetailsEditScreenState
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Number of People',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: textPrimary,
                             fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                           ),
@@ -739,12 +776,12 @@ class _TransactionDetailsEditScreenState
                                   : null,
                               icon: const Icon(Icons.remove_circle_outline),
                               color: AppColors.primary,
-                              disabledColor: Colors.white24,
+                              disabledColor: borderColor,
                             ),
                             Text(
                               '$numberOfPeople',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textPrimary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -755,7 +792,7 @@ class _TransactionDetailsEditScreenState
                                   : null,
                               icon: const Icon(Icons.add_circle_outline),
                               color: AppColors.primary,
-                              disabledColor: Colors.white24,
+                              disabledColor: borderColor,
                             ),
                           ],
                         ),
@@ -809,10 +846,16 @@ class _TransactionDetailsEditScreenState
   void _showTaxInvoiceSheet() {
     final netAmount = _amount / 1.18;
     final vatAmount = _amount - netAmount;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.darkCard,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -829,7 +872,7 @@ class _TransactionDetailsEditScreenState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: borderColor,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -837,16 +880,16 @@ class _TransactionDetailsEditScreenState
                 const SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
                       'Official Tax Invoice',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'IRD SL Compliant',
                       style: TextStyle(
                         color: AppColors.primary,
@@ -860,30 +903,36 @@ class _TransactionDetailsEditScreenState
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF161922),
+                    color: subContainer,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.darkBorder),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Column(
                     children: [
-                      _buildTaxRow('Merchant TIN', '102384910-7000'),
+                      _buildTaxRow('Merchant TIN', '102384910-7000', textPrimary: textPrimary, textSecondary: textSecondary),
                       const SizedBox(height: 8),
-                      _buildTaxRow('Invoice No.', 'INV-2026-LK-0912'),
+                      _buildTaxRow('Invoice No.', 'INV-2026-LK-0912', textPrimary: textPrimary, textSecondary: textSecondary),
                       const SizedBox(height: 8),
                       _buildTaxRow(
                         'Net Amount',
                         'LKR ${currencyFormat.format(netAmount)}',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
                       ),
                       const SizedBox(height: 8),
                       _buildTaxRow(
                         'VAT (18%)',
                         'LKR ${currencyFormat.format(vatAmount)}',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
                       ),
-                      const Divider(color: Colors.white12, height: 16),
+                      Divider(color: borderColor, height: 16),
                       _buildTaxRow(
                         'Gross Total',
                         'LKR ${currencyFormat.format(_amount)}',
                         isBold: true,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
                       ),
                     ],
                   ),
@@ -931,6 +980,8 @@ class _TransactionDetailsEditScreenState
     String label,
     String value, {
     bool isBold = false,
+    required Color textPrimary,
+    required Color textSecondary,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -938,7 +989,7 @@ class _TransactionDetailsEditScreenState
         Text(
           label,
           style: TextStyle(
-            color: isBold ? Colors.white : AppColors.textSecondary,
+            color: isBold ? textPrimary : textSecondary,
             fontSize: 13,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
           ),
@@ -946,7 +997,7 @@ class _TransactionDetailsEditScreenState
         Text(
           value,
           style: TextStyle(
-            color: isBold ? AppColors.primary : Colors.white,
+            color: isBold ? AppColors.primary : textPrimary,
             fontSize: 13,
             fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
           ),
@@ -1170,9 +1221,16 @@ class _TransactionDetailsEditScreenState
   Widget build(BuildContext context) {
     final isExpense = widget.transaction.type == TransactionType.expense;
     final categoryInfo = _resolveCategoryDisplay(_selectedCategory);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -1189,14 +1247,14 @@ class _TransactionDetailsEditScreenState
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
+                          color: textPrimary,
                           size: 18,
                         ),
                       ),
@@ -1204,10 +1262,10 @@ class _TransactionDetailsEditScreenState
                   ),
 
                   // Title: "Transaction Details"
-                  const Text(
+                  Text(
                     'Transaction Details',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1220,7 +1278,9 @@ class _TransactionDetailsEditScreenState
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1F1418),
+                        color: isDark
+                            ? const Color(0xFF1F1418)
+                            : const Color(0xFFEF4444).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: const Color(0xFFEF4444).withValues(alpha: 0.3),
@@ -1256,10 +1316,10 @@ class _TransactionDetailsEditScreenState
                         horizontal: 20,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: const Color(0xFF1E2332),
+                          color: borderColor,
                           width: 1.2,
                         ),
                       ),
@@ -1275,8 +1335,8 @@ class _TransactionDetailsEditScreenState
                             '${isExpense ? '-' : '+'}LKR ${currencyFormat.format(_amount)}',
                             style: TextStyle(
                               color: isExpense
-                                  ? Colors.white
-                                  : const Color(0xFF38BDF8),
+                                  ? textPrimary
+                                  : const Color(0xFF0284C7),
                               fontSize: 32,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.6,
@@ -1289,8 +1349,8 @@ class _TransactionDetailsEditScreenState
                             widget.transaction.subtitle.contains('•')
                                 ? widget.transaction.subtitle
                                 : 'Completed • ${widget.transaction.subtitle}',
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
+                            style: TextStyle(
+                              color: textSecondary,
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1304,7 +1364,9 @@ class _TransactionDetailsEditScreenState
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF162B14),
+                              color: isDark
+                                  ? const Color(0xFF162B14)
+                                  : AppColors.primary.withValues(alpha: 0.16),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: AppColors.primary.withValues(
@@ -1326,8 +1388,10 @@ class _TransactionDetailsEditScreenState
                                 const SizedBox(width: 8),
                                 Text(
                                   '+LKR ${currencyFormat.format(_cashback)} (1% Back)',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? AppColors.primary
+                                        : const Color(0xFF4D7C0F),
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -1345,10 +1409,10 @@ class _TransactionDetailsEditScreenState
                       width: double.infinity,
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131722),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: const Color(0xFF1E2332),
+                          color: borderColor,
                           width: 1.2,
                         ),
                       ),
@@ -1356,10 +1420,10 @@ class _TransactionDetailsEditScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 1. MERCHANT / PAYEE
-                          const Text(
+                          Text(
                             'MERCHANT / PAYEE',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.6,
@@ -1375,9 +1439,9 @@ class _TransactionDetailsEditScreenState
                                 vertical: 14,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF181C26),
+                                color: subContainer,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.darkBorder),
+                                border: Border.all(color: borderColor),
                               ),
                               child: Row(
                                 mainAxisAlignment:
@@ -1386,16 +1450,16 @@ class _TransactionDetailsEditScreenState
                                   Expanded(
                                     child: Text(
                                       _merchantController.text,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: textPrimary,
                                         fontSize: 14.5,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
-                                  const Icon(
+                                  Icon(
                                     Icons.edit_outlined,
-                                    color: AppColors.textSecondary,
+                                    color: textSecondary,
                                     size: 18,
                                   ),
                                 ],
@@ -1405,10 +1469,10 @@ class _TransactionDetailsEditScreenState
                           const SizedBox(height: 18),
 
                           // 2. BUDGET CATEGORY
-                          const Text(
+                          Text(
                             'BUDGET CATEGORY',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.6,
@@ -1424,7 +1488,7 @@ class _TransactionDetailsEditScreenState
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF181C26),
+                                color: subContainer,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: AppColors.primary,
@@ -1437,7 +1501,9 @@ class _TransactionDetailsEditScreenState
                                     width: 34,
                                     height: 34,
                                     decoration: BoxDecoration(
-                                      color: categoryInfo.$5,
+                                      color: isDark
+                                          ? categoryInfo.$5
+                                          : categoryInfo.$4.withValues(alpha: 0.14),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
@@ -1450,8 +1516,8 @@ class _TransactionDetailsEditScreenState
                                   Expanded(
                                     child: Text(
                                       categoryInfo.$1,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: textPrimary,
                                         fontSize: 14.5,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -1459,8 +1525,10 @@ class _TransactionDetailsEditScreenState
                                   ),
                                   Text(
                                     categoryInfo.$2,
-                                    style: const TextStyle(
-                                      color: AppColors.primary,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? AppColors.primary
+                                          : const Color(0xFF4D7C0F),
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -1478,10 +1546,10 @@ class _TransactionDetailsEditScreenState
                           const SizedBox(height: 18),
 
                           // 3. NOTE & TAGS
-                          const Text(
+                          Text(
                             'NOTE & TAGS',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.6,
@@ -1497,9 +1565,9 @@ class _TransactionDetailsEditScreenState
                                 vertical: 14,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF181C26),
+                                color: subContainer,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.darkBorder),
+                                border: Border.all(color: borderColor),
                               ),
                               child: Row(
                                 mainAxisAlignment:
@@ -1512,16 +1580,16 @@ class _TransactionDetailsEditScreenState
                                           : 'Add a note or tags...',
                                       style: TextStyle(
                                         color: _noteController.text.isNotEmpty
-                                            ? Colors.white
-                                            : AppColors.textSecondary,
+                                            ? textPrimary
+                                            : textSecondary,
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
-                                  const Icon(
+                                  Icon(
                                     Icons.edit_outlined,
-                                    color: AppColors.textSecondary,
+                                    color: textSecondary,
                                     size: 18,
                                   ),
                                 ],
@@ -1539,8 +1607,8 @@ class _TransactionDetailsEditScreenState
                                         _receiptFileName!.isNotEmpty
                                     ? 'ATTACHED RECEIPT (OCR VERIFIED)'
                                     : 'ATTACHED RECEIPT (OPTIONAL)',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                                style: TextStyle(
+                                  color: textSecondary,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.6,
@@ -1577,10 +1645,10 @@ class _TransactionDetailsEditScreenState
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF181C26),
+                                  color: subContainer,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: AppColors.darkBorder,
+                                    color: borderColor,
                                   ),
                                 ),
                                 child: Row(
@@ -1594,8 +1662,8 @@ class _TransactionDetailsEditScreenState
                                         children: [
                                           Text(
                                             _receiptFileName!,
-                                            style: const TextStyle(
-                                              color: Colors.white,
+                                            style: TextStyle(
+                                              color: textPrimary,
                                               fontSize: 13.5,
                                               fontWeight: FontWeight.w700,
                                             ),
@@ -1603,17 +1671,19 @@ class _TransactionDetailsEditScreenState
                                           const SizedBox(height: 3),
                                           Text(
                                             'Auto-extracted ${_receiptItemCount ?? 3} items • ${_receiptMatchPercent ?? 100}% Match',
-                                            style: const TextStyle(
-                                              color: AppColors.primary,
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? AppColors.primary
+                                                  : const Color(0xFF4D7C0F),
                                               fontSize: 11.5,
                                               fontWeight: FontWeight.w700,
                                             ),
                                           ),
                                           const SizedBox(height: 2),
-                                          const Text(
+                                          Text(
                                             'Tap to inspect full scanned image',
                                             style: TextStyle(
-                                              color: AppColors.textSecondary,
+                                              color: textSecondary,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -1634,10 +1704,10 @@ class _TransactionDetailsEditScreenState
                                   vertical: 14,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF181C26),
+                                  color: subContainer,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: AppColors.darkBorder,
+                                    color: borderColor,
                                     width: 1,
                                   ),
                                 ),
@@ -1647,17 +1717,17 @@ class _TransactionDetailsEditScreenState
                                       width: 42,
                                       height: 42,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF222838),
+                                        color: cardBg,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.receipt_long_outlined,
-                                        color: AppColors.textSecondary,
+                                        color: textSecondary,
                                         size: 22,
                                       ),
                                     ),
                                     const SizedBox(width: 14),
-                                    const Expanded(
+                                    Expanded(
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -1665,16 +1735,16 @@ class _TransactionDetailsEditScreenState
                                           Text(
                                             'No receipt attached',
                                             style: TextStyle(
-                                              color: Colors.white70,
+                                              color: textPrimary,
                                               fontSize: 13.5,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          SizedBox(height: 2),
+                                          const SizedBox(height: 2),
                                           Text(
                                             'Optional • Tap to scan or upload',
                                             style: TextStyle(
-                                              color: AppColors.textSecondary,
+                                              color: textSecondary,
                                               fontSize: 11,
                                             ),
                                           ),
@@ -1687,7 +1757,9 @@ class _TransactionDetailsEditScreenState
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF1B2E15),
+                                        color: isDark
+                                            ? const Color(0xFF1B2E15)
+                                            : AppColors.primary.withValues(alpha: 0.16),
                                         borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
                                           color: AppColors.primary.withValues(
@@ -1695,10 +1767,12 @@ class _TransactionDetailsEditScreenState
                                           ),
                                         ),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         '+ Add',
                                         style: TextStyle(
-                                          color: AppColors.primary,
+                                          color: isDark
+                                              ? AppColors.primary
+                                              : const Color(0xFF4D7C0F),
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -1757,22 +1831,22 @@ class _TransactionDetailsEditScreenState
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF161922),
+                              color: cardBg,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.darkBorder),
+                              border: Border.all(color: borderColor),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 CustomPaint(
                                   size: const Size(22, 14),
-                                  painter: _VennCirclesPainter(),
+                                  painter: _VennCirclesPainter(color: textPrimary),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
+                                Text(
                                   'Split Bill',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: textPrimary,
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -1791,23 +1865,23 @@ class _TransactionDetailsEditScreenState
                           child: Container(
                             height: 48,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF161922),
+                              color: cardBg,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.darkBorder),
+                              border: Border.all(color: borderColor),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
+                              children: [
                                 Icon(
                                   Icons.file_download_outlined,
-                                  color: Colors.white,
+                                  color: textPrimary,
                                   size: 18,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Tax Invoice',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: textPrimary,
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -1831,10 +1905,13 @@ class _TransactionDetailsEditScreenState
 
 /// Custom painter for the two overlapping Venn rings (Split Bill)
 class _VennCirclesPainter extends CustomPainter {
+  final Color color;
+  const _VennCirclesPainter({this.color = Colors.white});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4;
 
@@ -1844,5 +1921,6 @@ class _VennCirclesPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _VennCirclesPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

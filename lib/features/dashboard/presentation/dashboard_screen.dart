@@ -197,12 +197,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         .toInt();
     final spendRatio = (spentBudget / totalTargetBudget).clamp(0.0, 1.0);
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
+
     final isAccentDark = ThemeData.estimateBrightnessForColor(accentColor) == Brightness.dark;
     final heroTextColor = isAccentDark ? Colors.white : const Color(0xFF0C0F14);
     final heroSubtextColor = isAccentDark ? Colors.white70 : const Color(0xFF18230A);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -213,10 +221,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Your Dashboard',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
@@ -230,9 +238,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Center(
                         child: Icon(
@@ -365,9 +373,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.darkCard,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.darkBorder),
+                          border: Border.all(color: borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,10 +394,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'Quick Add Budget',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -419,35 +427,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.darkCard,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.darkBorder),
+                          border: Border.all(color: borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Top Budget Goal',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
+                            Text(
                               'Save for Vacation:',
                               style: TextStyle(
-                                color: AppColors.textSecondary,
+                                color: textSecondary,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
+                            Text(
                               'LKR 310K / 1.2M',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -457,7 +465,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               width: double.infinity,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF262438),
+                                color: isDark
+                                    ? const Color(0xFF262438)
+                                    : subContainer,
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: FractionallySizedBox(
@@ -483,10 +493,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(height: 24),
 
               // Section Header: "Recent Categorized Transactions"
-              const Text(
+              Text(
                 'Recent Categorized Transactions',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.4,
@@ -595,6 +605,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required Color bgColor,
   }) {
     final isSelected = _selectedCategory == category;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final effectiveBg = isDark ? bgColor : iconColor.withValues(alpha: 0.12);
 
     return GestureDetector(
       onTap: () {
@@ -610,7 +623,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         height: 38,
         padding: EdgeInsets.symmetric(horizontal: isSelected ? 14 : 10),
         decoration: BoxDecoration(
-          color: isSelected ? iconColor.withValues(alpha: 0.22) : bgColor,
+          color: isSelected ? iconColor.withValues(alpha: 0.22) : effectiveBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? iconColor : Colors.transparent,
@@ -638,8 +651,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             curve: Curves.easeInOut,
                             child: Text(
                               label,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textPrimary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -658,6 +671,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildTransactionTile(TransactionModel item) {
     final accentColor = ref.watch(accentColorProvider).color;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
     final isExpense = item.type == TransactionType.expense;
 
     return GestureDetector(
@@ -684,8 +700,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 children: [
                   Text(
                     item.merchant,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: textPrimary,
                       fontSize: 15.5,
                       fontWeight: FontWeight.w700,
                     ),
@@ -693,8 +709,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(height: 3),
                   Text(
                     item.subtitle,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: textSecondary,
                       fontSize: 12.5,
                     ),
                   ),
@@ -709,7 +725,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Text(
                   '${isExpense ? '-' : '+'}LKR ${currencyFormat.format(item.amount)}',
                   style: TextStyle(
-                    color: isExpense ? Colors.white : const Color(0xFF38BDF8),
+                    color: isExpense ? textPrimary : const Color(0xFF0284C7),
                     fontSize: 15.5,
                     fontWeight: FontWeight.w800,
                   ),
@@ -727,8 +743,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 else if (!isExpense && item.account != null)
                   Text(
                     item.account!,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: textSecondary,
                       fontSize: 11,
                     ),
                   ),

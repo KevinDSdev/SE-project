@@ -76,9 +76,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -90,9 +96,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FinPulseCircleButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.chevron_left_rounded,
-                      color: Colors.white,
+                      color: textPrimary,
                       size: 26,
                     ),
                     onTap: () => Navigator.of(context).pop(),
@@ -108,7 +114,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   const FinPulseLogo(size: 56),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -117,17 +123,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: textPrimary,
                             letterSpacing: -0.4,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Join FinPulse Sri Lanka for smart budgeting',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -179,16 +185,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF232733),
+                    color: subContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         '+94 🇱🇰',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textPrimary,
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
                         ),
@@ -273,7 +279,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         border: Border.all(
                           color: _agreeTerms
                               ? AppColors.primary
-                              : AppColors.darkBorder,
+                              : borderColor,
                           width: 1.5,
                         ),
                       ),
@@ -286,12 +292,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           : null,
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text.rich(
                         TextSpan(
                           text: 'I agree to the ',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
@@ -299,15 +305,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             TextSpan(
                               text: 'Terms of Service',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            TextSpan(text: ' & '),
+                            const TextSpan(text: ' & '),
                             TextSpan(
                               text: 'Privacy Policy',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -332,21 +338,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Container(height: 1, color: AppColors.darkBorder),
+                    child: Container(height: 1, color: borderColor),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'or sign up with',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                   Expanded(
-                    child: Container(height: 1, color: AppColors.darkBorder),
+                    child: Container(height: 1, color: borderColor),
                   ),
                 ],
               ),
@@ -371,10 +377,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Already have an account? ',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

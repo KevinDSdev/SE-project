@@ -100,6 +100,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   void _showKeypadModal(bool isExpense) {
     final currentVal = isExpense ? _expenseAmount : _incomeAmount;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     String currentBuffer = currentVal > 0
         ? (currentVal.toStringAsFixed(2).endsWith('.00')
               ? currentVal.toInt().toString()
@@ -109,7 +114,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.darkCard,
+      backgroundColor: cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -133,7 +138,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: AppColors.darkBorder,
+                          color: borderColor,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -142,8 +147,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                         isExpense
                             ? 'Enter Expense Amount'
                             : 'Enter Income Amount',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: textSecondary,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -277,8 +282,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     IconData? icon,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subContainer = AppColors.getSubContainer(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+
     return Material(
-      color: const Color(0xFF1C202C),
+      color: isDark ? const Color(0xFF1C202C) : subContainer,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -287,13 +296,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           child: label != null
               ? Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
                 )
-              : Icon(icon, color: Colors.white, size: 20),
+              : Icon(icon, color: textPrimary, size: 20),
         ),
       ),
     );
@@ -451,6 +460,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = AppColors.getBg(isDark);
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     return AnimatedBuilder(
       animation: _morphAnimation,
       builder: (context, child) {
@@ -459,7 +475,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         final activeColor = Color.lerp(expenseColor, incomeColor, t)!;
 
         return Scaffold(
-          backgroundColor: AppColors.darkBg,
+          backgroundColor: bg,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -477,13 +493,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: AppColors.darkCard,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.darkBorder),
+                            border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close_rounded,
-                            color: Colors.white,
+                            color: textPrimary,
                             size: 20,
                           ),
                         ),
@@ -492,8 +508,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                       // Morphing Screen Title
                       Text(
                         t < 0.5 ? 'Add Transaction' : 'Record Inflow',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.3,
@@ -511,15 +527,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: AppColors.darkCard,
+                            color: cardBg,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.darkBorder),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Icon(
                             t < 0.5
                                 ? Icons.crop_free_rounded
                                 : Icons.receipt_long_rounded,
-                            color: AppColors.textSecondary,
+                            color: textSecondary,
                             size: 20,
                           ),
                         ),
@@ -535,9 +551,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                       height: 48,
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF161922),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.darkBorder),
+                        border: Border.all(color: borderColor),
                       ),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
@@ -589,7 +605,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                                 _currentType ==
                                                     TransactionType.expense
                                                 ? const Color(0xFF0C0F14)
-                                                : AppColors.textSecondary,
+                                                : textSecondary,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -612,7 +628,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                                 _currentType ==
                                                     TransactionType.income
                                                 ? const Color(0xFF0C0F14)
-                                                : AppColors.textSecondary,
+                                                : textSecondary,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -642,7 +658,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                         vertical: 22,
                       ),
                       decoration: BoxDecoration(
-                        color: darkCardBg,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: activeColor.withValues(alpha: 0.25),
@@ -674,8 +690,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                 t < 0.5
                                     ? 'Enter Amount Spent'
                                     : 'Enter Income Received',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                                style: TextStyle(
+                                  color: textSecondary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -689,7 +705,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                       text: t < 0.5 ? 'LKR ' : '+LKR ',
                                       style: TextStyle(
                                         color: t < 0.5
-                                            ? Colors.white70
+                                            ? textSecondary
                                             : activeColor,
                                         fontSize: 22,
                                         fontWeight: FontWeight.w800,
@@ -726,8 +742,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                         0.0
                                     ? 'Tap to enter amount with keypad'
                                     : 'Tap to edit amount with keypad',
-                                style: const TextStyle(
-                                  color: Color(0xFF6B7280),
+                                style: TextStyle(
+                                  color: textSecondary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -743,9 +759,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   // Description / Merchant Input
                   Container(
                     decoration: BoxDecoration(
-                      color: darkInputBg,
+                      color: cardBg,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.darkBorder),
+                      border: Border.all(color: borderColor),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -774,8 +790,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                             controller: t < 0.5
                                 ? _expenseNoteController
                                 : _incomeNoteController,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: textPrimary,
                               fontSize: 14.5,
                               fontWeight: FontWeight.w600,
                             ),
@@ -784,8 +800,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                               hintText: t < 0.5
                                   ? 'Enter merchant / description (e.g. Keells, Dialog...)'
                                   : 'Enter income source (e.g. Salary, Freelance...)',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF5A606D),
+                              hintStyle: TextStyle(
+                                color: textSecondary,
                                 fontSize: 14,
                               ),
                               isDense: true,
@@ -803,8 +819,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     children: [
                       Text(
                         t < 0.5 ? 'Select Category' : 'Income Category',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.3,
@@ -1226,16 +1242,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     required Color activeColor,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1B221B) : darkCardBg,
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.14)
+              : cardBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? activeColor : AppColors.darkBorder,
+            color: isSelected ? activeColor : borderColor,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -1248,7 +1272,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: iconBg,
+                    color: isDark ? iconBg : iconColor.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: iconColor, size: 18),
@@ -1256,8 +1280,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 const SizedBox(height: 10),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1266,7 +1290,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: isSelected ? activeColor : AppColors.textSecondary,
+                    color: isSelected ? activeColor : textSecondary,
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
@@ -1299,12 +1323,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   // Expense Secondary Card: "Capture Receipt"
   Widget _buildCaptureReceiptCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     return GestureDetector(
       onTap: _openReceiptScanner,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: darkInputBg,
+          color: cardBg,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: expenseColor.withValues(alpha: 0.6),
@@ -1327,23 +1356,23 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Capture Receipt',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     'Take a photo to auto-extract details',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -1353,13 +1382,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF1B2E15),
+                color: isDark
+                    ? const Color(0xFF1B2E15)
+                    : expenseColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text(
+              child: Text(
                 'Scan',
                 style: TextStyle(
-                  color: expenseColor,
+                  color: isDark ? expenseColor : const Color(0xFF3F6212),
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -1373,12 +1404,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   // Income Secondary Card: "Deposit into Commercial Bank"
   Widget _buildDepositAccountCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: darkInputBg,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.darkBorder),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
@@ -1396,32 +1433,32 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Deposit into Commercial Bank (••4821)',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textPrimary,
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   'Current Balance: LKR 1,845,000',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: textSecondary,
                     fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.chevron_right_rounded,
-            color: AppColors.textSecondary,
+            color: textSecondary,
             size: 20,
           ),
         ],

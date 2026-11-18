@@ -41,6 +41,12 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
   @override
   Widget build(BuildContext context) {
     final goal = widget.goal;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final subContainer = AppColors.getSubContainer(isDark);
     final remaining = (goal.targetAmount - goal.currentAmount).clamp(
       0.0,
       double.infinity,
@@ -53,10 +59,10 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
         top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF121620),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: Color(0xFF1E2332), width: 1.5)),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: borderColor, width: 1.5)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -67,7 +73,7 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF262B36),
+                color: borderColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -79,7 +85,9 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: goal.iconBg,
+                  color: isDark
+                      ? goal.iconBg
+                      : goal.color.withValues(alpha: 0.14),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(goal.icon, color: goal.color, size: 22),
@@ -91,8 +99,8 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                   children: [
                     Text(
                       goal.title,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
@@ -100,8 +108,8 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                     const SizedBox(height: 2),
                     Text(
                       goal.subtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -115,7 +123,9 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: goal.iconBg,
+                    color: isDark
+                        ? goal.iconBg
+                        : goal.color.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -135,26 +145,26 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A1F2C),
+              color: subContainer,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF262C3D)),
+              border: Border.all(color: borderColor),
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Saved so far',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                       ),
                     ),
                     Text(
                       'LKR ${_currencyFormat.format(goal.currentAmount)}',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -165,10 +175,10 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Remaining Target',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: textSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -186,7 +196,7 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                 Container(
                   height: 6,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF252C3D),
+                    color: borderColor,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: FractionallySizedBox(
@@ -205,10 +215,10 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
           ),
           const SizedBox(height: 20),
 
-          const Text(
+          Text(
             'Quick Deposit to Goal',
             style: TextStyle(
-              color: Colors.white,
+              color: textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
@@ -216,11 +226,11 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildQuickDepositButton(10000, '+10K'),
+              _buildQuickDepositButton(10000, '+10K', subContainer, borderColor, textPrimary),
               const SizedBox(width: 8),
-              _buildQuickDepositButton(25000, '+25K'),
+              _buildQuickDepositButton(25000, '+25K', subContainer, borderColor, textPrimary),
               const SizedBox(width: 8),
-              _buildQuickDepositButton(50000, '+50K'),
+              _buildQuickDepositButton(50000, '+50K', subContainer, borderColor, textPrimary),
             ],
           ),
           const SizedBox(height: 14),
@@ -232,25 +242,25 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A1F2C),
+                    color: subContainer,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF262C3D)),
+                    border: Border.all(color: borderColor),
                   ),
                   child: TextField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Custom amount (LKR)',
                       hintStyle: TextStyle(
-                        color: Color(0xFF646B79),
+                        color: textSecondary,
                         fontSize: 13,
                       ),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                       border: InputBorder.none,
                     ),
                   ),
@@ -285,22 +295,28 @@ class _GoalDetailSheetState extends ConsumerState<GoalDetailSheet> {
     );
   }
 
-  Widget _buildQuickDepositButton(double amount, String label) {
+  Widget _buildQuickDepositButton(
+    double amount,
+    String label,
+    Color subContainer,
+    Color borderColor,
+    Color textPrimary,
+  ) {
     return Expanded(
       child: GestureDetector(
         onTap: () => _contribute(amount),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1F2C),
+            color: subContainer,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF262C3D)),
+            border: Border.all(color: borderColor),
           ),
           child: Center(
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: textPrimary,
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
