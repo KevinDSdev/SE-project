@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/navigation/slide_route.dart';
 import '../../../settings/providers/settings_provider.dart';
+import '../../models/analytics_customization_preferences.dart';
 import '../../providers/analytics_provider.dart';
 import '../widgets/analytics_chart_widgets.dart';
 import 'categories_customization_screen.dart';
@@ -23,6 +24,7 @@ class _AnalyticsCustomizationScreenState
   late ChartVisualMode _draftSubTrendStyle;
   late ChartVisualMode _draftSubCategoryStyle;
   late AnalyticsPeriod _draftPeriod;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -33,33 +35,80 @@ class _AnalyticsCustomizationScreenState
     _draftPeriod = ref.read(selectedPeriodProvider);
   }
 
-  void _savePreferences(Color cardBg, Color textPrimary, Color accentColor) {
-    ref.read(mainChartStyleProvider.notifier).setStyle(_draftMainStyle);
-    ref.read(subTrendChartStyleProvider.notifier).setStyle(_draftSubTrendStyle);
-    ref
-        .read(subCategoryChartStyleProvider.notifier)
-        .setStyle(_draftSubCategoryStyle);
-    ref.read(selectedPeriodProvider.notifier).setPeriod(_draftPeriod);
+  Future<void> _savePreferences(
+    Color cardBg,
+    Color textPrimary,
+    Color accentColor,
+  ) async {
+    if (_isSaving) return;
+    _isSaving = true;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: cardBg,
-        content: Text(
-          'Analytics preferences saved successfully.',
-          style: TextStyle(
-            color: textPrimary,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+    final preferences = AnalyticsCustomizationPreferences(
+      mainChartStyle: _draftMainStyle,
+      defaultPeriod: _draftPeriod,
+      subTrendChartStyle: _draftSubTrendStyle,
+      subCategoryChartStyle: _draftSubCategoryStyle,
+    );
+
+    try {
+      final repository = ref.read(analyticsCustomizationRepositoryProvider);
+      await repository.saveAll(preferences);
+
+      ref.read(mainChartStyleProvider.notifier).syncState(_draftMainStyle);
+      ref
+          .read(subTrendChartStyleProvider.notifier)
+          .syncState(_draftSubTrendStyle);
+      ref
+          .read(subCategoryChartStyleProvider.notifier)
+          .syncState(_draftSubCategoryStyle);
+      ref.read(selectedPeriodProvider.notifier).syncState(_draftPeriod);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: cardBg,
+          content: Text(
+            'Analytics preferences saved successfully.',
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: accentColor),
           ),
         ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: accentColor),
+      );
+      Navigator.of(context).pop();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to save analytics preferences: $error\n$stackTrace',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: cardBg,
+          content: Text(
+            'Failed to save analytics preferences. Please try again.',
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFFF43F5E)),
+          ),
         ),
-      ),
-    );
-    Navigator.of(context).pop();
+      );
+    } finally {
+      _isSaving = false;
+    }
   }
 
   @override
@@ -332,8 +381,9 @@ class _AnalyticsCustomizationScreenState
                   decoration: BoxDecoration(
                     color: accentColor.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(18),
-                    border:
-                        Border.all(color: accentColor.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -363,9 +413,8 @@ class _AnalyticsCustomizationScreenState
               // Navigation Card 2: Set Dashboard Layout
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    slideRoute(const DashboardWidgetsScreen()),
-                  );
+                  Navigator.of(context)
+                      .push(slideRoute(const DashboardWidgetsScreen()));
                 },
                 child: Container(
                   width: double.infinity,
@@ -376,8 +425,9 @@ class _AnalyticsCustomizationScreenState
                   decoration: BoxDecoration(
                     color: accentColor.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(18),
-                    border:
-                        Border.all(color: accentColor.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -421,10 +471,7 @@ class _AnalyticsCustomizationScreenState
                   ),
                   child: const Text(
                     'Save Preferences',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

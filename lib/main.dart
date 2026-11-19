@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'core/providers/theme_provider.dart';
 import 'core/services/app_preferences_service.dart';
 import 'core/theme/app_theme.dart';
+import 'features/analytics/data/analytics_customization_repository.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferencesService.init();
-  runApp(
-    const ProviderScope(
-      child: FinPulseApp(),
-    ),
-  );
+  try {
+    await AnalyticsCustomizationRepository.instance.init();
+  } catch (error, stackTrace) {
+    debugPrint(
+      'Analytics customization database initialization failed: $error\n'
+      '$stackTrace',
+    );
+  }
+  runApp(const ProviderScope(child: FinPulseApp()));
 }
 
 class FinPulseApp extends ConsumerWidget {

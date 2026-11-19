@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/services/app_preferences_service.dart';
+import '../data/analytics_customization_repository.dart';
 
 enum AnalyticsPeriod { weekly, monthly, yearly, custom }
 
@@ -53,30 +57,49 @@ class DashboardWidgetItem {
 }
 
 // -------------------------------------------------------------
+// Analytics Customization Repository Provider
+// -------------------------------------------------------------
+final analyticsCustomizationRepositoryProvider =
+    Provider<AnalyticsCustomizationRepository>(
+      (ref) => AnalyticsCustomizationRepository.instance,
+    );
+
+// -------------------------------------------------------------
 // Selected Period Provider
 // -------------------------------------------------------------
 class SelectedPeriodNotifier extends Notifier<AnalyticsPeriod> {
   @override
   AnalyticsPeriod build() {
-    final saved = AppPreferencesService.getDefaultPeriod();
-    if (saved != null) {
-      for (final p in AnalyticsPeriod.values) {
-        if (p.name == saved) return p;
-      }
-    }
-    return AnalyticsPeriod.monthly;
+    return ref.read(analyticsCustomizationRepositoryProvider).defaultPeriod;
   }
 
   void setPeriod(AnalyticsPeriod period) {
     state = period;
-    AppPreferencesService.saveDefaultPeriod(period.name);
+    final repo = ref.read(analyticsCustomizationRepositoryProvider);
+    if (repo.isInitialized) {
+      unawaited(
+        repo.updateDefaultPeriod(period).catchError((
+          Object error,
+          StackTrace _,
+        ) {
+          debugPrint('Failed to persist default analytics period: $error');
+          return repo.currentPreferences;
+        }),
+      );
+    }
+  }
+
+  /// Synchronizes Riverpod state after an atomic repository save without
+  /// triggering a duplicate database write.
+  void syncState(AnalyticsPeriod period) {
+    state = period;
   }
 }
 
 final selectedPeriodProvider =
     NotifierProvider<SelectedPeriodNotifier, AnalyticsPeriod>(
-  SelectedPeriodNotifier.new,
-);
+      SelectedPeriodNotifier.new,
+    );
 
 // -------------------------------------------------------------
 // Chart Style Providers
@@ -84,71 +107,108 @@ final selectedPeriodProvider =
 class MainChartStyleNotifier extends Notifier<ChartVisualMode> {
   @override
   ChartVisualMode build() {
-    final saved = AppPreferencesService.getMainChartStyle();
-    if (saved != null) {
-      for (final m in ChartVisualMode.values) {
-        if (m.name == saved) return m;
-      }
-    }
-    return ChartVisualMode.bar;
+    return ref.read(analyticsCustomizationRepositoryProvider).mainChartStyle;
   }
 
   void setStyle(ChartVisualMode mode) {
     state = mode;
-    AppPreferencesService.saveMainChartStyle(mode.name);
+    final repo = ref.read(analyticsCustomizationRepositoryProvider);
+    if (repo.isInitialized) {
+      unawaited(
+        repo.updateMainChartStyle(mode).catchError((
+          Object error,
+          StackTrace _,
+        ) {
+          debugPrint('Failed to persist main chart style: $error');
+          return repo.currentPreferences;
+        }),
+      );
+    }
+  }
+
+  /// Synchronizes Riverpod state after an atomic repository save without
+  /// triggering a duplicate database write.
+  void syncState(ChartVisualMode mode) {
+    state = mode;
   }
 }
 
 final mainChartStyleProvider =
     NotifierProvider<MainChartStyleNotifier, ChartVisualMode>(
-  MainChartStyleNotifier.new,
-);
+      MainChartStyleNotifier.new,
+    );
 
 class SubTrendChartStyleNotifier extends Notifier<ChartVisualMode> {
   @override
   ChartVisualMode build() {
-    final saved = AppPreferencesService.getSubTrendStyle();
-    if (saved != null) {
-      for (final m in ChartVisualMode.values) {
-        if (m.name == saved) return m;
-      }
-    }
-    return ChartVisualMode.line;
+    return ref
+        .read(analyticsCustomizationRepositoryProvider)
+        .subTrendChartStyle;
   }
 
   void setStyle(ChartVisualMode mode) {
     state = mode;
-    AppPreferencesService.saveSubTrendStyle(mode.name);
+    final repo = ref.read(analyticsCustomizationRepositoryProvider);
+    if (repo.isInitialized) {
+      unawaited(
+        repo.updateSubTrendChartStyle(mode).catchError((
+          Object error,
+          StackTrace _,
+        ) {
+          debugPrint('Failed to persist sub-trend chart style: $error');
+          return repo.currentPreferences;
+        }),
+      );
+    }
+  }
+
+  /// Synchronizes Riverpod state after an atomic repository save without
+  /// triggering a duplicate database write.
+  void syncState(ChartVisualMode mode) {
+    state = mode;
   }
 }
 
 final subTrendChartStyleProvider =
     NotifierProvider<SubTrendChartStyleNotifier, ChartVisualMode>(
-  SubTrendChartStyleNotifier.new,
-);
+      SubTrendChartStyleNotifier.new,
+    );
 
 class SubCategoryChartStyleNotifier extends Notifier<ChartVisualMode> {
   @override
   ChartVisualMode build() {
-    final saved = AppPreferencesService.getSubCategoryStyle();
-    if (saved != null) {
-      for (final m in ChartVisualMode.values) {
-        if (m.name == saved) return m;
-      }
-    }
-    return ChartVisualMode.bar;
+    return ref
+        .read(analyticsCustomizationRepositoryProvider)
+        .subCategoryChartStyle;
   }
 
   void setStyle(ChartVisualMode mode) {
     state = mode;
-    AppPreferencesService.saveSubCategoryStyle(mode.name);
+    final repo = ref.read(analyticsCustomizationRepositoryProvider);
+    if (repo.isInitialized) {
+      unawaited(
+        repo.updateSubCategoryChartStyle(mode).catchError((
+          Object error,
+          StackTrace _,
+        ) {
+          debugPrint('Failed to persist sub-category chart style: $error');
+          return repo.currentPreferences;
+        }),
+      );
+    }
+  }
+
+  /// Synchronizes Riverpod state after an atomic repository save without
+  /// triggering a duplicate database write.
+  void syncState(ChartVisualMode mode) {
+    state = mode;
   }
 }
 
 final subCategoryChartStyleProvider =
     NotifierProvider<SubCategoryChartStyleNotifier, ChartVisualMode>(
-  SubCategoryChartStyleNotifier.new,
-);
+      SubCategoryChartStyleNotifier.new,
+    );
 
 // -------------------------------------------------------------
 // Income Sources & Expense Categories Provider
@@ -156,22 +216,22 @@ final subCategoryChartStyleProvider =
 class IncomeMethodsNotifier extends Notifier<List<CustomCategoryItem>> {
   @override
   List<CustomCategoryItem> build() => const [
-        CustomCategoryItem(
-          id: 'inc_1',
-          name: 'Primary Salary',
-          color: Color(0xFF98E836),
-        ),
-        CustomCategoryItem(
-          id: 'inc_2',
-          name: 'Kandy Annex Rent Inflow',
-          color: Color(0xFF38BDF8),
-        ),
-        CustomCategoryItem(
-          id: 'inc_3',
-          name: 'Freelance',
-          color: Color(0xFF9353D3),
-        ),
-      ];
+    CustomCategoryItem(
+      id: 'inc_1',
+      name: 'Primary Salary',
+      color: Color(0xFF98E836),
+    ),
+    CustomCategoryItem(
+      id: 'inc_2',
+      name: 'Kandy Annex Rent Inflow',
+      color: Color(0xFF38BDF8),
+    ),
+    CustomCategoryItem(
+      id: 'inc_3',
+      name: 'Freelance',
+      color: Color(0xFF9353D3),
+    ),
+  ];
 
   void add(String name, Color color) {
     state = [
@@ -186,8 +246,11 @@ class IncomeMethodsNotifier extends Notifier<List<CustomCategoryItem>> {
 
   void update(String id, String newName, Color newColor) {
     state = state
-        .map((item) =>
-            item.id == id ? item.copyWith(name: newName, color: newColor) : item)
+        .map(
+          (item) => item.id == id
+              ? item.copyWith(name: newName, color: newColor)
+              : item,
+        )
         .toList();
   }
 
@@ -198,31 +261,31 @@ class IncomeMethodsNotifier extends Notifier<List<CustomCategoryItem>> {
 
 final incomeMethodsProvider =
     NotifierProvider<IncomeMethodsNotifier, List<CustomCategoryItem>>(
-  IncomeMethodsNotifier.new,
-);
+      IncomeMethodsNotifier.new,
+    );
 
 class ExpenseCategoriesNotifier extends Notifier<List<CustomCategoryItem>> {
   @override
   List<CustomCategoryItem> build() => const [
-        CustomCategoryItem(
-          id: 'exp_1',
-          name: 'Food & Groceries',
-          color: Color(0xFFF43F5E),
-          isExpense: true,
-        ),
-        CustomCategoryItem(
-          id: 'exp_2',
-          name: 'Transport',
-          color: Color(0xFF38BDF8),
-          isExpense: true,
-        ),
-        CustomCategoryItem(
-          id: 'exp_3',
-          name: 'Utilities',
-          color: Color(0xFFF59E0B),
-          isExpense: true,
-        ),
-      ];
+    CustomCategoryItem(
+      id: 'exp_1',
+      name: 'Food & Groceries',
+      color: Color(0xFFF43F5E),
+      isExpense: true,
+    ),
+    CustomCategoryItem(
+      id: 'exp_2',
+      name: 'Transport',
+      color: Color(0xFF38BDF8),
+      isExpense: true,
+    ),
+    CustomCategoryItem(
+      id: 'exp_3',
+      name: 'Utilities',
+      color: Color(0xFFF59E0B),
+      isExpense: true,
+    ),
+  ];
 
   void add(String name, Color color) {
     state = [
@@ -238,8 +301,11 @@ class ExpenseCategoriesNotifier extends Notifier<List<CustomCategoryItem>> {
 
   void update(String id, String newName, Color newColor) {
     state = state
-        .map((item) =>
-            item.id == id ? item.copyWith(name: newName, color: newColor) : item)
+        .map(
+          (item) => item.id == id
+              ? item.copyWith(name: newName, color: newColor)
+              : item,
+        )
         .toList();
   }
 
@@ -250,8 +316,8 @@ class ExpenseCategoriesNotifier extends Notifier<List<CustomCategoryItem>> {
 
 final expenseCategoriesProvider =
     NotifierProvider<ExpenseCategoriesNotifier, List<CustomCategoryItem>>(
-  ExpenseCategoriesNotifier.new,
-);
+      ExpenseCategoriesNotifier.new,
+    );
 
 class ApplySubDashboardsLayoutNotifier extends Notifier<bool> {
   @override
@@ -263,8 +329,8 @@ class ApplySubDashboardsLayoutNotifier extends Notifier<bool> {
 
 final applySubDashboardsLayoutProvider =
     NotifierProvider<ApplySubDashboardsLayoutNotifier, bool>(
-  ApplySubDashboardsLayoutNotifier.new,
-);
+      ApplySubDashboardsLayoutNotifier.new,
+    );
 
 // -------------------------------------------------------------
 // Dashboard Widgets Layout Provider
@@ -431,9 +497,9 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
   }
 
   DashboardWidgetsState get defaultState => const DashboardWidgetsState(
-        activeWidgets: _defaultActive,
-        availableWidgets: _defaultAvailable,
-      );
+    activeWidgets: _defaultActive,
+    availableWidgets: _defaultAvailable,
+  );
 
   void reset() {
     state = const DashboardWidgetsState(
@@ -447,8 +513,8 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
 
 final dashboardWidgetsProvider =
     NotifierProvider<DashboardWidgetsNotifier, DashboardWidgetsState>(
-  DashboardWidgetsNotifier.new,
-);
+      DashboardWidgetsNotifier.new,
+    );
 
 // -------------------------------------------------------------
 // Report Export Provider
@@ -530,8 +596,8 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
 
 final exportPreferencesProvider =
     NotifierProvider<ExportPreferencesNotifier, ExportPreferencesState>(
-  ExportPreferencesNotifier.new,
-);
+      ExportPreferencesNotifier.new,
+    );
 
 // -------------------------------------------------------------
 // Flagged Anomalies Provider
@@ -568,26 +634,27 @@ class FlaggedTransactionItem {
   }
 }
 
-class FlaggedTransactionsNotifier extends Notifier<List<FlaggedTransactionItem>> {
+class FlaggedTransactionsNotifier
+    extends Notifier<List<FlaggedTransactionItem>> {
   @override
   List<FlaggedTransactionItem> build() => const [
-        FlaggedTransactionItem(
-          id: 'anom_1',
-          title: 'CEB Electricity Bill',
-          category: 'Utilities (CEB)',
-          amount: 13000,
-          baseline: 8000,
-          date: '18 Oct 2026',
-        ),
-        FlaggedTransactionItem(
-          id: 'anom_2',
-          title: 'Pizza Hut',
-          category: 'Dining & Takeout',
-          amount: 17000,
-          baseline: 5000,
-          date: '22 Oct 2026',
-        ),
-      ];
+    FlaggedTransactionItem(
+      id: 'anom_1',
+      title: 'CEB Electricity Bill',
+      category: 'Utilities (CEB)',
+      amount: 13000,
+      baseline: 8000,
+      date: '18 Oct 2026',
+    ),
+    FlaggedTransactionItem(
+      id: 'anom_2',
+      title: 'Pizza Hut',
+      category: 'Dining & Takeout',
+      amount: 17000,
+      baseline: 5000,
+      date: '22 Oct 2026',
+    ),
+  ];
 
   void dismissAll() {
     state = state.map((item) => item.copyWith(isDismissed: true)).toList();
@@ -606,5 +673,5 @@ class FlaggedTransactionsNotifier extends Notifier<List<FlaggedTransactionItem>>
 
 final flaggedTransactionsProvider =
     NotifierProvider<FlaggedTransactionsNotifier, List<FlaggedTransactionItem>>(
-  FlaggedTransactionsNotifier.new,
-);
+      FlaggedTransactionsNotifier.new,
+    );
