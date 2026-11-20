@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/services/app_preferences_service.dart';
+import '../../../core/services/notification_service.dart';
+
+final notificationServiceProvider = Provider<NotificationService>(
+  (ref) => NotificationService.instance,
+);
 
 class AccentColorOption {
   final String name;
@@ -30,16 +36,16 @@ class AccentColorNotifier extends Notifier<AccentColorOption> {
     return kAccentColors[0];
   }
 
-  void setColor(AccentColorOption option) {
+  Future<void> setColor(AccentColorOption option) async {
     state = option;
-    AppPreferencesService.saveAccentColor(option.color.toARGB32());
+    await AppPreferencesService.saveAccentColor(option.color.toARGB32());
   }
 }
 
 final accentColorProvider =
     NotifierProvider<AccentColorNotifier, AccentColorOption>(
-  AccentColorNotifier.new,
-);
+      AccentColorNotifier.new,
+    );
 
 class NotificationsEnabledNotifier extends Notifier<bool> {
   @override
@@ -52,20 +58,35 @@ class NotificationsEnabledNotifier extends Notifier<bool> {
 
 final notificationsEnabledProvider =
     NotifierProvider<NotificationsEnabledNotifier, bool>(
-  NotificationsEnabledNotifier.new,
-);
+      NotificationsEnabledNotifier.new,
+    );
 
 class DailyReminderTimeNotifier extends Notifier<TimeOfDay> {
-  @override
-  TimeOfDay build() => const TimeOfDay(hour: 20, minute: 0);
+  static const TimeOfDay defaultTime = TimeOfDay(hour: 20, minute: 0);
 
-  void setTime(TimeOfDay time) => state = time;
+  @override
+  TimeOfDay build() {
+    final saved = AppPreferencesService.getDailyReminderTime();
+    if (saved != null) {
+      return TimeOfDay(hour: saved.hour, minute: saved.minute);
+    }
+    return defaultTime;
+  }
+
+  Future<DailyReminderScheduleResult> setTime(TimeOfDay time) async {
+    state = time;
+    await AppPreferencesService.saveDailyReminderTime(
+      hour: time.hour,
+      minute: time.minute,
+    );
+    return ref.read(notificationServiceProvider).scheduleDailyLogReminder(time);
+  }
 }
 
 final dailyReminderTimeProvider =
     NotifierProvider<DailyReminderTimeNotifier, TimeOfDay>(
-  DailyReminderTimeNotifier.new,
-);
+      DailyReminderTimeNotifier.new,
+    );
 
 class GpsSuggestionsNotifier extends Notifier<bool> {
   @override
@@ -76,8 +97,7 @@ class GpsSuggestionsNotifier extends Notifier<bool> {
   void setEnabled(bool val) => state = val;
 }
 
-final gpsSuggestionsProvider =
-    NotifierProvider<GpsSuggestionsNotifier, bool>(
+final gpsSuggestionsProvider = NotifierProvider<GpsSuggestionsNotifier, bool>(
   GpsSuggestionsNotifier.new,
 );
 
@@ -90,8 +110,7 @@ class CloudSyncNotifier extends Notifier<bool> {
   void setEnabled(bool val) => state = val;
 }
 
-final cloudSyncProvider =
-    NotifierProvider<CloudSyncNotifier, bool>(
+final cloudSyncProvider = NotifierProvider<CloudSyncNotifier, bool>(
   CloudSyncNotifier.new,
 );
 
@@ -104,8 +123,7 @@ class BiometricsNotifier extends Notifier<bool> {
   void setEnabled(bool val) => state = val;
 }
 
-final biometricsProvider =
-    NotifierProvider<BiometricsNotifier, bool>(
+final biometricsProvider = NotifierProvider<BiometricsNotifier, bool>(
   BiometricsNotifier.new,
 );
 
@@ -126,13 +144,13 @@ class CustomReminderItem {
 class CustomRemindersNotifier extends Notifier<List<CustomReminderItem>> {
   @override
   List<CustomReminderItem> build() => const [
-        CustomReminderItem(
-          id: 'rem_1',
-          title: 'Daily Budget Review',
-          time: TimeOfDay(hour: 20, minute: 0),
-          recurrence: 'Everyday',
-        ),
-      ];
+    CustomReminderItem(
+      id: 'rem_1',
+      title: 'Daily Budget Review',
+      time: TimeOfDay(hour: 20, minute: 0),
+      recurrence: 'Everyday',
+    ),
+  ];
 
   void addReminder(String title, TimeOfDay time, String recurrence) {
     state = [
@@ -149,5 +167,5 @@ class CustomRemindersNotifier extends Notifier<List<CustomReminderItem>> {
 
 final customRemindersProvider =
     NotifierProvider<CustomRemindersNotifier, List<CustomReminderItem>>(
-  CustomRemindersNotifier.new,
-);
+      CustomRemindersNotifier.new,
+    );

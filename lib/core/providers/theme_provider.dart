@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../services/app_preferences_service.dart';
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
@@ -9,23 +10,24 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
     return isDark ? ThemeMode.dark : ThemeMode.light;
   }
 
-  void setThemeMode(ThemeMode mode) {
+  Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    AppPreferencesService.saveDarkMode(mode == ThemeMode.dark);
+    await AppPreferencesService.saveDarkMode(mode == ThemeMode.dark);
   }
 
-  void toggleTheme() {
+  Future<void> toggleTheme() async {
     if (state == ThemeMode.dark) {
-      setThemeMode(ThemeMode.light);
+      await setThemeMode(ThemeMode.light);
     } else {
-      setThemeMode(ThemeMode.dark);
+      await setThemeMode(ThemeMode.dark);
     }
   }
 
-  void setDarkMode(bool isDark) {
-    setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
+  Future<void> setDarkMode(bool isDark) async {
+    await setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
   }
 }
 
-final themeModeProvider =
-    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
+  ThemeModeNotifier.new,
+);

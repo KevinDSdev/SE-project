@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/navigation/slide_route.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/services/notification_service.dart';
 import '../../analytics/presentation/screens/analytics_customization_screen.dart';
 import '../../analytics/presentation/screens/dashboard_widgets_screen.dart';
 import '../providers/settings_provider.dart';
@@ -80,10 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 10),
               Text(
                 'Application preferences, security, sync & notifications',
-                style: TextStyle(
-                  color: textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: textSecondary, fontSize: 12),
               ),
               const SizedBox(height: 14),
 
@@ -147,16 +145,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 2),
                         Text(
                           selectedAccent.name,
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 11,
-                          ),
+                          style: TextStyle(color: textSecondary, fontSize: 11),
                         ),
                       ],
                     ),
                     Row(
                       children: kAccentColors.map((opt) {
-                        final isSel = opt.color.toARGB32() == accentColor.toARGB32();
+                        final isSel =
+                            opt.color.toARGB32() == accentColor.toARGB32();
                         return GestureDetector(
                           onTap: () {
                             ref
@@ -171,10 +167,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               color: opt.color,
                               shape: BoxShape.circle,
                               border: isSel
-                                  ? Border.all(
-                                      color: Colors.white,
-                                      width: 2.5,
-                                    )
+                                  ? Border.all(color: Colors.white, width: 2.5)
                                   : null,
                             ),
                           ),
@@ -191,9 +184,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 cardBg: cardBg,
                 borderColor: borderColor,
                 onTap: () {
-                  Navigator.of(context).push(
-                    slideRoute(const AnalyticsCustomizationScreen()),
-                  );
+                  Navigator.of(context)
+                      .push(slideRoute(const AnalyticsCustomizationScreen()));
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -221,9 +213,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 cardBg: cardBg,
                 borderColor: borderColor,
                 onTap: () {
-                  Navigator.of(context).push(
-                    slideRoute(const DashboardWidgetsScreen()),
-                  );
+                  Navigator.of(context)
+                      .push(slideRoute(const DashboardWidgetsScreen()));
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -330,9 +321,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           initialTime: reminderTime,
                         );
                         if (picked != null) {
-                          ref
+                          final result = await ref
                               .read(dailyReminderTimeProvider.notifier)
                               .setTime(picked);
+                          if (!context.mounted) return;
+                          _showDailyReminderFeedback(
+                            context: context,
+                            picked: picked,
+                            result: result,
+                            cardBg: cardBg,
+                            textPrimary: textPrimary,
+                            accentColor: accentColor,
+                          );
                         }
                       },
                       child: Container(
@@ -553,11 +553,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         );
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF43F5E).withValues(alpha: 0.14),
+                          color: const Color(0xFFF43F5E)
+                              .withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFF43F5E), width: 1.2),
+                          border: Border.all(
+                            color: const Color(0xFFF43F5E),
+                            width: 1.2,
+                          ),
                         ),
                         child: const Text(
                           'Delete',
@@ -607,7 +614,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         );
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: accentColor.withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(8),
@@ -683,9 +693,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 cardBg: cardBg,
                 borderColor: borderColor,
                 onTap: () {
-                  Navigator.of(context).push(
-                    slideRoute(const AppInfoScreen()),
-                  );
+                  Navigator.of(context).push(slideRoute(const AppInfoScreen()));
                 },
                 child: Row(
                   children: [
@@ -741,6 +749,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  void _showDailyReminderFeedback({
+    required BuildContext context,
+    required TimeOfDay picked,
+    required DailyReminderScheduleResult result,
+    required Color cardBg,
+    required Color textPrimary,
+    required Color accentColor,
+  }) {
+    final formattedTime = picked.format(context);
+    final String message;
+    final Color borderColor;
+
+    switch (result.status) {
+      case NotificationScheduleStatus.scheduledExact:
+      case NotificationScheduleStatus.scheduledInexact:
+        message = 'Daily log reminder set for $formattedTime.';
+        borderColor = accentColor;
+      case NotificationScheduleStatus.permissionDenied:
+        message =
+            'Time saved ($formattedTime), but notification permission was denied. Enable notifications in Android Settings to receive daily reminders.';
+        borderColor = const Color(0xFFF43F5E);
+      case NotificationScheduleStatus.failed:
+        message =
+            'Time saved ($formattedTime), but scheduling the daily reminder notification failed.';
+        borderColor = const Color(0xFFF43F5E);
+      case NotificationScheduleStatus.unsupportedPlatform:
+        message =
+            'Daily log reminder time saved ($formattedTime). Phone notifications are scheduled on Android.';
+        borderColor = accentColor;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor: cardBg,
+          content: Text(
+            message,
+            style: TextStyle(color: textPrimary, fontSize: 13),
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: borderColor),
+          ),
+        ),
+      );
   }
 
   Widget _buildSectionHeader(String title, Color color) {

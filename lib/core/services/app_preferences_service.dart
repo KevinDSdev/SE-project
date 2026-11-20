@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferencesService {
@@ -8,11 +9,18 @@ class AppPreferencesService {
   static const String _keyDefaultPeriod = 'ecorp_default_period';
   static const String _keySubTrendStyle = 'ecorp_sub_trend_style';
   static const String _keySubCategoryStyle = 'ecorp_sub_category_style';
+  static const String _keyDailyReminderHour = 'ecorp_daily_reminder_hour';
+  static const String _keyDailyReminderMinute = 'ecorp_daily_reminder_minute';
 
   static SharedPreferences? _prefs;
 
   static Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
+  }
+
+  @visibleForTesting
+  static void resetForTesting() {
+    _prefs = null;
   }
 
   // Accent Color
@@ -83,6 +91,36 @@ class AppPreferencesService {
 
   static String? getSubCategoryStyle() {
     return _prefs?.getString(_keySubCategoryStyle);
+  }
+
+  // Daily Log Reminder Time (hour: 0..23, minute: 0..59)
+  static Future<void> saveDailyReminderTime({
+    required int hour,
+    required int minute,
+  }) async {
+    await init();
+    await _prefs?.setInt(_keyDailyReminderHour, hour);
+    await _prefs?.setInt(_keyDailyReminderMinute, minute);
+  }
+
+  static int? getDailyReminderHour() {
+    return _prefs?.getInt(_keyDailyReminderHour);
+  }
+
+  static int? getDailyReminderMinute() {
+    return _prefs?.getInt(_keyDailyReminderMinute);
+  }
+
+  static ({int hour, int minute})? getDailyReminderTime() {
+    final hour = getDailyReminderHour();
+    final minute = getDailyReminderMinute();
+    if (hour == null || minute == null) {
+      return null;
+    }
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      return null;
+    }
+    return (hour: hour, minute: minute);
   }
 
   // Clear for tests/reset

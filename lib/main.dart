@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/theme_provider.dart';
 import 'core/services/app_preferences_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/analytics/data/analytics_customization_repository.dart';
 import 'features/analytics/data/dashboard_layout_repository.dart';
@@ -28,7 +29,30 @@ void main() async {
       '$stackTrace',
     );
   }
+  await restoreDailyLogReminderOnStartup();
   runApp(const ProviderScope(child: FinPulseApp()));
+}
+
+/// Initializes [NotificationService] and restores the persisted daily log
+/// reminder schedule during application startup.
+Future<DailyReminderScheduleResult?> restoreDailyLogReminderOnStartup({
+  NotificationService? notificationService,
+}) async {
+  final service = notificationService ?? NotificationService.instance;
+  try {
+    await service.init();
+    final savedReminder = AppPreferencesService.getDailyReminderTime();
+    final reminderTime = savedReminder != null
+        ? TimeOfDay(hour: savedReminder.hour, minute: savedReminder.minute)
+        : DailyReminderTimeNotifier.defaultTime;
+    return await service.restoreDailyLogReminder(reminderTime);
+  } catch (error, stackTrace) {
+    debugPrint(
+      'Notification service initialization failed: $error\n'
+      '$stackTrace',
+    );
+    return null;
+  }
 }
 
 class FinPulseApp extends ConsumerWidget {
