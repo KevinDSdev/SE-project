@@ -3,15 +3,17 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/analytics_customization_preferences.dart';
 import '../models/dashboard_layout_preferences.dart';
+import '../models/report_export_preferences.dart';
 import 'analytics_customization_storage.dart';
 
-/// SQLite database helper for Analytics Customization and Dashboard Layout
-/// preferences.
+/// SQLite database helper for Analytics Customization, Dashboard Layout, and
+/// Report Export preferences.
 class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
   static const String databaseName = 'finpulse_analytics_customization.db';
-  static const int databaseVersion = 2;
+  static const int databaseVersion = 3;
   static const String tableName = 'analytics_customization_preferences';
   static const String dashboardLayoutTableName = 'dashboard_layout_preferences';
+  static const String reportExportTableName = 'report_export_preferences';
   static const String defaultProfileKey =
       AnalyticsCustomizationPreferences.defaultProfileKey;
 
@@ -38,6 +40,20 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       profile_key TEXT NOT NULL UNIQUE DEFAULT '$defaultProfileKey',
       active_card_ids TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  ''';
+
+  static const String createReportExportTableSql =
+      '''
+    CREATE TABLE IF NOT EXISTS $reportExportTableName (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      profile_key TEXT NOT NULL UNIQUE DEFAULT '$defaultProfileKey',
+      report_format TEXT NOT NULL DEFAULT 'PDF Report'
+        CHECK (report_format IN ('PDF Report', 'Excel (.XLSX)', 'Raw Data')),
+      period_label TEXT NOT NULL DEFAULT 'October 2026',
+      account_scope TEXT NOT NULL DEFAULT 'BOC',
+      selected_requirements TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   ''';
@@ -82,10 +98,14 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
         onCreate: (db, version) async {
           await db.execute(createTableSql);
           await db.execute(createDashboardLayoutTableSql);
+          await db.execute(createReportExportTableSql);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
             await db.execute(createDashboardLayoutTableSql);
+          }
+          if (oldVersion < 3) {
+            await db.execute(createReportExportTableSql);
           }
         },
       ),
@@ -244,6 +264,69 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
           ..remove('profile_key');
         await txn.update(
           dashboardLayoutTableName,
+          updateValues,
+          where: 'profile_key = ?',
+          whereArgs: [preferences.profileKey],
+        );
+      }
+
+      if (beforeCommitHook != null) {
+        await beforeCommitHook(txn);
+      }
+    });
+  }
+
+  /// Reads the stored Report Export configuration row for [profileKey], or
+  /// returns `null` if no row has been saved yet.
+  @override
+  Future<ReportExportPreferences?> getReportExportPreferences({
+    String profileKey = defaultProfileKey,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      reportExportTableName,
+      where: 'profile_key = ?',
+      whereArgs: [profileKey],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+    return ReportExportPreferences.fromMap(rows.first);
+  }
+
+  /// Atomically inserts or updates the Report Export preferences row inside a
+  /// single SQLite transaction.
+  @override
+  Future<void> saveReportExportPreferencesAtomically(
+    ReportExportPreferences preferences, {
+    DateTime? timestamp,
+    Future<void> Function(dynamic txn)? beforeCommitHook,
+  }) async {
+    final db = await database;
+    final values = preferences.toMap(timestamp: timestamp);
+
+    await db.transaction((txn) async {
+      final existing = await txn.query(
+        reportExportTableName,
+        columns: ['id'],
+        where: 'profile_key = ?',
+        whereArgs: [preferences.profileKey],
+        limit: 1,
+      );
+
+      if (existing.isEmpty) {
+        await txn.insert(
+          reportExportTableName,
+          values,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+      } else {
+        final updateValues = Map<String, Object?>.from(values)
+          ..remove('profile_key');
+        await txn.update(
+          reportExportTableName,
           updateValues,
           where: 'profile_key = ?',
           whereArgs: [preferences.profileKey],

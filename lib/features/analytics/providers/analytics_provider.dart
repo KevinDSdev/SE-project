@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/analytics_customization_repository.dart';
 import '../data/dashboard_layout_repository.dart';
+import '../data/report_export_repository.dart';
 import '../models/dashboard_layout_preferences.dart';
+import '../models/report_export_preferences.dart';
 
 enum AnalyticsPeriod { weekly, monthly, yearly, custom }
 
@@ -538,7 +540,21 @@ final dashboardWidgetsProvider =
 // -------------------------------------------------------------
 // Report Export Provider
 // -------------------------------------------------------------
+final reportExportRepositoryProvider = Provider<ReportExportRepository>(
+  (ref) => ReportExportRepository.instance,
+);
+
 class ExportPreferencesState {
+  static const String defaultFormat = 'PDF Report';
+  static const String defaultPeriod = 'October 2026';
+  static const String defaultAccount = 'BOC';
+  static const List<String> defaultSelectedRequirements = <String>[
+    'trans_history',
+    'inc_analysis',
+    'exp_analysis',
+    'goal_savings',
+  ];
+
   final String format; // 'PDF Report' | 'Excel (.XLSX)' | 'Raw Data'
   final String period; // 'October 2026'
   final String account; // 'BOC'
@@ -567,49 +583,94 @@ class ExportPreferencesState {
 }
 
 class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
-  @override
-  ExportPreferencesState build() {
-    return const ExportPreferencesState(
-      format: 'PDF Report',
-      period: 'October 2026',
-      account: 'BOC',
-      selectedRequirements: {
-        'trans_history',
-        'inc_analysis',
-        'exp_analysis',
-        'goal_savings',
-      },
+  static ExportPreferencesState _stateFromPreferences(
+    ReportExportPreferences prefs,
+  ) {
+    return ExportPreferencesState(
+      format: prefs.reportFormat,
+      period: prefs.periodLabel,
+      account: prefs.accountScope,
+      selectedRequirements: prefs.selectedRequirements.toSet(),
     );
   }
 
-  void setFormat(String format) {
-    state = state.copyWith(format: format);
+  @override
+  ExportPreferencesState build() {
+    final persisted = ref
+        .read(reportExportRepositoryProvider)
+        .currentPreferences;
+    return _stateFromPreferences(persisted);
   }
 
-  void setPeriod(String period) {
-    state = state.copyWith(period: period);
+  Future<void> _persist(ReportExportPreferences nextPreferences) async {
+    final saved = await ref
+        .read(reportExportRepositoryProvider)
+        .savePreferences(nextPreferences);
+    state = _stateFromPreferences(saved);
   }
 
-  void setAccount(String account) {
-    state = state.copyWith(account: account);
+  Future<void> setFormat(String format) {
+    return _persist(
+      ReportExportPreferences(
+        reportFormat: format,
+        periodLabel: state.period,
+        accountScope: state.account,
+        selectedRequirements: state.selectedRequirements,
+      ),
+    );
   }
 
-  void toggleRequirement(String id) {
+  Future<void> setPeriod(String period) {
+    return _persist(
+      ReportExportPreferences(
+        reportFormat: state.format,
+        periodLabel: period,
+        accountScope: state.account,
+        selectedRequirements: state.selectedRequirements,
+      ),
+    );
+  }
+
+  Future<void> setAccount(String account) {
+    return _persist(
+      ReportExportPreferences(
+        reportFormat: state.format,
+        periodLabel: state.period,
+        accountScope: account,
+        selectedRequirements: state.selectedRequirements,
+      ),
+    );
+  }
+
+  Future<void> toggleRequirement(String id) {
     final updated = Set<String>.from(state.selectedRequirements);
     if (updated.contains(id)) {
       updated.remove(id);
     } else {
       updated.add(id);
     }
-    state = state.copyWith(selectedRequirements: updated);
+    return _persist(
+      ReportExportPreferences(
+        reportFormat: state.format,
+        periodLabel: state.period,
+        accountScope: state.account,
+        selectedRequirements: updated,
+      ),
+    );
   }
 
-  void selectAll(List<String> allIds) {
-    if (state.selectedRequirements.length == allIds.length) {
-      state = state.copyWith(selectedRequirements: {});
-    } else {
-      state = state.copyWith(selectedRequirements: allIds.toSet());
-    }
+  Future<void> selectAll(List<String> allIds) {
+    final nextSelected = state.selectedRequirements.length == allIds.length
+        ? const <String>[]
+        : allIds;
+    return _persist(
+      ReportExportPreferences(
+        reportFormat: state.format,
+        periodLabel: state.period,
+        accountScope: state.account,
+        selectedRequirements: nextSelected,
+      ),
+    );
   }
 }
 

@@ -7,6 +7,7 @@ import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/analytics/data/analytics_customization_repository.dart';
 import 'features/analytics/data/dashboard_layout_repository.dart';
+import 'features/analytics/data/report_export_repository.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/settings/providers/settings_provider.dart';
 
@@ -20,6 +21,14 @@ void main() async {
     } catch (error, stackTrace) {
       debugPrint(
         'Dashboard layout persistence initialization failed: $error\n'
+        '$stackTrace',
+      );
+    }
+    try {
+      await ReportExportRepository.instance.init();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Report export persistence initialization failed: $error\n'
         '$stackTrace',
       );
     }

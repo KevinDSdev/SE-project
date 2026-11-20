@@ -6,6 +6,7 @@ import 'package:prot/features/analytics/data/analytics_customization_storage.dar
 import 'package:prot/features/analytics/data/dashboard_layout_repository.dart';
 import 'package:prot/features/analytics/models/analytics_customization_preferences.dart';
 import 'package:prot/features/analytics/models/dashboard_layout_preferences.dart';
+import 'package:prot/features/analytics/models/report_export_preferences.dart';
 import 'package:prot/features/analytics/presentation/screens/dashboard_widgets_screen.dart';
 import 'package:prot/features/analytics/providers/analytics_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ class _InMemoryStorage implements AnalyticsCustomizationStorage {
   bool shouldFailSave = false;
   final Map<String, AnalyticsCustomizationPreferences> _analytics = {};
   final Map<String, DashboardLayoutPreferences> _layouts = {};
+  final Map<String, ReportExportPreferences> _reportExports = {};
 
   @override
   bool get isOpen => _open;
@@ -66,6 +68,28 @@ class _InMemoryStorage implements AnalyticsCustomizationStorage {
       await beforeCommitHook(null);
     }
     _layouts[preferences.profileKey] = preferences;
+  }
+
+  @override
+  Future<ReportExportPreferences?> getReportExportPreferences({
+    String profileKey = ReportExportPreferences.defaultProfileKey,
+  }) async {
+    return _reportExports[profileKey];
+  }
+
+  @override
+  Future<void> saveReportExportPreferencesAtomically(
+    ReportExportPreferences preferences, {
+    DateTime? timestamp,
+    Future<void> Function(dynamic txn)? beforeCommitHook,
+  }) async {
+    if (shouldFailSave) {
+      throw StateError('Simulated storage write failure');
+    }
+    if (beforeCommitHook != null) {
+      await beforeCommitHook(null);
+    }
+    _reportExports[preferences.profileKey] = preferences;
   }
 
   @override

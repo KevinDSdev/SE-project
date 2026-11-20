@@ -102,9 +102,12 @@ void main() {
       );
       await v1Db.close();
 
-      // Reopen using v2 AnalyticsCustomizationDb.
+      // Reopen using current AnalyticsCustomizationDb version.
       final upgradedDb = await db.init();
-      expect(await upgradedDb.getVersion(), 2);
+      expect(
+        await upgradedDb.getVersion(),
+        AnalyticsCustomizationDb.databaseVersion,
+      );
 
       // Existing Analytics Customization row survived unchanged.
       final analyticsRepo = AnalyticsCustomizationRepository(db: db);
