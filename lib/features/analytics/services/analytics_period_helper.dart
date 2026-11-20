@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/analytics_provider.dart';
@@ -36,6 +37,24 @@ class PeriodBucket {
 /// Shared date-range and period-bucket calculation helper for all analytics
 /// screens, handling leap years, variable month lengths, and month/year boundaries.
 class AnalyticsPeriodHelper {
+  /// Injectable clock source for dynamic date calculations and testing.
+  static DateTime Function() _clock = DateTime.now;
+
+  /// Current time provided by the injectable clock.
+  static DateTime get now => _clock();
+
+  /// Overrides the date/time provider for controlled rollover testing.
+  @visibleForTesting
+  static void setClockForTesting(DateTime Function() clock) {
+    _clock = clock;
+  }
+
+  /// Resets the date/time provider back to system clock.
+  @visibleForTesting
+  static void resetClockForTesting() {
+    _clock = DateTime.now;
+  }
+
   /// Default period selected by default across FinPulse.
   static const AnalyticsPeriod defaultPeriod = AnalyticsPeriod.monthly;
 
@@ -219,7 +238,7 @@ class AnalyticsPeriodHelper {
     AnalyticsPeriod period, [
     DateTime? referenceDate,
   ]) {
-    final year = (referenceDate ?? DateTime.now()).year;
+    final year = (referenceDate ?? now).year;
     switch (period) {
       case AnalyticsPeriod.weekly:
         return 'Weekly : $year';
@@ -229,6 +248,244 @@ class AnalyticsPeriodHelper {
         return 'Yearly : $year';
       case AnalyticsPeriod.custom:
         return 'Custom : $year';
+    }
+  }
+
+  /// Formats a complete date range for a calendar week (Monday to Sunday),
+  /// handling same-month, cross-month, and cross-year boundaries.
+  static String formatWeekRange(DateTime startMonday, DateTime endSunday) {
+    if (startMonday.year == endSunday.year) {
+      return '${DateFormat('MMM d').format(startMonday)} – ${DateFormat('MMM d, yyyy').format(endSunday)}';
+    } else {
+      return '${DateFormat('MMM d, yyyy').format(startMonday)} – ${DateFormat('MMM d, yyyy').format(endSunday)}';
+    }
+  }
+
+  /// Computes the latest six calendar weeks ending with the current week,
+  /// with Monday-to-Sunday boundaries.
+  static List<PeriodBucket> getExportWeeklyBuckets([DateTime? referenceDate]) {
+    final anchor = referenceDate ?? now;
+    final anchorDay = DateTime(anchor.year, anchor.month, anchor.day);
+    // Dart weekday: Monday = 1, Sunday = 7
+    final currentMonday = anchorDay.subtract(
+      Duration(days: anchor.weekday - DateTime.monday),
+    );
+    final List<PeriodBucket> buckets = [];
+
+    for (int i = 5; i >= 0; i--) {
+      final startMonday = currentMonday.subtract(Duration(days: i * 7));
+      final endSunday = startMonday.add(const Duration(days: 6));
+      final label = formatWeekRange(startMonday, endSunday);
+      final isCurrent = i == 0;
+      final fullLabel = isCurrent ? '$label (Current Week)' : label;
+
+      buckets.add(
+        PeriodBucket(
+          label: label,
+          fullLabel: fullLabel,
+          badgeLabel: 'Week: $label',
+          startDate: DateTime(
+            startMonday.year,
+            startMonday.month,
+            startMonday.day,
+            0,
+            0,
+            0,
+          ),
+          endDate: DateTime(
+            endSunday.year,
+            endSunday.month,
+            endSunday.day,
+            23,
+            59,
+            59,
+          ),
+        ),
+      );
+    }
+    return buckets;
+  }
+
+  /// Computes the latest six calendar months ending with the current month,
+  /// generating month names and years dynamically.
+  static List<PeriodBucket> getExportMonthlyBuckets([DateTime? referenceDate]) {
+    final anchor = referenceDate ?? now;
+    final List<PeriodBucket> buckets = [];
+
+    for (int i = 5; i >= 0; i--) {
+      final date = DateTime(anchor.year, anchor.month - i, 1);
+      final lastDay = DateTime(date.year, date.month + 1, 0).day;
+      final label = DateFormat('MMMM yyyy').format(date);
+      final isCurrent = i == 0;
+      final fullLabel = isCurrent ? '$label (Current Month)' : label;
+
+      buckets.add(
+        PeriodBucket(
+          label: label,
+          fullLabel: fullLabel,
+          badgeLabel: 'Month: $label',
+          startDate: DateTime(date.year, date.month, 1, 0, 0, 0),
+          endDate: DateTime(date.year, date.month, lastDay, 23, 59, 59),
+        ),
+      );
+    }
+    return buckets;
+  }
+
+  /// Computes the latest six calendar years ending with the current year.
+  static List<PeriodBucket> getExportYearlyBuckets([DateTime? referenceDate]) {
+    final anchor = referenceDate ?? now;
+    final currentYear = anchor.year;
+    final List<PeriodBucket> buckets = [];
+
+    for (int i = 5; i >= 0; i--) {
+      final year = currentYear - i;
+      final label = '$year';
+      final isCurrent = i == 0;
+      final fullLabel = isCurrent ? '$label (Current Year)' : label;
+
+      buckets.add(
+        PeriodBucket(
+          label: label,
+          fullLabel: fullLabel,
+          badgeLabel: 'Year: $label',
+          startDate: DateTime(year, 1, 1, 0, 0, 0),
+          endDate: DateTime(year, 12, 31, 23, 59, 59),
+        ),
+      );
+    }
+    return buckets;
+  }
+
+  /// Resolves the export period selection, checking if it is still within the
+  /// latest six options for its period type, and automatically rolling over to
+  /// the current period if it is not.
+  static ({
+    String periodType,
+    String periodLabel,
+    DateTime startDate,
+    DateTime endDate,
+  })
+  resolveExportPeriodRollover({
+    required String? periodType,
+    required String? periodLabel,
+    DateTime? startDate,
+    DateTime? endDate,
+    DateTime? referenceDate,
+  }) {
+    final anchor = referenceDate ?? now;
+    final weekly = getExportWeeklyBuckets(anchor);
+    final monthly = getExportMonthlyBuckets(anchor);
+    final yearly = getExportYearlyBuckets(anchor);
+
+    String resolvedType = periodType ?? 'Monthly';
+    if (periodLabel != null && periodLabel.isNotEmpty) {
+      if (periodLabel == 'Custom' || periodLabel == 'Custom Range') {
+        resolvedType = 'Custom';
+      } else if (weekly.any((b) => b.label == periodLabel)) {
+        resolvedType = 'Weekly';
+      } else if (monthly.any((b) => b.label == periodLabel)) {
+        resolvedType = 'Monthly';
+      } else if (yearly.any((b) => b.label == periodLabel)) {
+        resolvedType = 'Yearly';
+      } else if (periodLabel == 'Weekly') {
+        resolvedType = 'Weekly';
+      } else if (periodLabel == 'Monthly') {
+        resolvedType = 'Monthly';
+      } else if (periodLabel == 'Yearly') {
+        resolvedType = 'Yearly';
+      } else if (RegExp(r'^\d{4}$').hasMatch(periodLabel)) {
+        resolvedType = 'Yearly';
+      } else if (periodLabel.contains('–') || periodLabel.contains('-')) {
+        resolvedType = 'Weekly';
+      } else if (RegExp(
+        r'^(January|February|March|April|May|June|July|August|September|October|November|December)',
+        caseSensitive: false,
+      ).hasMatch(periodLabel)) {
+        resolvedType = 'Monthly';
+      }
+    }
+
+    switch (resolvedType) {
+      case 'Weekly':
+        final matched = weekly.cast<PeriodBucket?>().firstWhere(
+          (b) => b?.label == periodLabel,
+          orElse: () => null,
+        );
+        if (matched != null) {
+          return (
+            periodType: 'Weekly',
+            periodLabel: matched.label,
+            startDate: matched.startDate,
+            endDate: matched.endDate,
+          );
+        }
+        final currentWeek = weekly.last;
+        return (
+          periodType: 'Weekly',
+          periodLabel: currentWeek.label,
+          startDate: currentWeek.startDate,
+          endDate: currentWeek.endDate,
+        );
+
+      case 'Yearly':
+        final matched = yearly.cast<PeriodBucket?>().firstWhere(
+          (b) => b?.label == periodLabel,
+          orElse: () => null,
+        );
+        if (matched != null) {
+          return (
+            periodType: 'Yearly',
+            periodLabel: matched.label,
+            startDate: matched.startDate,
+            endDate: matched.endDate,
+          );
+        }
+        final currentYear = yearly.last;
+        return (
+          periodType: 'Yearly',
+          periodLabel: currentYear.label,
+          startDate: currentYear.startDate,
+          endDate: currentYear.endDate,
+        );
+
+      case 'Custom':
+        DateTime s = startDate ?? DateTime(anchor.year, anchor.month, 1);
+        DateTime e =
+            endDate ?? DateTime(anchor.year, anchor.month + 1, 0, 23, 59, 59);
+        if (s.isAfter(e)) {
+          final temp = s;
+          s = e;
+          e = temp;
+        }
+        return (
+          periodType: 'Custom',
+          periodLabel: 'Custom Range',
+          startDate: s,
+          endDate: e,
+        );
+
+      case 'Monthly':
+      default:
+        final matched = monthly.cast<PeriodBucket?>().firstWhere(
+          (b) => b?.label == periodLabel,
+          orElse: () => null,
+        );
+        if (matched != null) {
+          return (
+            periodType: 'Monthly',
+            periodLabel: matched.label,
+            startDate: matched.startDate,
+            endDate: matched.endDate,
+          );
+        }
+        final currentMonth = monthly.last;
+        return (
+          periodType: 'Monthly',
+          periodLabel: currentMonth.label,
+          startDate: currentMonth.startDate,
+          endDate: currentMonth.endDate,
+        );
     }
   }
 }

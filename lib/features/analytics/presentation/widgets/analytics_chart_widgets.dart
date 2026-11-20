@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+
 import '../../../../core/constants/app_colors.dart';
 import '../../providers/analytics_provider.dart';
 
@@ -111,8 +112,9 @@ class GroupedDualBarChart extends StatelessWidget {
                     style: TextStyle(
                       color: isSelected ? kColorLime : const Color(0xFF8E95A3),
                       fontSize: 11,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                     ),
                   ),
                 ],
@@ -210,7 +212,16 @@ class _DualLinePainter extends CustomPainter {
     final double stepX = size.width / (incomeValues.length - 1);
 
     _drawLine(canvas, size, incomeValues, maxVal, stepX, h, btmPad, kColorLime);
-    _drawLine(canvas, size, expenseValues, maxVal, stepX, h, btmPad, kColorRose);
+    _drawLine(
+      canvas,
+      size,
+      expenseValues,
+      maxVal,
+      stepX,
+      h,
+      btmPad,
+      kColorRose,
+    );
   }
 
   void _drawLine(
@@ -504,8 +515,7 @@ class CurvedTrendLineChart extends StatelessWidget {
                   style: TextStyle(
                     color: isSelected ? lineColor : const Color(0xFFB0B7C3),
                     fontSize: 11,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ),
@@ -543,8 +553,9 @@ class _CurvedLinePainter extends CustomPainter {
     const double btmPad = 8;
     final double chartHeight = size.height - topPad - btmPad;
     final double usableWidth = size.width - (leftRightPad * 2);
-    final double stepX =
-        values.length > 1 ? usableWidth / (values.length - 1) : 0;
+    final double stepX = values.length > 1
+        ? usableWidth / (values.length - 1)
+        : 0;
 
     final List<Offset> points = [];
     for (int i = 0; i < values.length; i++) {
@@ -562,7 +573,6 @@ class _CurvedLinePainter extends CustomPainter {
     areaPath.lineTo(points.first.dx, points.first.dy);
 
     for (int i = 0; i < points.length - 1; i++) {
-      final p1 = points[i];
       final p2 = points[i + 1];
       areaPath.lineTo(p2.dx, p2.dy);
     }
@@ -651,8 +661,10 @@ class _CurvedLinePainter extends CustomPainter {
         )..layout();
 
         final textOffset = Offset(
-          (pt.dx - textPainter.width / 2)
-              .clamp(0, size.width - textPainter.width),
+          (pt.dx - textPainter.width / 2).clamp(
+            0,
+            size.width - textPainter.width,
+          ),
           pt.dy - textPainter.height - 8,
         );
         textPainter.paint(canvas, textOffset);
@@ -734,8 +746,9 @@ class SingleCategoryBarChart extends StatelessWidget {
                         style: TextStyle(
                           color: topTextColor,
                           fontSize: 10,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w600,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -753,19 +766,14 @@ class SingleCategoryBarChart extends StatelessWidget {
               }),
             ),
           ),
-          Container(
-            height: 1,
-            color: Colors.white.withValues(alpha: 0.06),
-          ),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
           const SizedBox(height: 6),
           Row(
             children: List.generate(months.length, (index) {
               final month = months[index];
               final isSelected = index == selectedIndex;
               final mColor = isSelected
-                  ? (selectedMonthColor ??
-                      alternateBarColor ??
-                      barColor)
+                  ? (selectedMonthColor ?? alternateBarColor ?? barColor)
                   : const Color(0xFFB0B7C3);
               return Expanded(
                 child: Center(
@@ -776,8 +784,9 @@ class SingleCategoryBarChart extends StatelessWidget {
                     style: TextStyle(
                       color: mColor,
                       fontSize: 11,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -785,10 +794,7 @@ class SingleCategoryBarChart extends StatelessWidget {
             }),
           ),
           const SizedBox(height: 4),
-          Container(
-            height: 1,
-            color: Colors.white.withValues(alpha: 0.05),
-          ),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.05)),
         ],
       ),
     );
@@ -967,8 +973,9 @@ class PredictionBarChartWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = AppColors.getTextPrimary(isDark);
-    final axisColor =
-        isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08);
+    final axisColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.08);
     double maxVal = 0;
     for (final v in values) {
       if (v > maxVal) maxVal = v;
@@ -1010,14 +1017,15 @@ class PredictionBarChartWidget extends StatelessWidget {
                     children: List.generate(months.length, (index) {
                       final val = values[index];
                       final isForecast = index == months.length - 1;
-                      final Color barCol =
-                          isForecast ? forecastColor : kColorSky;
+                      final Color barCol = isForecast
+                          ? forecastColor
+                          : kColorSky;
 
                       // Exaggerate relative differences slightly for visual match with design
                       final double minVal =
                           values.reduce((a, b) => a < b ? a : b) * 0.72;
-                      final double norm =
-                          ((val - minVal) / (maxVal - minVal)).clamp(0.35, 1.0);
+                      final double norm = ((val - minVal) / (maxVal - minVal))
+                          .clamp(0.35, 1.0);
                       final barH = norm * (height - 62);
 
                       return Expanded(
@@ -1047,10 +1055,7 @@ class PredictionBarChartWidget extends StatelessWidget {
                     }),
                   ),
                 ),
-                Container(
-                  height: 1,
-                  color: axisColor,
-                ),
+                Container(height: 1, color: axisColor),
                 const SizedBox(height: 8),
                 Row(
                   children: List.generate(months.length, (index) {
@@ -1065,8 +1070,9 @@ class PredictionBarChartWidget extends StatelessWidget {
                                 ? forecastColor
                                 : const Color(0xFFB0B7C3),
                             fontSize: 12,
-                            fontWeight:
-                                isForecast ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: isForecast
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ),
@@ -1104,11 +1110,11 @@ class AnomalyComparisonBar extends StatelessWidget {
     String? baselineLabel,
     String? actualLabel,
     bool? hasSpike,
-  })  : label = label ?? category ?? '',
-        avgAmount = avgAmount ?? baseline ?? 0.0,
-        spikeAmount = spikeAmount ?? ((actual ?? 0.0) - (baseline ?? 0.0)),
-        displayAmount = displayAmount ?? actualLabel ?? '',
-        hasSpike = hasSpike ?? ((actual ?? 0.0) > (baseline ?? 0.0));
+  }) : label = label ?? category ?? '',
+       avgAmount = avgAmount ?? baseline ?? 0.0,
+       spikeAmount = spikeAmount ?? ((actual ?? 0.0) - (baseline ?? 0.0)),
+       displayAmount = displayAmount ?? actualLabel ?? '',
+       hasSpike = hasSpike ?? ((actual ?? 0.0) > (baseline ?? 0.0));
 
   @override
   Widget build(BuildContext context) {
@@ -1155,9 +1161,11 @@ class AnomalyComparisonBar extends StatelessWidget {
                   ),
                 ],
                 Expanded(
-                  flex: ((100000 - (avgAmount + (hasSpike ? spikeAmount : 0))) * 10)
-                      .clamp(0, 1000000)
-                      .toInt(),
+                  flex:
+                      ((100000 - (avgAmount + (hasSpike ? spikeAmount : 0))) *
+                              10)
+                          .clamp(0, 1000000)
+                          .toInt(),
                   child: Container(color: AppColors.getBorder(isDark)),
                 ),
               ],
@@ -1223,9 +1231,7 @@ class ChartStylePicker extends StatelessWidget {
             iconWidget: SizedBox(
               width: 22,
               height: 22,
-              child: CustomPaint(
-                painter: _TwoToneDonutIconPainter(),
-              ),
+              child: CustomPaint(painter: _TwoToneDonutIconPainter()),
             ),
           ),
         ),
@@ -1240,10 +1246,12 @@ class ChartStylePicker extends StatelessWidget {
     required Widget iconWidget,
   }) {
     final isSelected = selected == mode;
-    final unselectedBg =
-        isDark ? const Color(0xFF1E222D) : const Color(0xFFF1F5F9);
-    final unselectedBorder =
-        isDark ? const Color(0xFF2B303E) : const Color(0xFFE2E8F0);
+    final unselectedBg = isDark
+        ? const Color(0xFF1E222D)
+        : const Color(0xFFF1F5F9);
+    final unselectedBorder = isDark
+        ? const Color(0xFF2B303E)
+        : const Color(0xFFE2E8F0);
     final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return GestureDetector(

@@ -117,7 +117,9 @@ class _FinancialAnalyticsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final selectedPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.financial),
+    );
     final mainStyle = ref.watch(mainChartStyleProvider);
     final accentColor = ref.watch(accentColorProvider).color;
     final widgetsState = ref.watch(dashboardWidgetsProvider);
@@ -1058,7 +1060,12 @@ class _FinancialAnalyticsScreenState
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+          ref
+              .read(
+                analyticsScreenPeriodProvider(AnalyticsScreenType.financial)
+                    .notifier,
+              )
+              .setPeriod(period);
         },
         child: Container(
           decoration: BoxDecoration(

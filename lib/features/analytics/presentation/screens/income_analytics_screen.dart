@@ -16,14 +16,7 @@ class IncomeAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
-  String _selectedFilter = 'Primary Salary';
-
-  final List<String> _filters = [
-    'All (3)',
-    'Primary Salary',
-    'Rent Inflow',
-    'Freelance',
-  ];
+  String? _selectedCategoryId;
 
   void _showPeriodPicker(BuildContext context, AnalyticsPeriod currentPeriod) {
     final accentColor = ref.read(accentColorProvider).color;
@@ -72,7 +65,13 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       ? Icon(Icons.check, color: accentColor)
                       : null,
                   onTap: () {
-                    ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+                    ref
+                        .read(
+                          analyticsScreenPeriodProvider(
+                            AnalyticsScreenType.income,
+                          ).notifier,
+                        )
+                        .setPeriod(period);
                     Navigator.of(ctx).pop();
                   },
                 );
@@ -94,7 +93,9 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
 
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
-    final selectedPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.income),
+    );
 
     final periodLabel = AnalyticsPeriodHelper.getPeriodTypeLabel(
       selectedPeriod,
@@ -275,8 +276,52 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
         break;
     }
 
-    final currentStream =
-        streamData[_selectedFilter] ?? streamData['Primary Salary']!;
+    final categories = ref.watch(incomeMethodsProvider);
+
+    // Auto-select first category if none selected, or if selected was deleted
+    if (categories.isNotEmpty) {
+      if (_selectedCategoryId == null ||
+          !categories.any((c) => c.id == _selectedCategoryId)) {
+        _selectedCategoryId = categories.first.id;
+      }
+    } else {
+      _selectedCategoryId = null;
+    }
+
+    final selectedCategory = categories.isNotEmpty
+        ? categories.firstWhere(
+            (c) => c.id == _selectedCategoryId,
+            orElse: () => categories.first,
+          )
+        : null;
+
+    final Map<String, dynamic> currentStream;
+    if (selectedCategory == null) {
+      currentStream = {
+        'title': 'No Category Selected',
+        'total': 'LKR 0',
+        'values': List.filled(labels.length, 0.0),
+        'color': accentColor,
+        'hasData': false,
+      };
+    } else if (selectedCategory.id == 'inc_1' ||
+        selectedCategory.name.toLowerCase().contains('salary')) {
+      currentStream = streamData['Primary Salary']!;
+    } else if (selectedCategory.id == 'inc_2' ||
+        selectedCategory.name.toLowerCase().contains('rent')) {
+      currentStream = streamData['Rent Inflow']!;
+    } else if (selectedCategory.id == 'inc_3' ||
+        selectedCategory.name.toLowerCase().contains('freelance')) {
+      currentStream = streamData['Freelance']!;
+    } else {
+      currentStream = {
+        'title': selectedCategory.name,
+        'total': 'LKR 0',
+        'values': List.filled(labels.length, 0.0),
+        'color': selectedCategory.color,
+        'hasData': false,
+      };
+    }
 
     return Scaffold(
       backgroundColor: bg,
@@ -393,61 +438,85 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
               const SizedBox(height: 18),
 
               // Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSel = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedFilter = filter),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSel ? const Color(0xFF98E836) : cardBg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSel
-                                  ? const Color(0xFF98E836)
-                                  : borderColor,
+              if (categories.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No income categories available',
+                      style: TextStyle(color: textSecondary, fontSize: 13),
+                    ),
+                  ),
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: categories.map((cat) {
+                      final isSel = _selectedCategoryId == cat.id;
+                      final chipFg = isSel
+                          ? (accentColor.computeLuminance() > 0.5
+                                ? const Color(0xFF0C0F14)
+                                : Colors.white)
+                          : textSecondary;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedCategoryId = cat.id),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSel ? accentColor : cardBg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSel ? accentColor : borderColor,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: cat.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Text(
+                                  cat.name,
+                                  style: TextStyle(
+                                    color: chipFg,
+                                    fontSize: 13,
+                                    fontWeight: isSel
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                if (isSel) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.check, color: chipFg, size: 14),
+                                ],
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                filter,
-                                style: TextStyle(
-                                  color: isSel
-                                      ? const Color(0xFF0C0F14)
-                                      : textSecondary,
-                                  fontSize: 13,
-                                  fontWeight: isSel
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                ),
-                              ),
-                              if (isSel && filter != 'All (3)') ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.check,
-                                  color: Color(0xFF0C0F14),
-                                  size: 14,
-                                ),
-                              ],
-                            ],
-                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ),
               const SizedBox(height: 18),
 
               // Selected Category Card
@@ -479,6 +548,17 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                    if (currentStream['hasData'] == false) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'No transactions recorded yet for this category',
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     AdaptiveCategoryChart(
                       mode: categoryStyle,
@@ -513,29 +593,41 @@ class _IncomeAnalyticsScreenState extends ConsumerState<IncomeAnalyticsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildStreamRow(
-                      dotColor: const Color(0xFF98E836),
-                      name: 'Primary Salary',
-                      amount: primarySalaryStreamAmount,
-                      amountColor: const Color(0xFF98E836),
-                      textColor: textPrimary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildStreamRow(
-                      dotColor: const Color(0xFF38BDF8),
-                      name: 'Kandy Annex Rent',
-                      amount: rentStreamAmount,
-                      amountColor: const Color(0xFF38BDF8),
-                      textColor: textPrimary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildStreamRow(
-                      dotColor: const Color(0xFF9353D3),
-                      name: 'Freelance Income',
-                      amount: freelanceStreamAmount,
-                      amountColor: const Color(0xFFA855F7),
-                      textColor: textPrimary,
-                    ),
+                    if (categories.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'No income streams available.',
+                          style: TextStyle(color: textSecondary, fontSize: 13),
+                        ),
+                      )
+                    else
+                      ...categories.map((cat) {
+                        String amt;
+                        if (cat.id == 'inc_1' ||
+                            cat.name.toLowerCase().contains('salary')) {
+                          amt = primarySalaryStreamAmount;
+                        } else if (cat.id == 'inc_2' ||
+                            cat.name.toLowerCase().contains('rent')) {
+                          amt = rentStreamAmount;
+                        } else if (cat.id == 'inc_3' ||
+                            cat.name.toLowerCase().contains('freelance')) {
+                          amt = freelanceStreamAmount;
+                        } else {
+                          amt = 'LKR 0';
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildStreamRow(
+                            dotColor: cat.color,
+                            name: cat.name,
+                            amount: amt,
+                            amountColor: cat.color,
+                            textColor: textPrimary,
+                          ),
+                        );
+                      }),
                   ],
                 ),
               ),

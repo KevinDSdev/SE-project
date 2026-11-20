@@ -8,8 +8,19 @@ import '../data/dashboard_layout_repository.dart';
 import '../data/report_export_repository.dart';
 import '../models/dashboard_layout_preferences.dart';
 import '../models/report_export_preferences.dart';
+import '../services/analytics_period_helper.dart';
+import '../services/export_requirements_validator.dart';
+import '../../auth/providers/auth_provider.dart';
 
 enum AnalyticsPeriod { weekly, monthly, yearly, custom }
+
+enum AnalyticsScreenType {
+  financial,
+  income,
+  expense,
+  goalSavings,
+  spendingAnomaly,
+}
 
 enum ChartVisualMode { bar, line, donut }
 
@@ -18,12 +29,14 @@ class CustomCategoryItem {
   final String name;
   final Color color;
   final bool isExpense;
+  final bool isDefault;
 
   const CustomCategoryItem({
     required this.id,
     required this.name,
     required this.color,
     this.isExpense = false,
+    this.isDefault = false,
   });
 
   CustomCategoryItem copyWith({
@@ -31,12 +44,14 @@ class CustomCategoryItem {
     String? name,
     Color? color,
     bool? isExpense,
+    bool? isDefault,
   }) {
     return CustomCategoryItem(
       id: id ?? this.id,
       name: name ?? this.name,
       color: color ?? this.color,
       isExpense: isExpense ?? this.isExpense,
+      isDefault: isDefault ?? this.isDefault,
     );
   }
 }
@@ -72,27 +87,25 @@ final dashboardLayoutRepositoryProvider = Provider<DashboardLayoutRepository>(
 );
 
 // -------------------------------------------------------------
-// Selected Period Provider
+// Saved Default Period & Independent Temporary Period Providers
 // -------------------------------------------------------------
-class SelectedPeriodNotifier extends Notifier<AnalyticsPeriod> {
+
+/// Single source of truth for the persisted Default Analytics Period.
+/// Restored from SQLite / IndexedDB cache on startup.
+class SavedDefaultPeriodNotifier extends Notifier<AnalyticsPeriod> {
   @override
   AnalyticsPeriod build() {
-    return ref.read(analyticsCustomizationRepositoryProvider).defaultPeriod;
+    final repo = ref.watch(analyticsCustomizationRepositoryProvider);
+    return repo.defaultPeriod;
   }
 
-  void setPeriod(AnalyticsPeriod period) {
+  /// Persists an updated default analytics period to SQLite/IndexedDB
+  /// and updates Riverpod state.
+  Future<void> setDefaultPeriod(AnalyticsPeriod period) async {
     state = period;
     final repo = ref.read(analyticsCustomizationRepositoryProvider);
     if (repo.isInitialized) {
-      unawaited(
-        repo.updateDefaultPeriod(period).catchError((
-          Object error,
-          StackTrace _,
-        ) {
-          debugPrint('Failed to persist default analytics period: $error');
-          return repo.currentPreferences;
-        }),
-      );
+      await repo.updateDefaultPeriod(period);
     }
   }
 
@@ -100,6 +113,123 @@ class SelectedPeriodNotifier extends Notifier<AnalyticsPeriod> {
   /// triggering a duplicate database write.
   void syncState(AnalyticsPeriod period) {
     state = period;
+  }
+}
+
+final savedDefaultPeriodProvider =
+    NotifierProvider<SavedDefaultPeriodNotifier, AnalyticsPeriod>(
+      SavedDefaultPeriodNotifier.new,
+    );
+
+/// In-memory temporary period overrides per analytics screen.
+/// Exists only in application memory during the active session.
+/// Never written to persistent storage (SQLite, IndexedDB, SharedPreferences).
+class TemporaryPeriodOverridesNotifier
+    extends Notifier<Map<AnalyticsScreenType, AnalyticsPeriod>> {
+  @override
+  Map<AnalyticsScreenType, AnalyticsPeriod> build() {
+    // Listen to authentication changes: logging out or logging in clears all temporary overrides.
+    ref.listen(authProvider, (previous, next) {
+      if (previous?.user != next.user) {
+        state = const <AnalyticsScreenType, AnalyticsPeriod>{};
+      }
+    });
+    return const <AnalyticsScreenType, AnalyticsPeriod>{};
+  }
+
+  /// Sets the temporary period for a specific analytics screen in memory.
+  void setScreenPeriod(AnalyticsScreenType screen, AnalyticsPeriod period) {
+    state = {...state, screen: period};
+  }
+
+  /// Clears the temporary period override for a specific analytics screen.
+  void clearScreenPeriod(AnalyticsScreenType screen) {
+    if (!state.containsKey(screen)) return;
+    final updated = Map<AnalyticsScreenType, AnalyticsPeriod>.from(state);
+    updated.remove(screen);
+    state = Map.unmodifiable(updated);
+  }
+
+  /// Clears all temporary period overrides, resetting every screen to the saved default.
+  void clearAll() {
+    state = const <AnalyticsScreenType, AnalyticsPeriod>{};
+  }
+
+  /// Whether a screen currently has an active temporary override.
+  bool hasOverride(AnalyticsScreenType screen) => state.containsKey(screen);
+}
+
+final temporaryPeriodOverridesProvider =
+    NotifierProvider<
+      TemporaryPeriodOverridesNotifier,
+      Map<AnalyticsScreenType, AnalyticsPeriod>
+    >(TemporaryPeriodOverridesNotifier.new);
+
+/// Screen-specific period provider family.
+/// Returns the screen's active temporary override if present; otherwise falls back to the saved default period.
+class AnalyticsScreenPeriodNotifier extends Notifier<AnalyticsPeriod> {
+  final AnalyticsScreenType screenType;
+  AnalyticsScreenPeriodNotifier(this.screenType);
+
+  @override
+  AnalyticsPeriod build() {
+    final savedDefault = ref.watch(savedDefaultPeriodProvider);
+    final overrides = ref.watch(temporaryPeriodOverridesProvider);
+    return overrides[screenType] ?? savedDefault;
+  }
+
+  /// Sets the temporary period selection for this screen in memory only.
+  /// Never writes to persistent storage.
+  void setPeriod(AnalyticsPeriod period) {
+    ref
+        .read(temporaryPeriodOverridesProvider.notifier)
+        .setScreenPeriod(screenType, period);
+  }
+
+  /// Clears this screen's temporary override, returning it to the saved default.
+  void resetToDefault() {
+    ref
+        .read(temporaryPeriodOverridesProvider.notifier)
+        .clearScreenPeriod(screenType);
+  }
+}
+
+final analyticsScreenPeriodProvider =
+    NotifierProvider.family<
+      AnalyticsScreenPeriodNotifier,
+      AnalyticsPeriod,
+      AnalyticsScreenType
+    >(AnalyticsScreenPeriodNotifier.new);
+
+/// Backwards-compatible provider mapped to the Main Financial Analytics screen.
+/// Preserves legacy consumers while delegating to the new screen-specific architecture.
+class SelectedPeriodNotifier extends Notifier<AnalyticsPeriod> {
+  @override
+  AnalyticsPeriod build() {
+    return ref.watch(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.financial),
+    );
+  }
+
+  /// Sets the temporary period for the Main Financial Analytics screen in memory.
+  void setPeriod(AnalyticsPeriod period) {
+    ref
+        .read(
+          analyticsScreenPeriodProvider(AnalyticsScreenType.financial).notifier,
+        )
+        .setPeriod(period);
+  }
+
+  /// Synchronizes the saved default period (e.g. from Analytics Customization).
+  void syncState(AnalyticsPeriod period) {
+    ref.read(savedDefaultPeriodProvider.notifier).syncState(period);
+  }
+
+  /// Sets and persists a new default period in SQLite / IndexedDB.
+  Future<void> setDefaultPeriod(AnalyticsPeriod period) async {
+    await ref
+        .read(savedDefaultPeriodProvider.notifier)
+        .setDefaultPeriod(period);
   }
 }
 
@@ -227,42 +357,52 @@ class IncomeMethodsNotifier extends Notifier<List<CustomCategoryItem>> {
       id: 'inc_1',
       name: 'Primary Salary',
       color: Color(0xFF98E836),
+      isDefault: true,
     ),
     CustomCategoryItem(
       id: 'inc_2',
       name: 'Kandy Annex Rent Inflow',
       color: Color(0xFF38BDF8),
+      isDefault: true,
     ),
     CustomCategoryItem(
       id: 'inc_3',
       name: 'Freelance',
       color: Color(0xFF9353D3),
+      isDefault: true,
     ),
   ];
 
-  void add(String name, Color color) {
+  /// Appends a category supplied externally (e.g. from the Budget module or test suites).
+  /// Note: Category creation UI is exclusively owned by the Budget module.
+  void add(String name, Color color, {bool isDefault = false}) {
     state = [
       ...state,
       CustomCategoryItem(
         id: 'inc_${DateTime.now().millisecondsSinceEpoch}',
         name: name,
         color: color,
+        isDefault: isDefault,
       ),
     ];
   }
 
+  /// Updates an existing user-created category's name and color.
+  /// Preserves the original category ID. Built-in categories are protected from mutation.
   void update(String id, String newName, Color newColor) {
     state = state
         .map(
-          (item) => item.id == id
+          (item) => (item.id == id && !item.isDefault)
               ? item.copyWith(name: newName, color: newColor)
               : item,
         )
         .toList();
   }
 
+  /// Deletes a user-created category.
+  /// Built-in categories are protected from deletion.
   void remove(String id) {
-    state = state.where((item) => item.id != id).toList();
+    state = state.where((item) => item.id != id || item.isDefault).toList();
   }
 }
 
@@ -279,22 +419,27 @@ class ExpenseCategoriesNotifier extends Notifier<List<CustomCategoryItem>> {
       name: 'Food & Groceries',
       color: Color(0xFFF43F5E),
       isExpense: true,
+      isDefault: true,
     ),
     CustomCategoryItem(
       id: 'exp_2',
       name: 'Transport',
       color: Color(0xFF38BDF8),
       isExpense: true,
+      isDefault: true,
     ),
     CustomCategoryItem(
       id: 'exp_3',
       name: 'Utilities',
       color: Color(0xFFF59E0B),
       isExpense: true,
+      isDefault: true,
     ),
   ];
 
-  void add(String name, Color color) {
+  /// Appends a category supplied externally (e.g. from the Budget module or test suites).
+  /// Note: Category creation UI is exclusively owned by the Budget module.
+  void add(String name, Color color, {bool isDefault = false}) {
     state = [
       ...state,
       CustomCategoryItem(
@@ -302,22 +447,27 @@ class ExpenseCategoriesNotifier extends Notifier<List<CustomCategoryItem>> {
         name: name,
         color: color,
         isExpense: true,
+        isDefault: isDefault,
       ),
     ];
   }
 
+  /// Updates an existing user-created category's name and color.
+  /// Preserves the original category ID. Built-in categories are protected from mutation.
   void update(String id, String newName, Color newColor) {
     state = state
         .map(
-          (item) => item.id == id
+          (item) => (item.id == id && !item.isDefault)
               ? item.copyWith(name: newName, color: newColor)
               : item,
         )
         .toList();
   }
 
+  /// Deletes a user-created category.
+  /// Built-in categories are protected from deletion.
   void remove(String id) {
-    state = state.where((item) => item.id != id).toList();
+    state = state.where((item) => item.id != id || item.isDefault).toList();
   }
 }
 
@@ -546,7 +696,7 @@ final reportExportRepositoryProvider = Provider<ReportExportRepository>(
 
 class ExportPreferencesState {
   static const String defaultFormat = 'PDF Report';
-  static const String defaultPeriod = 'October 2026';
+  static const String defaultPeriod = 'Monthly';
   static const String defaultAccount = 'BOC';
   static const List<String> defaultSelectedRequirements = <String>[
     'trans_history',
@@ -556,15 +706,21 @@ class ExportPreferencesState {
   ];
 
   final String format; // 'PDF Report' | 'Excel (.XLSX)' | 'Raw Data'
-  final String period; // 'October 2026'
+  final String period; // e.g. 'November 2026', 'Nov 16 – Nov 22, 2026', '2026', 'Custom Range'
+  final String periodType; // 'Weekly' | 'Monthly' | 'Yearly' | 'Custom'
   final String account; // 'BOC'
   final Set<String> selectedRequirements;
   final DateTime? startDate;
   final DateTime? endDate;
 
+  /// Returns true if at least one valid analytics requirement module is selected.
+  bool get hasValidRequirements =>
+      ExportRequirementsValidator.hasValidRequirements(selectedRequirements);
+
   const ExportPreferencesState({
     required this.format,
     required this.period,
+    this.periodType = 'Monthly',
     required this.account,
     required this.selectedRequirements,
     this.startDate,
@@ -574,6 +730,7 @@ class ExportPreferencesState {
   ExportPreferencesState copyWith({
     String? format,
     String? period,
+    String? periodType,
     String? account,
     Set<String>? selectedRequirements,
     DateTime? startDate,
@@ -582,6 +739,7 @@ class ExportPreferencesState {
     return ExportPreferencesState(
       format: format ?? this.format,
       period: period ?? this.period,
+      periodType: periodType ?? this.periodType,
       account: account ?? this.account,
       selectedRequirements: selectedRequirements ?? this.selectedRequirements,
       startDate: startDate ?? this.startDate,
@@ -594,13 +752,20 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
   static ExportPreferencesState _stateFromPreferences(
     ReportExportPreferences prefs,
   ) {
-    return ExportPreferencesState(
-      format: prefs.reportFormat,
-      period: prefs.periodLabel,
-      account: prefs.accountScope,
-      selectedRequirements: prefs.selectedRequirements.toSet(),
+    final rollover = AnalyticsPeriodHelper.resolveExportPeriodRollover(
+      periodType: null,
+      periodLabel: prefs.periodLabel,
       startDate: prefs.startDate,
       endDate: prefs.endDate,
+    );
+    return ExportPreferencesState(
+      format: prefs.reportFormat,
+      period: rollover.periodLabel,
+      periodType: rollover.periodType,
+      account: prefs.accountScope,
+      selectedRequirements: prefs.selectedRequirements.toSet(),
+      startDate: rollover.startDate,
+      endDate: rollover.endDate,
     );
   }
 
@@ -632,18 +797,71 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
     );
   }
 
-  Future<void> setPeriod(String period, [DateTime? start, DateTime? end]) {
-    final isCustom = period == 'Custom Range';
+  /// Sets the active period category ('Weekly', 'Monthly', 'Yearly', 'Custom')
+  /// and automatically selects the current period within that category.
+  Future<void> setPeriodType(String type) {
+    final rollover = AnalyticsPeriodHelper.resolveExportPeriodRollover(
+      periodType: type,
+      periodLabel: state.periodType == type ? state.period : null,
+      startDate: state.startDate,
+      endDate: state.endDate,
+    );
     return _persist(
       ReportExportPreferences(
         reportFormat: state.format,
-        periodLabel: period,
+        periodLabel: rollover.periodLabel,
         accountScope: state.account,
         selectedRequirements: state.selectedRequirements,
-        startDate: start ?? (isCustom ? state.startDate : null),
-        endDate: end ?? (isCustom ? state.endDate : null),
+        startDate: rollover.startDate,
+        endDate: rollover.endDate,
       ),
     );
+  }
+
+  Future<void> setPeriod(String period, [DateTime? start, DateTime? end]) {
+    final isCustom = period == 'Custom Range' || period == 'Custom';
+    final rollover = AnalyticsPeriodHelper.resolveExportPeriodRollover(
+      periodType: isCustom ? 'Custom' : null,
+      periodLabel: isCustom ? 'Custom Range' : period,
+      startDate: start ?? (isCustom ? state.startDate : null),
+      endDate: end ?? (isCustom ? state.endDate : null),
+    );
+    return _persist(
+      ReportExportPreferences(
+        reportFormat: state.format,
+        periodLabel: rollover.periodLabel,
+        accountScope: state.account,
+        selectedRequirements: state.selectedRequirements,
+        startDate: rollover.startDate,
+        endDate: rollover.endDate,
+      ),
+    );
+  }
+
+  /// Automatically refreshes rollover on screen open or app resume.
+  Future<void> refreshPeriodRollover() {
+    final rollover = AnalyticsPeriodHelper.resolveExportPeriodRollover(
+      periodType: state.periodType,
+      periodLabel: state.period,
+      startDate: state.startDate,
+      endDate: state.endDate,
+    );
+    if (rollover.periodLabel != state.period ||
+        rollover.periodType != state.periodType ||
+        rollover.startDate != state.startDate ||
+        rollover.endDate != state.endDate) {
+      return _persist(
+        ReportExportPreferences(
+          reportFormat: state.format,
+          periodLabel: rollover.periodLabel,
+          accountScope: state.account,
+          selectedRequirements: state.selectedRequirements,
+          startDate: rollover.startDate,
+          endDate: rollover.endDate,
+        ),
+      );
+    }
+    return Future.value();
   }
 
   Future<void> setCustomDateRange(DateTime? start, DateTime? end) {

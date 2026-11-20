@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../goals/providers/goals_provider.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
 import '../../services/analytics_period_helper.dart';
@@ -17,14 +18,7 @@ class GoalSavingsAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _GoalSavingsAnalyticsScreenState
     extends ConsumerState<GoalSavingsAnalyticsScreen> {
-  String _selectedFilter = 'Emergency Fund';
-
-  final List<String> _filters = [
-    'All (4)',
-    'Emergency Fund',
-    'Vehicle',
-    'Vacation',
-  ];
+  String? _selectedGoalId;
 
   void _showPeriodPicker(BuildContext context, AnalyticsPeriod currentPeriod) {
     final accentColor = ref.read(accentColorProvider).color;
@@ -73,7 +67,13 @@ class _GoalSavingsAnalyticsScreenState
                       ? Icon(Icons.check, color: accentColor)
                       : null,
                   onTap: () {
-                    ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+                    ref
+                        .read(
+                          analyticsScreenPeriodProvider(
+                            AnalyticsScreenType.goalSavings,
+                          ).notifier,
+                        )
+                        .setPeriod(period);
                     Navigator.of(ctx).pop();
                   },
                 );
@@ -96,7 +96,9 @@ class _GoalSavingsAnalyticsScreenState
 
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
-    final selectedPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.goalSavings),
+    );
 
     final periodLabel = AnalyticsPeriodHelper.getPeriodTypeLabel(
       selectedPeriod,
@@ -313,8 +315,56 @@ class _GoalSavingsAnalyticsScreenState
         break;
     }
 
-    final currentGoal =
-        goalsData[_selectedFilter] ?? goalsData['Emergency Fund']!;
+    final goals = ref.watch(goalsProvider).goals;
+
+    // Auto-select first goal if none selected, or if selected was deleted
+    if (goals.isNotEmpty) {
+      if (_selectedGoalId == null ||
+          !goals.any((g) => g.id == _selectedGoalId)) {
+        _selectedGoalId = goals.first.id;
+      }
+    } else {
+      _selectedGoalId = null;
+    }
+
+    final selectedGoal = goals.isNotEmpty
+        ? goals.firstWhere(
+            (g) => g.id == _selectedGoalId,
+            orElse: () => goals.first,
+          )
+        : null;
+
+    final Map<String, dynamic> currentGoal;
+    if (selectedGoal == null) {
+      currentGoal = {
+        'title': 'No Savings Goals Available',
+        'target': '/ 0',
+        'total': 'LKR 0',
+        'progress': 0.0,
+        'values': List.filled(labels.length, 0.0),
+        'barColor': accentColor,
+        'hasData': false,
+      };
+    } else if (selectedGoal.id == 'emergency_fund' ||
+        selectedGoal.title.toLowerCase().contains('emergency')) {
+      currentGoal = goalsData['Emergency Fund']!;
+    } else if (selectedGoal.id == 'vehicle_upgrade' ||
+        selectedGoal.title.toLowerCase().contains('vehicle')) {
+      currentGoal = goalsData['Vehicle']!;
+    } else if (selectedGoal.id == 'vacation_fund' ||
+        selectedGoal.title.toLowerCase().contains('vacation')) {
+      currentGoal = goalsData['Vacation']!;
+    } else {
+      currentGoal = {
+        'title': selectedGoal.title,
+        'target': '/ ${selectedGoal.targetAmount.toInt()}',
+        'total': 'LKR ${selectedGoal.currentAmount.toInt()}',
+        'progress': selectedGoal.progress,
+        'values': List.filled(labels.length, 0.0),
+        'barColor': selectedGoal.color,
+        'hasData': false,
+      };
+    }
 
     return Scaffold(
       backgroundColor: bg,
@@ -431,61 +481,85 @@ class _GoalSavingsAnalyticsScreenState
               const SizedBox(height: 18),
 
               // Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSel = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedFilter = filter),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSel ? const Color(0xFF38BDF8) : cardBg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSel
-                                  ? const Color(0xFF38BDF8)
-                                  : borderColor,
+              if (goals.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No savings goals available',
+                      style: TextStyle(color: textSecondary, fontSize: 13),
+                    ),
+                  ),
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: goals.map((goal) {
+                      final isSel = _selectedGoalId == goal.id;
+                      final chipFg = isSel
+                          ? (accentColor.computeLuminance() > 0.5
+                                ? const Color(0xFF0C0F14)
+                                : Colors.white)
+                          : textSecondary;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedGoalId = goal.id),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSel ? accentColor : cardBg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSel ? accentColor : borderColor,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: goal.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Text(
+                                  goal.title,
+                                  style: TextStyle(
+                                    color: chipFg,
+                                    fontSize: 13,
+                                    fontWeight: isSel
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                if (isSel) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.check, color: chipFg, size: 14),
+                                ],
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                filter,
-                                style: TextStyle(
-                                  color: isSel
-                                      ? const Color(0xFF0C0F14)
-                                      : textSecondary,
-                                  fontSize: 13,
-                                  fontWeight: isSel
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                ),
-                              ),
-                              if (isSel && filter != 'All (4)') ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.check,
-                                  color: Color(0xFF0C0F14),
-                                  size: 14,
-                                ),
-                              ],
-                            ],
-                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ),
               const SizedBox(height: 18),
 
               // Selected Goal Card
@@ -532,6 +606,17 @@ class _GoalSavingsAnalyticsScreenState
                         ),
                       ],
                     ),
+                    if (currentGoal['hasData'] == false) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'No contribution history recorded yet for this goal',
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     // Progress Bar
                     ClipRRect(
@@ -582,29 +667,43 @@ class _GoalSavingsAnalyticsScreenState
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildTargetRow(
-                      dotColor: const Color(0xFF38BDF8),
-                      name: 'Vehicle Upgrade (Hybrid/EV)',
-                      amount: vehicleTargetDisplay,
-                      amountColor: const Color(0xFF38BDF8),
-                      textColor: textPrimary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTargetRow(
-                      dotColor: const Color(0xFFF59E0B),
-                      name: 'Vacation (Ella & Mirissa)',
-                      amount: vacationTargetDisplay,
-                      amountColor: const Color(0xFFF59E0B),
-                      textColor: textPrimary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTargetRow(
-                      dotColor: const Color(0xFFA855F7),
-                      name: 'Tech Workstation',
-                      amount: techTargetDisplay,
-                      amountColor: const Color(0xFFA855F7),
-                      textColor: textPrimary,
-                    ),
+                    if (goals.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'No savings targets available.',
+                          style: TextStyle(color: textSecondary, fontSize: 13),
+                        ),
+                      )
+                    else
+                      ...goals.map((goal) {
+                        String amt;
+                        if (goal.id == 'vehicle_upgrade' ||
+                            goal.title.toLowerCase().contains('vehicle')) {
+                          amt = vehicleTargetDisplay;
+                        } else if (goal.id == 'vacation_fund' ||
+                            goal.title.toLowerCase().contains('vacation')) {
+                          amt = vacationTargetDisplay;
+                        } else if (goal.id == 'emergency_fund' ||
+                            goal.title.toLowerCase().contains('emergency')) {
+                          amt =
+                              'LKR ${(goal.currentAmount / 1000).toInt()}K / ${(goal.targetAmount / 1000).toInt()}K';
+                        } else {
+                          amt =
+                              'LKR ${(goal.currentAmount / 1000).toInt()}K / ${(goal.targetAmount / 1000).toInt()}K';
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildTargetRow(
+                            dotColor: goal.color,
+                            name: goal.title,
+                            amount: amt,
+                            amountColor: goal.color,
+                            textColor: textPrimary,
+                          ),
+                        );
+                      }),
                   ],
                 ),
               ),

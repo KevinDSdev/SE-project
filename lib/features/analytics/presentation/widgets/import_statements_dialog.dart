@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 
@@ -16,10 +17,12 @@ class ImportStatementsDialog extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<ImportStatementsDialog> createState() => _ImportStatementsDialogState();
+  ConsumerState<ImportStatementsDialog> createState() =>
+      _ImportStatementsDialogState();
 }
 
-class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog> {
+class _ImportStatementsDialogState
+    extends ConsumerState<ImportStatementsDialog> {
   String _selectedFormat = 'PDF';
   String _selectedBank = 'Bank of Ceylon (BOC)';
   String? _selectedFileName;
@@ -53,9 +56,7 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(
-          top: BorderSide(color: borderColor, width: 1.5),
-        ),
+        border: Border(top: BorderSide(color: borderColor, width: 1.5)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -92,10 +93,7 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
           ),
           Text(
             'Upload your e-statement (PDF or Excel) to automatically synchronize transactions.',
-            style: TextStyle(
-              color: textSecondary,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 20),
 
@@ -112,9 +110,27 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildFormatChip(label: 'PDF Statement', format: 'PDF', icon: Icons.picture_as_pdf_rounded, color: const Color(0xFFF43F5E), subContainer: subContainer, borderColor: borderColor, textPrimary: textPrimary, textSecondary: textSecondary),
+              _buildFormatChip(
+                label: 'PDF Statement',
+                format: 'PDF',
+                icon: Icons.picture_as_pdf_rounded,
+                color: const Color(0xFFF43F5E),
+                subContainer: subContainer,
+                borderColor: borderColor,
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+              ),
               const SizedBox(width: 12),
-              _buildFormatChip(label: 'Excel (.XLSX)', format: 'XLSX', icon: Icons.table_chart_rounded, color: accentColor, subContainer: subContainer, borderColor: borderColor, textPrimary: textPrimary, textSecondary: textSecondary),
+              _buildFormatChip(
+                label: 'Excel (.XLSX)',
+                format: 'XLSX',
+                icon: Icons.table_chart_rounded,
+                color: accentColor,
+                subContainer: subContainer,
+                borderColor: borderColor,
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -145,7 +161,10 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
                 style: TextStyle(color: textPrimary, fontSize: 14),
                 icon: Icon(Icons.keyboard_arrow_down, color: accentColor),
                 items: _banks
-                    .map((bank) => DropdownMenuItem(value: bank, child: Text(bank)))
+                    .map(
+                      (bank) =>
+                          DropdownMenuItem(value: bank, child: Text(bank)),
+                    )
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedBank = val);
@@ -171,9 +190,7 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
                 color: subContainer,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: _selectedFileName != null
-                      ? accentColor
-                      : borderColor,
+                  color: _selectedFileName != null ? accentColor : borderColor,
                   style: BorderStyle.solid,
                 ),
               ),
@@ -192,9 +209,13 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
                   Text(
                     _selectedFileName ?? 'Tap to select statement file',
                     style: TextStyle(
-                      color: _selectedFileName != null ? textPrimary : textSecondary,
+                      color: _selectedFileName != null
+                          ? textPrimary
+                          : textSecondary,
                       fontSize: 14,
-                      fontWeight: _selectedFileName != null ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: _selectedFileName != null
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                   ),
                   if (_selectedFileName == null)
@@ -229,12 +250,19 @@ class _ImportStatementsDialogState extends ConsumerState<ImportStatementsDialog>
                           backgroundColor: cardBg,
                           content: Row(
                             children: [
-                              Icon(Icons.check_circle, color: accentColor, size: 20),
+                              Icon(
+                                Icons.check_circle,
+                                color: accentColor,
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   'Import completed: 142 records parsed & ready in Analytics.',
-                                  style: TextStyle(color: textPrimary, fontSize: 13),
+                                  style: TextStyle(
+                                    color: textPrimary,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
                             ],

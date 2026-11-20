@@ -32,7 +32,7 @@ class _AnalyticsCustomizationScreenState
     _draftMainStyle = ref.read(mainChartStyleProvider);
     _draftSubTrendStyle = ref.read(subTrendChartStyleProvider);
     _draftSubCategoryStyle = ref.read(subCategoryChartStyleProvider);
-    _draftPeriod = ref.read(selectedPeriodProvider);
+    _draftPeriod = ref.read(savedDefaultPeriodProvider);
   }
 
   Future<void> _savePreferences(
@@ -61,6 +61,7 @@ class _AnalyticsCustomizationScreenState
       ref
           .read(subCategoryChartStyleProvider.notifier)
           .syncState(_draftSubCategoryStyle);
+      ref.read(savedDefaultPeriodProvider.notifier).syncState(_draftPeriod);
       ref.read(selectedPeriodProvider.notifier).syncState(_draftPeriod);
 
       if (!mounted) return;
@@ -84,9 +85,7 @@ class _AnalyticsCustomizationScreenState
       );
       Navigator.of(context).pop();
     } catch (error, stackTrace) {
-      debugPrint(
-        'Failed to save analytics preferences: $error\n$stackTrace',
-      );
+      debugPrint('Failed to save analytics preferences: $error\n$stackTrace');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

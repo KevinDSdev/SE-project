@@ -318,10 +318,18 @@ void main() {
         ChartVisualMode.bar,
       );
 
-      // Simulates tapping Weekly on FinancialAnalyticsScreen.
+      // Simulates tapping Weekly on FinancialAnalyticsScreen (temporary in-memory selection).
       container
           .read(selectedPeriodProvider.notifier)
           .setPeriod(AnalyticsPeriod.weekly);
+      expect(container.read(selectedPeriodProvider), AnalyticsPeriod.weekly);
+      // Temporary period selection must NOT overwrite the saved default in the repository!
+      expect(repository.defaultPeriod, AnalyticsPeriod.yearly);
+
+      // Saved default period updates persist to SQLite.
+      await container
+          .read(savedDefaultPeriodProvider.notifier)
+          .setDefaultPeriod(AnalyticsPeriod.weekly);
 
       // Wait for queued SQLite persistence to finish.
       await repository.close();

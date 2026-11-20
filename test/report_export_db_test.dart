@@ -422,7 +422,8 @@ void main() {
       // Verify defaults match ExportPreferencesState.
       final initial = container.read(exportPreferencesProvider);
       expect(initial.format, ExportPreferencesState.defaultFormat);
-      expect(initial.period, ExportPreferencesState.defaultPeriod);
+      expect(initial.periodType, ExportPreferencesState.defaultPeriod);
+      expect(initial.period, isNotEmpty);
       expect(initial.account, ExportPreferencesState.defaultAccount);
       expect(
         initial.selectedRequirements,
@@ -431,7 +432,7 @@ void main() {
 
       // Update format, period, account, and Select All.
       await notifier.setFormat('Excel (.XLSX)');
-      await notifier.setPeriod('Q3 2026 (Jul - Sep)');
+      await notifier.setPeriod('October 2026');
       await notifier.setAccount('Hatton National Bank');
       await notifier.selectAll(ReportExportPreferences.allRequirementIds);
 
@@ -454,7 +455,7 @@ void main() {
 
       final restored1 = restartedContainer1.read(exportPreferencesProvider);
       expect(restored1.format, 'Excel (.XLSX)');
-      expect(restored1.period, 'Q3 2026 (Jul - Sep)');
+      expect(restored1.period, 'October 2026');
       expect(restored1.account, 'Hatton National Bank');
       expect(
         restored1.selectedRequirements,
@@ -504,7 +505,7 @@ void main() {
           await repository.savePreferences(
             ReportExportPreferences(
               reportFormat: 'Raw Data',
-              periodLabel: 'Year-to-Date 2026',
+              periodLabel: '2026',
               accountScope: 'All Accounts (Consolidated)',
               selectedRequirements: const ['trans_history', 'debt_invest'],
             ),
@@ -529,7 +530,7 @@ void main() {
           ),
         );
 
-        expect(find.text('Year-to-Date 2026'), findsOneWidget);
+        expect(find.text('2026'), findsOneWidget);
         expect(find.text('All Accounts (Consolidated)'), findsOneWidget);
 
         await tester.pumpWidget(

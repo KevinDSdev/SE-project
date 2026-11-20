@@ -17,14 +17,7 @@ class ExpenseAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _ExpenseAnalyticsScreenState
     extends ConsumerState<ExpenseAnalyticsScreen> {
-  String _selectedFilter = 'Food & Groceries';
-
-  final List<String> _filters = [
-    'All (6)',
-    'Food & Groceries',
-    'Transport',
-    'Utilities',
-  ];
+  String? _selectedCategoryId;
 
   void _showPeriodPicker(BuildContext context, AnalyticsPeriod currentPeriod) {
     final accentColor = ref.read(accentColorProvider).color;
@@ -73,7 +66,13 @@ class _ExpenseAnalyticsScreenState
                       ? Icon(Icons.check, color: accentColor)
                       : null,
                   onTap: () {
-                    ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+                    ref
+                        .read(
+                          analyticsScreenPeriodProvider(
+                            AnalyticsScreenType.expense,
+                          ).notifier,
+                        )
+                        .setPeriod(period);
                     Navigator.of(ctx).pop();
                   },
                 );
@@ -95,7 +94,9 @@ class _ExpenseAnalyticsScreenState
 
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
-    final selectedPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.expense),
+    );
 
     final periodLabel = AnalyticsPeriodHelper.getPeriodTypeLabel(
       selectedPeriod,
@@ -302,8 +303,54 @@ class _ExpenseAnalyticsScreenState
         break;
     }
 
-    final currentCat =
-        categoryData[_selectedFilter] ?? categoryData['Food & Groceries']!;
+    final categories = ref.watch(expenseCategoriesProvider);
+
+    // Auto-select first category if none selected, or if selected was deleted
+    if (categories.isNotEmpty) {
+      if (_selectedCategoryId == null ||
+          !categories.any((c) => c.id == _selectedCategoryId)) {
+        _selectedCategoryId = categories.first.id;
+      }
+    } else {
+      _selectedCategoryId = null;
+    }
+
+    final selectedCategory = categories.isNotEmpty
+        ? categories.firstWhere(
+            (c) => c.id == _selectedCategoryId,
+            orElse: () => categories.first,
+          )
+        : null;
+
+    final Map<String, dynamic> currentCat;
+    if (selectedCategory == null) {
+      currentCat = {
+        'title': 'No Category Selected',
+        'budget': 'No Budget',
+        'total': 'LKR 0',
+        'values': List.filled(labels.length, 0.0),
+        'barColor': accentColor,
+        'hasData': false,
+      };
+    } else if (selectedCategory.id == 'exp_1' ||
+        selectedCategory.name.toLowerCase().contains('food')) {
+      currentCat = categoryData['Food & Groceries']!;
+    } else if (selectedCategory.id == 'exp_2' ||
+        selectedCategory.name.toLowerCase().contains('transport')) {
+      currentCat = categoryData['Transport']!;
+    } else if (selectedCategory.id == 'exp_3' ||
+        selectedCategory.name.toLowerCase().contains('utilit')) {
+      currentCat = categoryData['Utilities']!;
+    } else {
+      currentCat = {
+        'title': '${selectedCategory.name} - Spend',
+        'budget': 'No Budget Set',
+        'total': 'LKR 0',
+        'values': List.filled(labels.length, 0.0),
+        'barColor': selectedCategory.color,
+        'hasData': false,
+      };
+    }
 
     return Scaffold(
       backgroundColor: bg,
@@ -420,59 +467,85 @@ class _ExpenseAnalyticsScreenState
               const SizedBox(height: 18),
 
               // Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSel = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedFilter = filter),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSel ? const Color(0xFFF43F5E) : cardBg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSel
-                                  ? const Color(0xFFF43F5E)
-                                  : borderColor,
+              if (categories.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No expense categories available',
+                      style: TextStyle(color: textSecondary, fontSize: 13),
+                    ),
+                  ),
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: categories.map((cat) {
+                      final isSel = _selectedCategoryId == cat.id;
+                      final chipFg = isSel
+                          ? (accentColor.computeLuminance() > 0.5
+                                ? const Color(0xFF0C0F14)
+                                : Colors.white)
+                          : textSecondary;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedCategoryId = cat.id),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 9,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSel ? accentColor : cardBg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSel ? accentColor : borderColor,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: cat.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Text(
+                                  cat.name,
+                                  style: TextStyle(
+                                    color: chipFg,
+                                    fontSize: 13,
+                                    fontWeight: isSel
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                if (isSel) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.check, color: chipFg, size: 14),
+                                ],
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                filter,
-                                style: TextStyle(
-                                  color: isSel ? Colors.white : textSecondary,
-                                  fontSize: 13,
-                                  fontWeight: isSel
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                ),
-                              ),
-                              if (isSel && filter != 'All (6)') ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                              ],
-                            ],
-                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ),
               const SizedBox(height: 18),
 
               // Selected Category Card
@@ -519,6 +592,17 @@ class _ExpenseAnalyticsScreenState
                         ),
                       ],
                     ),
+                    if (currentCat['hasData'] == false) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'No transactions recorded yet for this category',
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     AdaptiveCategoryChart(
                       mode: categoryStyle,
@@ -554,37 +638,41 @@ class _ExpenseAnalyticsScreenState
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildExpenseRow(
-                      dotColor: textPrimary,
-                      name: 'Housing & Rent',
-                      amount: housingAmount,
-                      amountColor: textPrimary,
-                      textColor: textSecondary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildExpenseRow(
-                      dotColor: const Color(0xFFFF5C6C),
-                      name: 'Food & Groceries',
-                      amount: foodAmount,
-                      amountColor: const Color(0xFFFF5C6C),
-                      textColor: textSecondary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildExpenseRow(
-                      dotColor: const Color(0xFFF59E0B),
-                      name: 'Utilities (CEB & Water)',
-                      amount: utilitiesAmount,
-                      amountColor: const Color(0xFFF59E0B),
-                      textColor: textSecondary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildExpenseRow(
-                      dotColor: const Color(0xFF38BDF8),
-                      name: 'Travel & Transport',
-                      amount: transportAmount,
-                      amountColor: const Color(0xFF38BDF8),
-                      textColor: textSecondary,
-                    ),
+                    if (categories.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'No expense categories available.',
+                          style: TextStyle(color: textSecondary, fontSize: 13),
+                        ),
+                      )
+                    else
+                      ...categories.map((cat) {
+                        String amt;
+                        if (cat.id == 'exp_1' ||
+                            cat.name.toLowerCase().contains('food')) {
+                          amt = foodAmount;
+                        } else if (cat.id == 'exp_2' ||
+                            cat.name.toLowerCase().contains('transport')) {
+                          amt = transportAmount;
+                        } else if (cat.id == 'exp_3' ||
+                            cat.name.toLowerCase().contains('utilit')) {
+                          amt = utilitiesAmount;
+                        } else {
+                          amt = 'LKR 0';
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildExpenseRow(
+                            dotColor: cat.color,
+                            name: cat.name,
+                            amount: amt,
+                            amountColor: cat.color,
+                            textColor: textSecondary,
+                          ),
+                        );
+                      }),
                   ],
                 ),
               ),

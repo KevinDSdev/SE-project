@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../providers/analytics_provider.dart';
+import '../services/export_requirements_validator.dart';
 
 /// Immutable model representing the persisted Report Export configuration
 /// (latest selected format, time period, account scope, optional custom date
@@ -23,12 +24,10 @@ class ReportExportPreferences {
   ];
 
   static const List<String> supportedPeriods = <String>[
-    'October 2026',
-    'September 2026',
-    'Q3 2026 (Jul - Sep)',
-    'Year-to-Date 2026',
-    'Last 12 Months',
-    'Custom Range',
+    'Weekly',
+    'Monthly',
+    'Yearly',
+    'Custom',
   ];
 
   static const List<String> supportedAccounts = <String>[
@@ -70,6 +69,10 @@ class ReportExportPreferences {
   final DateTime? startDate;
   final DateTime? endDate;
   final DateTime? updatedAt;
+
+  /// Returns true if at least one valid analytics requirement module is selected.
+  bool get hasValidRequirements =>
+      ExportRequirementsValidator.hasValidRequirements(selectedRequirements);
 
   ReportExportPreferences({
     String profileKey = defaultProfileKey,
@@ -118,13 +121,40 @@ class ReportExportPreferences {
     return fallback;
   }
 
+  /// Checks if [val] is a valid period label (one of the four supported
+  /// options, a dynamic week date range, a dynamic month, a 4-digit year,
+  /// or a preserved historical label).
+  static bool isValidPeriodLabel(String val) {
+    if (_supportedPeriodSet.contains(val)) return true;
+    if (val == 'Custom Range') return true;
+    if (RegExp(r'^\d{4}$').hasMatch(val)) return true;
+    final monthRegex = RegExp(
+      r'^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$',
+      caseSensitive: false,
+    );
+    if (monthRegex.hasMatch(val)) return true;
+    if ((val.contains('–') || val.contains('-')) &&
+        RegExp(r'\d').hasMatch(val)) {
+      return true;
+    }
+    // Also preserve historical choices if loaded from existing database
+    if (val == 'October 2026' ||
+        val == 'September 2026' ||
+        val == 'Q3 2026 (Jul - Sep)' ||
+        val == 'Year-to-Date 2026' ||
+        val == 'Last 12 Months') {
+      return true;
+    }
+    return false;
+  }
+
   static String sanitizePeriod(
     Object? rawValue, {
     String fallback = defaultPeriod,
   }) {
     if (rawValue is String) {
       final normalized = rawValue.trim();
-      if (_supportedPeriodSet.contains(normalized)) {
+      if (isValidPeriodLabel(normalized)) {
         return normalized;
       }
     }

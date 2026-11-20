@@ -17,14 +17,7 @@ class SpendingAnomalyScreen extends ConsumerStatefulWidget {
 
 class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
   int _selectedBucketIndex = -1;
-  String _selectedFilter = 'Food & grocery';
-
-  final List<String> _filters = [
-    'All (4)',
-    'Food & grocery',
-    'Utilities',
-    'Dining',
-  ];
+  String? _selectedCategoryId;
 
   void _showTransactionDetails(FlaggedTransactionItem item) {
     final accentColor = ref.read(accentColorProvider).color;
@@ -190,7 +183,9 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     final borderColor = AppColors.getBorder(isDark);
     final textPrimary = AppColors.getTextPrimary(isDark);
 
-    AnalyticsPeriod tempPeriod = ref.read(selectedPeriodProvider);
+    AnalyticsPeriod tempPeriod = ref.read(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.spendingAnomaly),
+    );
 
     showDialog(
       context: context,
@@ -297,7 +292,12 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                       itemBuilder: (ctx, index) {
                         final b = buckets[index];
                         final isSel =
-                            (tempPeriod == ref.read(selectedPeriodProvider)) &&
+                            (tempPeriod ==
+                                ref.read(
+                                  analyticsScreenPeriodProvider(
+                                    AnalyticsScreenType.spendingAnomaly,
+                                  ),
+                                )) &&
                             ((_selectedBucketIndex == index) ||
                                 (_selectedBucketIndex == -1 &&
                                     index == buckets.length - 1));
@@ -326,7 +326,11 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                               : null,
                           onTap: () {
                             ref
-                                .read(selectedPeriodProvider.notifier)
+                                .read(
+                                  analyticsScreenPeriodProvider(
+                                    AnalyticsScreenType.spendingAnomaly,
+                                  ).notifier,
+                                )
                                 .setPeriod(tempPeriod);
                             setState(() {
                               _selectedBucketIndex = index;
@@ -521,7 +525,9 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     final textSecondary = AppColors.getTextSecondary(isDark);
     final subContainer = AppColors.getSubContainer(isDark);
 
-    final selectedPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(
+      analyticsScreenPeriodProvider(AnalyticsScreenType.spendingAnomaly),
+    );
     final buckets = AnalyticsPeriodHelper.getBucketsForPeriod(selectedPeriod);
     final activeIndex =
         (_selectedBucketIndex >= 0 && _selectedBucketIndex < buckets.length)
@@ -531,6 +537,25 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
 
     // Period-dependent data
     final List<double> spikeLineValues;
+    final categories = ref.watch(expenseCategoriesProvider);
+
+    // Auto-select first category if none selected, or if selected was deleted
+    if (categories.isNotEmpty) {
+      if (_selectedCategoryId == null ||
+          !categories.any((c) => c.id == _selectedCategoryId)) {
+        _selectedCategoryId = categories.first.id;
+      }
+    } else {
+      _selectedCategoryId = null;
+    }
+
+    final selectedCategory = categories.isNotEmpty
+        ? categories.firstWhere(
+            (c) => c.id == _selectedCategoryId,
+            orElse: () => categories.first,
+          )
+        : null;
+
     final String spikeHeaderAmount;
     final List<double> anomalyBarValues;
     final double anomalyMaxVal;
@@ -538,60 +563,172 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
     final String anomalyCardTotal;
     final String baselineNormalText;
     final String actualSpendText;
+    final bool hasAnomalies;
 
-    switch (selectedPeriod) {
-      case AnalyticsPeriod.weekly:
-        spikeHeaderAmount = 'LKR 45,000';
-        spikeLineValues = const [32000, 36000, 34000, 45000];
-        anomalyCardTotal = 'LKR 30,000';
-        anomalyBarValues = const [15000, 22000, 18000, 30000];
-        anomalyMaxVal = 35000;
-        anomalyYLabels = const ['30k', '20k', '10k'];
-        baselineNormalText = 'LKR 65,000';
-        actualSpendText = 'LKR 83,500';
-        break;
-      case AnalyticsPeriod.yearly:
-        spikeHeaderAmount = 'LKR 2,000,000';
-        spikeLineValues = const [
-          900000,
-          1050000,
-          1200000,
-          1400000,
-          1650000,
-          2000000,
-        ];
-        anomalyCardTotal = 'LKR 1,500,000';
-        anomalyBarValues = const [
-          120000,
-          150000,
-          180000,
-          220000,
-          250000,
-          310000,
-        ];
-        anomalyMaxVal = 350000;
-        anomalyYLabels = const ['300k', '200k', '100k'];
-        baselineNormalText = 'LKR 3,400,000';
-        actualSpendText = 'LKR 3,822,000';
-        break;
-      case AnalyticsPeriod.monthly:
-      default:
-        spikeHeaderAmount = 'LKR 200,000';
-        spikeLineValues = const [
-          120000,
-          125000,
-          124000,
-          145000,
-          138000,
-          200000,
-        ];
-        anomalyCardTotal = 'LKR 142,000';
-        anomalyBarValues = const [20000, 25000, 15000, 27000, 25000, 30000];
-        anomalyMaxVal = 35000;
-        anomalyYLabels = const ['30k', '20k', '10k'];
-        baselineNormalText = 'LKR 280,000';
-        actualSpendText = 'LKR 300,000';
-        break;
+    if (selectedCategory == null) {
+      spikeHeaderAmount = 'LKR 0';
+      spikeLineValues = List.filled(buckets.length, 0.0);
+      anomalyCardTotal = 'LKR 0';
+      anomalyBarValues = List.filled(buckets.length, 0.0);
+      anomalyMaxVal = 10000;
+      anomalyYLabels = const ['0', '0', '0'];
+      baselineNormalText = 'LKR 0';
+      actualSpendText = 'LKR 0';
+      hasAnomalies = false;
+    } else if (selectedCategory.id == 'exp_1' ||
+        selectedCategory.name.toLowerCase().contains('food')) {
+      hasAnomalies = true;
+      switch (selectedPeriod) {
+        case AnalyticsPeriod.weekly:
+          spikeHeaderAmount = 'LKR 45,000';
+          spikeLineValues = const [32000, 36000, 34000, 45000];
+          anomalyCardTotal = 'LKR 30,000';
+          anomalyBarValues = const [15000, 22000, 18000, 30000];
+          anomalyMaxVal = 35000;
+          anomalyYLabels = const ['30k', '20k', '10k'];
+          baselineNormalText = 'LKR 65,000';
+          actualSpendText = 'LKR 83,500';
+          break;
+        case AnalyticsPeriod.yearly:
+          spikeHeaderAmount = 'LKR 2,000,000';
+          spikeLineValues = const [
+            900000,
+            1050000,
+            1200000,
+            1400000,
+            1650000,
+            2000000,
+          ];
+          anomalyCardTotal = 'LKR 1,500,000';
+          anomalyBarValues = const [
+            120000,
+            150000,
+            180000,
+            220000,
+            250000,
+            310000,
+          ];
+          anomalyMaxVal = 350000;
+          anomalyYLabels = const ['300k', '200k', '100k'];
+          baselineNormalText = 'LKR 3,400,000';
+          actualSpendText = 'LKR 3,822,000';
+          break;
+        case AnalyticsPeriod.monthly:
+        default:
+          spikeHeaderAmount = 'LKR 200,000';
+          spikeLineValues = const [
+            120000,
+            125000,
+            124000,
+            145000,
+            138000,
+            200000,
+          ];
+          anomalyCardTotal = 'LKR 142,000';
+          anomalyBarValues = const [20000, 25000, 15000, 27000, 25000, 30000];
+          anomalyMaxVal = 35000;
+          anomalyYLabels = const ['30k', '20k', '10k'];
+          baselineNormalText = 'LKR 280,000';
+          actualSpendText = 'LKR 300,000';
+          break;
+      }
+    } else if (selectedCategory.id == 'exp_3' ||
+        selectedCategory.name.toLowerCase().contains('utilit')) {
+      hasAnomalies = true;
+      switch (selectedPeriod) {
+        case AnalyticsPeriod.weekly:
+          spikeHeaderAmount = 'LKR 15,000';
+          spikeLineValues = const [8000, 9500, 9000, 15000];
+          anomalyCardTotal = 'LKR 8,000';
+          anomalyBarValues = const [5000, 7000, 6000, 8000];
+          anomalyMaxVal = 10000;
+          anomalyYLabels = const ['10k', '7k', '4k'];
+          baselineNormalText = 'LKR 8,000';
+          actualSpendText = 'LKR 11,200';
+          break;
+        case AnalyticsPeriod.yearly:
+          spikeHeaderAmount = 'LKR 600,000';
+          spikeLineValues = const [
+            300000,
+            350000,
+            400000,
+            460000,
+            520000,
+            600000,
+          ];
+          anomalyCardTotal = 'LKR 150,000';
+          anomalyBarValues = const [40000, 50000, 60000, 80000, 100000, 150000];
+          anomalyMaxVal = 160000;
+          anomalyYLabels = const ['150k', '100k', '50k'];
+          baselineNormalText = 'LKR 450,000';
+          actualSpendText = 'LKR 510,000';
+          break;
+        case AnalyticsPeriod.monthly:
+        default:
+          spikeHeaderAmount = 'LKR 65,000';
+          spikeLineValues = const [38000, 41000, 39000, 44000, 42000, 65000];
+          anomalyCardTotal = 'LKR 13,000';
+          anomalyBarValues = const [8000, 9500, 9000, 11000, 10000, 13000];
+          anomalyMaxVal = 15000;
+          anomalyYLabels = const ['15k', '10k', '5k'];
+          baselineNormalText = 'LKR 40,000';
+          actualSpendText = 'LKR 45,000';
+          break;
+      }
+    } else if (selectedCategory.id == 'exp_2' ||
+        selectedCategory.name.toLowerCase().contains('transport')) {
+      hasAnomalies = true;
+      switch (selectedPeriod) {
+        case AnalyticsPeriod.weekly:
+          spikeHeaderAmount = 'LKR 12,000';
+          spikeLineValues = const [6000, 7500, 7000, 12000];
+          anomalyCardTotal = 'LKR 4,500';
+          anomalyBarValues = const [3000, 4000, 3500, 4500];
+          anomalyMaxVal = 6000;
+          anomalyYLabels = const ['6k', '4k', '2k'];
+          baselineNormalText = 'LKR 6,000';
+          actualSpendText = 'LKR 8,500';
+          break;
+        case AnalyticsPeriod.yearly:
+          spikeHeaderAmount = 'LKR 450,000';
+          spikeLineValues = const [
+            220000,
+            260000,
+            290000,
+            340000,
+            380000,
+            450000,
+          ];
+          anomalyCardTotal = 'LKR 95,000';
+          anomalyBarValues = const [25000, 30000, 35000, 45000, 60000, 95000];
+          anomalyMaxVal = 100000;
+          anomalyYLabels = const ['100k', '60k', '30k'];
+          baselineNormalText = 'LKR 320,000';
+          actualSpendText = 'LKR 380,000';
+          break;
+        case AnalyticsPeriod.monthly:
+        default:
+          spikeHeaderAmount = 'LKR 48,000';
+          spikeLineValues = const [28000, 31000, 29000, 33000, 31000, 48000];
+          anomalyCardTotal = 'LKR 6,500';
+          anomalyBarValues = const [4000, 4500, 4200, 5000, 4800, 6500];
+          anomalyMaxVal = 8000;
+          anomalyYLabels = const ['8k', '5k', '3k'];
+          baselineNormalText = 'LKR 28,000';
+          actualSpendText = 'LKR 32,500';
+          break;
+      }
+    } else {
+      // Custom category without anomaly spikes
+      spikeHeaderAmount = 'LKR 0';
+      spikeLineValues = List.filled(buckets.length, 0.0);
+      anomalyCardTotal = 'LKR 0';
+      anomalyBarValues = List.filled(buckets.length, 0.0);
+      anomalyMaxVal = 10000;
+      anomalyYLabels = const ['0', '0', '0'];
+      baselineNormalText = 'LKR 0';
+      actualSpendText = 'LKR 0';
+      hasAnomalies = false;
     }
 
     final chartLabels = buckets.map((b) => b.label).toList();
@@ -702,51 +839,88 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
               const SizedBox(height: 14),
 
               // 2. Filter Chips Row
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSel = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedFilter = filter),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSel ? const Color(0xFFFF6464) : cardBg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSel
-                                  ? const Color(0xFFFF6464)
-                                  : borderColor,
+              if (categories.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No expense categories available',
+                      style: TextStyle(color: textSecondary, fontSize: 13),
+                    ),
+                  ),
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: categories.map((cat) {
+                      final isSel = _selectedCategoryId == cat.id;
+                      final chipFg = isSel
+                          ? (accentColor.computeLuminance() > 0.5
+                                ? const Color(0xFF0C0F14)
+                                : Colors.white)
+                          : textSecondary;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedCategoryId = cat.id),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 9,
                             ),
-                          ),
-                          child: Text(
-                            filter,
-                            style: TextStyle(
-                              color: isSel
-                                  ? const Color(0xFF0C0F14)
-                                  : textSecondary,
-                              fontSize: 12.5,
-                              fontWeight: isSel
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                            decoration: BoxDecoration(
+                              color: isSel ? accentColor : cardBg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSel ? accentColor : borderColor,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: cat.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Text(
+                                  cat.name,
+                                  style: TextStyle(
+                                    color: chipFg,
+                                    fontSize: 12.5,
+                                    fontWeight: isSel
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                if (isSel) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.check, color: chipFg, size: 14),
+                                ],
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ),
               const SizedBox(height: 14),
 
-              // 3. Food & Grocery - Anomaly Bar Chart Card
+              // 3. Category - Anomaly Bar Chart Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -759,7 +933,7 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Food & Grocery - Anomaly',
+                      '${selectedCategory?.name ?? "Category"} - Anomaly',
                       style: TextStyle(
                         color: textPrimary,
                         fontSize: 15,
@@ -776,16 +950,31 @@ class _SpendingAnomalyScreenState extends ConsumerState<SpendingAnomalyScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildAnomalyVerticalBarChart(
-                      buckets: buckets,
-                      activeIndex: activeIndex,
-                      values: anomalyBarValues,
-                      maxVal: anomalyMaxVal,
-                      yLabels: anomalyYLabels,
-                      accentColor: accentColor,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                    ),
+                    if (!hasAnomalies)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text(
+                            'No unusual spending anomalies detected for ${selectedCategory?.name ?? "this category"}.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      _buildAnomalyVerticalBarChart(
+                        buckets: buckets,
+                        activeIndex: activeIndex,
+                        values: anomalyBarValues,
+                        maxVal: anomalyMaxVal,
+                        yLabels: anomalyYLabels,
+                        accentColor: accentColor,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      ),
                   ],
                 ),
               ),

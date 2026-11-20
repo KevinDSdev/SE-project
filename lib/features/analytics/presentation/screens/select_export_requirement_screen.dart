@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
@@ -132,7 +133,9 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 7),
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
                         color: accentColor,
                         borderRadius: BorderRadius.circular(20),
@@ -154,8 +157,10 @@ class SelectExportRequirementScreen extends ConsumerWidget {
               // Selected Counter Pill
               Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
@@ -180,12 +185,12 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                 final Color iconColor = mod.id == 'trans_history'
                     ? const Color(0xFF3B82F6)
                     : mod.id == 'goal_savings'
-                        ? const Color(0xFFE11D48)
-                        : mod.id == 'exp_pred'
-                            ? const Color(0xFFE11D48)
-                            : mod.id == 'debt_invest'
-                                ? const Color(0xFFB45309)
-                                : const Color(0xFF65A30D);
+                    ? const Color(0xFFE11D48)
+                    : mod.id == 'exp_pred'
+                    ? const Color(0xFFE11D48)
+                    : mod.id == 'debt_invest'
+                    ? const Color(0xFFB45309)
+                    : const Color(0xFF65A30D);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -197,7 +202,9 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: mod.cardColor,
                         borderRadius: BorderRadius.circular(16),
@@ -211,11 +218,7 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(
-                              mod.icon,
-                              color: iconColor,
-                              size: 22,
-                            ),
+                            child: Icon(mod.icon, color: iconColor, size: 22),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -275,10 +278,7 @@ class SelectExportRequirementScreen extends ConsumerWidget {
                   ),
                   child: const Text(
                     'Confirm',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

@@ -99,10 +99,26 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                _buildSortTile('Newest First', HistorySortOption.newest, textPrimary),
-                _buildSortTile('Oldest First', HistorySortOption.oldest, textPrimary),
-                _buildSortTile('Highest Amount', HistorySortOption.highest, textPrimary),
-                _buildSortTile('Lowest Amount', HistorySortOption.lowest, textPrimary),
+                _buildSortTile(
+                  'Newest First',
+                  HistorySortOption.newest,
+                  textPrimary,
+                ),
+                _buildSortTile(
+                  'Oldest First',
+                  HistorySortOption.oldest,
+                  textPrimary,
+                ),
+                _buildSortTile(
+                  'Highest Amount',
+                  HistorySortOption.highest,
+                  textPrimary,
+                ),
+                _buildSortTile(
+                  'Lowest Amount',
+                  HistorySortOption.lowest,
+                  textPrimary,
+                ),
               ],
             ),
           ),
@@ -111,7 +127,11 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     );
   }
 
-  Widget _buildSortTile(String title, HistorySortOption option, Color textPrimary) {
+  Widget _buildSortTile(
+    String title,
+    HistorySortOption option,
+    Color textPrimary,
+  ) {
     final isSelected = _selectedSort == option;
 
     return ListTile(
@@ -521,10 +541,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                       decoration: BoxDecoration(
                         color: cardBg,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: borderColor,
-                          width: 1.2,
-                        ),
+                        border: Border.all(color: borderColor, width: 1.2),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -662,9 +679,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                           child: Text(
                             'No transactions found',
                             style: TextStyle(
-                              color: textSecondary.withValues(
-                                alpha: 0.8,
-                              ),
+                              color: textSecondary.withValues(alpha: 0.8),
                               fontSize: 14,
                             ),
                           ),
@@ -725,9 +740,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected
-                ? const Color(0xFF0C0F14)
-                : textSecondary,
+            color: isSelected ? const Color(0xFF0C0F14) : textSecondary,
             fontSize: 12.5,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
           ),
@@ -745,8 +758,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     Color textSecondary,
   ) {
     final isIncome = item.type == TransactionType.income;
-    final incomeTextColor =
-        isDark ? AppColors.primary : const Color(0xFF4D7C0F);
+    final incomeTextColor = isDark
+        ? AppColors.primary
+        : const Color(0xFF4D7C0F);
 
     return GestureDetector(
       onTap: () {
@@ -791,10 +805,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   const SizedBox(height: 3),
                   Text(
                     item.subtitle,
-                    style: TextStyle(
-                      color: textSecondary,
-                      fontSize: 11.5,
-                    ),
+                    style: TextStyle(color: textSecondary, fontSize: 11.5),
                   ),
                 ],
               ),

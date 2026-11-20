@@ -18,7 +18,6 @@ import 'package:prot/features/profile/presentation/profile_screen.dart';
 import 'package:prot/features/settings/presentation/screens/app_info_screen.dart';
 import 'package:prot/features/settings/presentation/settings_screen.dart';
 import 'package:prot/features/settings/providers/settings_provider.dart';
-import 'package:prot/features/budget/presentation/budget_setup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -85,7 +84,7 @@ void main() {
       expect(find.text('Dashboard Layout'), findsOneWidget);
       expect(find.text('Reset'), findsOneWidget);
       expect(find.text('Active Dashboard Layout'), findsOneWidget);
-      expect(find.text('Available Widgets to Add'), findsOneWidget);
+      expect(find.text('Available Analytics to Add'), findsOneWidget);
       expect(find.text('Save Preferences'), findsOneWidget);
     },
   );
@@ -124,7 +123,7 @@ void main() {
     expect(find.text('Category Breakdown'), findsOneWidget);
     expect(find.text('Customize Sectors & Categories'), findsOneWidget);
     expect(find.text('Set Dashboard Layout'), findsOneWidget);
-    expect(find.text('Save & Apply Customization'), findsOneWidget);
+    expect(find.text('Save Preferences'), findsOneWidget);
   });
 
   testWidgets('Categories Customization screen renders tabs and items', (
@@ -138,7 +137,6 @@ void main() {
     expect(find.text('Income Methods'), findsOneWidget);
     expect(find.text('Expense Categories'), findsOneWidget);
     expect(find.text('Primary Salary'), findsOneWidget);
-    expect(find.text('Apply Layout to All 3 Sub-Dashboards'), findsOneWidget);
     expect(find.text('Save & Apply Customization'), findsOneWidget);
   });
 
@@ -193,7 +191,7 @@ void main() {
 
     expect(find.text('Expense Analytics'), findsOneWidget);
     expect(find.text('LKR 318,500'), findsOneWidget);
-    expect(find.text('Categories Breakdown'), findsOneWidget);
+    expect(find.text('Categories Distribution'), findsOneWidget);
   });
 
   testWidgets('Goal Savings Analytics renders cushion and targets', (
@@ -203,9 +201,9 @@ void main() {
       createTestWidget(const GoalSavingsAnalyticsScreen()),
     );
 
-    expect(find.text('Goal Savings Analytics'), findsOneWidget);
-    expect(find.text('LKR 108,000'), findsOneWidget);
-    expect(find.text('Emergency Fund (6-Months Cushion)'), findsOneWidget);
+    expect(find.text('Goal Savings'), findsOneWidget);
+    expect(find.text('LKR 2,450,000'), findsOneWidget);
+    expect(find.text('Emergency Fund (6 Months Cushion)'), findsOneWidget);
     expect(find.text('Other Active Savings Targets'), findsOneWidget);
   });
 
@@ -220,10 +218,9 @@ void main() {
       expect(find.text('Expected Next Month Expense'), findsOneWidget);
       expect(find.text('LKR 68,000'), findsOneWidget);
       expect(find.text('Past 5 Months vs. Nov Forecast'), findsOneWidget);
-      expect(find.text('All Outflows'), findsOneWidget);
-      expect(find.text('Food & Grocery'), findsOneWidget);
+      expect(find.text('Food & Groceries'), findsOneWidget);
       expect(find.text('Transport'), findsOneWidget);
-      expect(find.text('Biils'), findsOneWidget);
+      expect(find.text('Utilities'), findsOneWidget);
 
       // Verify Income Prediction screen/tab is completely removed
       expect(find.text('Income Forecast'), findsNothing);
@@ -259,8 +256,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(const SpendingAnomalyScreen()));
 
       expect(find.text('Anomaly Analysis'), findsOneWidget);
-      expect(find.text('Unusual Spendings'), findsOneWidget);
-      expect(find.text('Category Spike Breakdown'), findsOneWidget);
+      expect(find.text('Food & Groceries - Anomaly'), findsOneWidget);
       expect(find.text('Flagged Transactions'), findsOneWidget);
       expect(find.text('Dismiss'), findsOneWidget);
       expect(find.text('CEB Electricity Bill'), findsOneWidget);
@@ -332,28 +328,19 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Categories Customization navigates to BudgetSetupScreen for expense categories',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createTestWidget(
-          const CategoriesCustomizationScreen(
-            initialTab: CustomizationTab.expenseCategories,
-          ),
+  testWidgets('Categories Customization has no category creation controls', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      createTestWidget(
+        const CategoriesCustomizationScreen(
+          initialTab: CustomizationTab.expenseCategories,
         ),
-      );
+      ),
+    );
 
-      expect(
-        find.text('+ Add Custom Expense Source or Category'),
-        findsOneWidget,
-      );
-
-      // Tap Add Custom Expense Category
-      await tester.tap(find.text('+ Add Custom Expense Source or Category'));
-      await tester.pumpAndSettle();
-
-      // Verify it navigated to BudgetSetupScreen
-      expect(find.byType(BudgetSetupScreen), findsOneWidget);
-    },
-  );
+    expect(find.text('+ Add Custom Expense Source or Category'), findsNothing);
+    expect(find.text('+ Add Custom Income Source or Category'), findsNothing);
+    expect(find.byType(TextField), findsNothing);
+  });
 }
