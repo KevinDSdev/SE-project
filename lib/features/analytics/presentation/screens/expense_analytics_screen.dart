@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
+import '../../services/analytics_period_helper.dart';
 import '../widgets/analytics_chart_widgets.dart';
 
 class ExpenseAnalyticsScreen extends ConsumerStatefulWidget {
@@ -13,9 +15,9 @@ class ExpenseAnalyticsScreen extends ConsumerStatefulWidget {
       _ExpenseAnalyticsScreenState();
 }
 
-class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen> {
+class _ExpenseAnalyticsScreenState
+    extends ConsumerState<ExpenseAnalyticsScreen> {
   String _selectedFilter = 'Food & Groceries';
-  String? _customPeriodLabel;
 
   final List<String> _filters = [
     'All (6)',
@@ -24,49 +26,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
     'Utilities',
   ];
 
-  final List<String> _months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
-  final List<double> _totalTrend = [54000, 68500, 38000, 46000, 62000, 50000];
-
-  final Map<String, Map<String, dynamic>> _categoryData = {
-    'Food & Groceries': {
-      'title': 'Food & Groceries - Monthly Spend',
-      'budget': 'Budget: LKR 70K',
-      'total': 'LKR 65,000',
-      'values': [14500.0, 18200.0, 12000.0, 11000.0, 5200.0, 4100.0],
-      'barColor': const Color(0xFFF59E0B),
-      'alternateColor': const Color(0xFFFF5C6C),
-      'alternateIndex': 1,
-    },
-    'Transport': {
-      'title': 'Transport - Fuel & Rides',
-      'budget': 'Budget: LKR 35K',
-      'total': 'LKR 32,500',
-      'values': [5200.0, 6100.0, 4800.0, 5500.0, 5900.0, 5000.0],
-      'barColor': const Color(0xFF38BDF8),
-      'alternateColor': const Color(0xFFFF5C6C),
-      'alternateIndex': 1,
-    },
-    'Utilities': {
-      'title': 'Utilities - Electricity & Water',
-      'budget': 'Budget: LKR 50K',
-      'total': 'LKR 45,000',
-      'values': [7200.0, 8100.0, 7400.0, 7600.0, 7500.0, 7200.0],
-      'barColor': const Color(0xFFF59E0B),
-      'alternateColor': const Color(0xFFFF5C6C),
-      'alternateIndex': 1,
-    },
-    'All (6)': {
-      'title': 'Total Monthly Outflow Across Categories',
-      'budget': 'Budget: LKR 350K',
-      'total': 'LKR 318,500',
-      'values': [54000.0, 68500.0, 38000.0, 46000.0, 62000.0, 50000.0],
-      'barColor': const Color(0xFFF59E0B),
-      'alternateColor': const Color(0xFFFF5C6C),
-      'alternateIndex': 1,
-    },
-  };
-
-  void _showPeriodPicker(BuildContext context, String currentPeriod) {
+  void _showPeriodPicker(BuildContext context, AnalyticsPeriod currentPeriod) {
     final accentColor = ref.read(accentColorProvider).color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = AppColors.getCard(isDark);
@@ -91,30 +51,33 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            'Monthly : 2026',
-            'Weekly : 2026',
-            'Q3 : 2026',
-            'Q2 : 2026',
-            'Yearly : 2026',
-          ].map((period) {
-            return ListTile(
-              title: Text(
-                period,
-                style: TextStyle(
-                  color: textPrimary,
-                  fontSize: 14,
-                ),
-              ),
-              trailing: currentPeriod == period
-                  ? Icon(Icons.check, color: accentColor)
-                  : null,
-              onTap: () {
-                setState(() => _customPeriodLabel = period);
-                Navigator.of(ctx).pop();
-              },
-            );
-          }).toList(),
+          children:
+              [
+                (AnalyticsPeriod.weekly, 'Weekly : 2026'),
+                (AnalyticsPeriod.monthly, 'Monthly : 2026'),
+                (AnalyticsPeriod.yearly, 'Yearly : 2026'),
+              ].map((item) {
+                final period = item.$1;
+                final label = item.$2;
+                final isSel = currentPeriod == period;
+                return ListTile(
+                  title: Text(
+                    label,
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: 14,
+                      fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  trailing: isSel
+                      ? Icon(Icons.check, color: accentColor)
+                      : null,
+                  onTap: () {
+                    ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+                    Navigator.of(ctx).pop();
+                  },
+                );
+              }).toList(),
         ),
       ),
     );
@@ -132,17 +95,215 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
 
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
-    final defaultPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(selectedPeriodProvider);
 
-    final periodLabel = _customPeriodLabel ??
-        (defaultPeriod == AnalyticsPeriod.weekly
-            ? 'Weekly : 2026'
-            : defaultPeriod == AnalyticsPeriod.yearly
-                ? 'Yearly : 2026'
-                : 'Monthly : 2026');
+    final periodLabel = AnalyticsPeriodHelper.getPeriodTypeLabel(
+      selectedPeriod,
+    );
+    final labels = AnalyticsPeriodHelper.getLabelsForPeriod(selectedPeriod);
+    final lastIndex = (labels.length - 1).clamp(0, 10);
+
+    final String totalAmountDisplay;
+    final List<double> totalTrend;
+    final Map<String, Map<String, dynamic>> categoryData;
+    final String housingAmount;
+    final String foodAmount;
+    final String utilitiesAmount;
+    final String transportAmount;
+
+    switch (selectedPeriod) {
+      case AnalyticsPeriod.weekly:
+        totalAmountDisplay = 'LKR 83,500';
+        totalTrend = const [75000, 82000, 78000, 83500];
+        housingAmount = 'LKR 30,000';
+        foodAmount = 'LKR 18,200';
+        utilitiesAmount = 'LKR 11,200';
+        transportAmount = 'LKR 8,500';
+        categoryData = {
+          'Food & Groceries': {
+            'title': 'Food & Groceries - Weekly Spend',
+            'budget': 'Budget: LKR 20K',
+            'total': 'LKR 18,200',
+            'values': const [14500.0, 18200.0, 12000.0, 11000.0],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'Transport': {
+            'title': 'Transport - Fuel & Rides',
+            'budget': 'Budget: LKR 10K',
+            'total': 'LKR 8,500',
+            'values': const [5200.0, 6100.0, 4800.0, 5500.0],
+            'barColor': const Color(0xFF38BDF8),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'Utilities': {
+            'title': 'Utilities - Electricity & Water',
+            'budget': 'Budget: LKR 12K',
+            'total': 'LKR 11,200',
+            'values': const [7200.0, 8100.0, 7400.0, 7600.0],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'All (6)': {
+            'title': 'Total Weekly Outflow Across Categories',
+            'budget': 'Budget: LKR 90K',
+            'total': 'LKR 83,500',
+            'values': const [75000.0, 82000.0, 78000.0, 83500.0],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+        };
+        break;
+      case AnalyticsPeriod.yearly:
+        totalAmountDisplay = 'LKR 3,822,000';
+        totalTrend = const [
+          3200000,
+          3500000,
+          3700000,
+          3900000,
+          3800000,
+          3822000,
+        ];
+        housingAmount = 'LKR 1,440,000';
+        foodAmount = 'LKR 780,000';
+        utilitiesAmount = 'LKR 540,000';
+        transportAmount = 'LKR 390,000';
+        categoryData = {
+          'Food & Groceries': {
+            'title': 'Food & Groceries - Annual Spend',
+            'budget': 'Budget: LKR 840K',
+            'total': 'LKR 780,000',
+            'values': const [
+              650000.0,
+              680000.0,
+              710000.0,
+              740000.0,
+              760000.0,
+              780000.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'Transport': {
+            'title': 'Transport - Fuel & Rides',
+            'budget': 'Budget: LKR 420K',
+            'total': 'LKR 390,000',
+            'values': const [
+              320000.0,
+              340000.0,
+              360000.0,
+              370000.0,
+              380000.0,
+              390000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'Utilities': {
+            'title': 'Utilities - Electricity & Water',
+            'budget': 'Budget: LKR 600K',
+            'total': 'LKR 540,000',
+            'values': const [
+              450000.0,
+              480000.0,
+              500000.0,
+              520000.0,
+              530000.0,
+              540000.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'All (6)': {
+            'title': 'Total Annual Outflow Across Categories',
+            'budget': 'Budget: LKR 4.2M',
+            'total': 'LKR 3,822,000',
+            'values': const [
+              3200000.0,
+              3500000.0,
+              3700000.0,
+              3900000.0,
+              3800000.0,
+              3822000.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+        };
+        break;
+      case AnalyticsPeriod.monthly:
+      default:
+        totalAmountDisplay = 'LKR 318,500';
+        totalTrend = const [54000, 68500, 38000, 46000, 62000, 50000];
+        housingAmount = 'LKR 120,000';
+        foodAmount = 'LKR 65,000';
+        utilitiesAmount = 'LKR 45,000';
+        transportAmount = 'LKR 32,500';
+        categoryData = {
+          'Food & Groceries': {
+            'title': 'Food & Groceries - Monthly Spend',
+            'budget': 'Budget: LKR 70K',
+            'total': 'LKR 65,000',
+            'values': const [
+              14500.0,
+              18200.0,
+              12000.0,
+              11000.0,
+              5200.0,
+              4100.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'Transport': {
+            'title': 'Transport - Fuel & Rides',
+            'budget': 'Budget: LKR 35K',
+            'total': 'LKR 32,500',
+            'values': const [5200.0, 6100.0, 4800.0, 5500.0, 5900.0, 5000.0],
+            'barColor': const Color(0xFF38BDF8),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'Utilities': {
+            'title': 'Utilities - Electricity & Water',
+            'budget': 'Budget: LKR 50K',
+            'total': 'LKR 45,000',
+            'values': const [7200.0, 8100.0, 7400.0, 7600.0, 7500.0, 7200.0],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+          'All (6)': {
+            'title': 'Total Monthly Outflow Across Categories',
+            'budget': 'Budget: LKR 350K',
+            'total': 'LKR 318,500',
+            'values': const [
+              54000.0,
+              68500.0,
+              38000.0,
+              46000.0,
+              62000.0,
+              50000.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'alternateColor': const Color(0xFFFF5C6C),
+            'alternateIndex': 1,
+          },
+        };
+        break;
+    }
 
     final currentCat =
-        _categoryData[_selectedFilter] ?? _categoryData['Food & Groceries']!;
+        categoryData[_selectedFilter] ?? categoryData['Food & Groceries']!;
 
     return Scaffold(
       backgroundColor: bg,
@@ -188,7 +349,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => _showPeriodPicker(context, periodLabel),
+                    onTap: () => _showPeriodPicker(context, selectedPeriod),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -219,7 +380,10 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF281519) : cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFFF6464), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFFFF6464),
+                    width: 1.5,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,9 +398,9 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'LKR 318,500',
-                      style: TextStyle(
+                    Text(
+                      totalAmountDisplay,
+                      style: const TextStyle(
                         color: Color(0xFFFF6464),
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -245,10 +409,10 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     const SizedBox(height: 16),
                     AdaptiveTrendChart(
                       mode: trendStyle,
-                      labels: _months,
-                      values: _totalTrend,
+                      labels: labels,
+                      values: totalTrend,
                       color: const Color(0xFFFF6464),
-                      selectedIndex: 5,
+                      selectedIndex: lastIndex,
                     ),
                   ],
                 ),
@@ -272,9 +436,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                             vertical: 9,
                           ),
                           decoration: BoxDecoration(
-                            color: isSel
-                                ? const Color(0xFFF43F5E)
-                                : cardBg,
+                            color: isSel ? const Color(0xFFF43F5E) : cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSel
@@ -288,12 +450,11 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                               Text(
                                 filter,
                                 style: TextStyle(
-                                  color: isSel
-                                      ? Colors.white
-                                      : textSecondary,
+                                  color: isSel ? Colors.white : textSecondary,
                                   fontSize: 13,
-                                  fontWeight:
-                                      isSel ? FontWeight.w700 : FontWeight.w500,
+                                  fontWeight: isSel
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
                                 ),
                               ),
                               if (isSel && filter != 'All (6)') ...[
@@ -353,7 +514,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                           style: TextStyle(
                             color: textSecondary,
                             fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -361,14 +522,11 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     const SizedBox(height: 16),
                     AdaptiveCategoryChart(
                       mode: categoryStyle,
-                      months: _months,
+                      months: labels,
                       values: currentCat['values'] as List<double>,
                       barColor: currentCat['barColor'] as Color,
                       alternateBarColor: currentCat['alternateColor'] as Color?,
-                      labelColor: isDark ? const Color(0xFFE2E8F0) : textPrimary,
-                      selectedLabelColor: const Color(0xFFFF5C6C),
-                      selectedMonthColor: const Color(0xFFB0B7C3),
-                      selectedIndex: (currentCat['alternateIndex'] as int?) ?? 1,
+                      selectedIndex: lastIndex,
                     ),
                   ],
                 ),
@@ -399,7 +557,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     _buildExpenseRow(
                       dotColor: textPrimary,
                       name: 'Housing & Rent',
-                      amount: 'LKR 120,000',
+                      amount: housingAmount,
                       amountColor: textPrimary,
                       textColor: textSecondary,
                     ),
@@ -407,7 +565,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     _buildExpenseRow(
                       dotColor: const Color(0xFFFF5C6C),
                       name: 'Food & Groceries',
-                      amount: 'LKR 65,000',
+                      amount: foodAmount,
                       amountColor: const Color(0xFFFF5C6C),
                       textColor: textSecondary,
                     ),
@@ -415,7 +573,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     _buildExpenseRow(
                       dotColor: const Color(0xFFF59E0B),
                       name: 'Utilities (CEB & Water)',
-                      amount: 'LKR 45,000',
+                      amount: utilitiesAmount,
                       amountColor: const Color(0xFFF59E0B),
                       textColor: textSecondary,
                     ),
@@ -423,7 +581,7 @@ class _ExpenseAnalyticsScreenState extends ConsumerState<ExpenseAnalyticsScreen>
                     _buildExpenseRow(
                       dotColor: const Color(0xFF38BDF8),
                       name: 'Travel & Transport',
-                      amount: 'LKR 32,500',
+                      amount: transportAmount,
                       amountColor: const Color(0xFF38BDF8),
                       textColor: textSecondary,
                     ),

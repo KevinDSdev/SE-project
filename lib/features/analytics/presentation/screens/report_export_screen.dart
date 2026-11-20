@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
@@ -40,32 +41,64 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            'October 2026',
-            'September 2026',
-            'Q3 2026 (Jul - Sep)',
-            'Year-to-Date 2026',
-            'Last 12 Months',
-          ].map((p) {
-            final isSel = currentPeriod == p;
-            return ListTile(
-              title: Text(
-                p,
-                style: TextStyle(
-                  color: isSel ? accentColor : textPrimary,
-                  fontSize: 14,
-                  fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-              trailing: isSel
-                  ? Icon(Icons.check, color: accentColor)
-                  : null,
-              onTap: () {
-                ref.read(exportPreferencesProvider.notifier).setPeriod(p);
-                Navigator.of(ctx).pop();
-              },
-            );
-          }).toList(),
+          children:
+              [
+                'October 2026',
+                'September 2026',
+                'Q3 2026 (Jul - Sep)',
+                'Year-to-Date 2026',
+                'Last 12 Months',
+                'Custom Range',
+              ].map((p) {
+                final isSel = currentPeriod == p;
+                return ListTile(
+                  title: Text(
+                    p,
+                    style: TextStyle(
+                      color: isSel ? accentColor : textPrimary,
+                      fontSize: 14,
+                      fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  trailing: isSel
+                      ? Icon(Icons.check, color: accentColor)
+                      : null,
+                  onTap: () async {
+                    if (p == 'Custom Range') {
+                      Navigator.of(ctx).pop();
+                      final currentStart = ref
+                          .read(exportPreferencesProvider)
+                          .startDate;
+                      final currentEnd = ref
+                          .read(exportPreferencesProvider)
+                          .endDate;
+                      final picked = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                        initialDateRange:
+                            currentStart != null && currentEnd != null
+                            ? DateTimeRange(
+                                start: currentStart,
+                                end: currentEnd,
+                              )
+                            : DateTimeRange(
+                                start: DateTime(2026, 10, 1),
+                                end: DateTime(2026, 10, 31),
+                              ),
+                      );
+                      if (picked != null) {
+                        await ref
+                            .read(exportPreferencesProvider.notifier)
+                            .setCustomDateRange(picked.start, picked.end);
+                      }
+                    } else {
+                      ref.read(exportPreferencesProvider.notifier).setPeriod(p);
+                      Navigator.of(ctx).pop();
+                    }
+                  },
+                );
+              }).toList(),
         ),
       ),
     );
@@ -96,32 +129,35 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            'BOC',
-            'Commercial Bank',
-            'Hatton National Bank',
-            'Cash Wallet',
-            'All Accounts (Consolidated)',
-          ].map((acc) {
-            final isSel = currentAccount == acc;
-            return ListTile(
-              title: Text(
-                acc,
-                style: TextStyle(
-                  color: isSel ? accentColor : textPrimary,
-                  fontSize: 14,
-                  fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-              trailing: isSel
-                  ? Icon(Icons.check, color: accentColor)
-                  : null,
-              onTap: () {
-                ref.read(exportPreferencesProvider.notifier).setAccount(acc);
-                Navigator.of(ctx).pop();
-              },
-            );
-          }).toList(),
+          children:
+              [
+                'BOC',
+                'Commercial Bank',
+                'Hatton National Bank',
+                'Cash Wallet',
+                'All Accounts (Consolidated)',
+              ].map((acc) {
+                final isSel = currentAccount == acc;
+                return ListTile(
+                  title: Text(
+                    acc,
+                    style: TextStyle(
+                      color: isSel ? accentColor : textPrimary,
+                      fontSize: 14,
+                      fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  trailing: isSel
+                      ? Icon(Icons.check, color: accentColor)
+                      : null,
+                  onTap: () {
+                    ref
+                        .read(exportPreferencesProvider.notifier)
+                        .setAccount(acc);
+                    Navigator.of(ctx).pop();
+                  },
+                );
+              }).toList(),
         ),
       ),
     );
@@ -179,11 +215,30 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _infoRow('Format', prefs.format, textPrimary: textPrimary, textSecondary: textSecondary),
-            _infoRow('Scope', prefs.period, textPrimary: textPrimary, textSecondary: textSecondary),
-            _infoRow('Account', prefs.account, textPrimary: textPrimary, textSecondary: textSecondary),
-            _infoRow('Included',
-                '${prefs.selectedRequirements.length} analytics modules', textPrimary: textPrimary, textSecondary: textSecondary),
+            _infoRow(
+              'Format',
+              prefs.format,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+            ),
+            _infoRow(
+              'Scope',
+              prefs.period,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+            ),
+            _infoRow(
+              'Account',
+              prefs.account,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+            ),
+            _infoRow(
+              'Included',
+              '${prefs.selectedRequirements.length} analytics modules',
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+            ),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(10),
@@ -193,10 +248,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               ),
               child: Text(
                 'Demo notice: The report structure has been compiled. In full production, this saves directly to your device downloads folder.',
-                style: TextStyle(
-                  color: textSecondary,
-                  fontSize: 11,
-                ),
+                style: TextStyle(color: textSecondary, fontSize: 11),
               ),
             ),
           ],
@@ -211,7 +263,10 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Done', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Done',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -253,28 +308,19 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
           children: [
             Text(
               'Ready to send generated summary report via WhatsApp.',
-              style: TextStyle(
-                color: textPrimary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: textPrimary, fontSize: 14),
             ),
             const SizedBox(height: 10),
             Text(
               'Demo notice: In production this will invoke the WhatsApp sharing intent with encrypted attachment.',
-              style: TextStyle(
-                color: textSecondary,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: textSecondary, fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: textSecondary),
-            ),
+            child: Text('Cancel', style: TextStyle(color: textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -301,27 +347,28 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Share Now',
-                style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Share Now',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _infoRow(String label, String value, {required Color textPrimary, required Color textSecondary}) {
+  Widget _infoRow(
+    String label,
+    String value, {
+    required Color textPrimary,
+    required Color textSecondary,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: textSecondary,
-              fontSize: 12,
-            ),
-          ),
+          Text(label, style: TextStyle(color: textSecondary, fontSize: 12)),
           Text(
             value,
             style: TextStyle(
@@ -485,11 +532,14 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                     // Time Period
                     InkWell(
                       onTap: () => _showPeriodPicker(accentColor),
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -502,7 +552,11 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                               ),
                             ),
                             Text(
-                              exportPrefs.period,
+                              exportPrefs.period == 'Custom Range' &&
+                                      exportPrefs.startDate != null &&
+                                      exportPrefs.endDate != null
+                                  ? '${exportPrefs.startDate!.month}/${exportPrefs.startDate!.day} – ${exportPrefs.endDate!.month}/${exportPrefs.endDate!.day}/${exportPrefs.endDate!.year}'
+                                  : exportPrefs.period,
                               style: TextStyle(
                                 color: accentColor,
                                 fontSize: 14,
@@ -513,18 +567,18 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      height: 1,
-                      color: borderColor,
-                    ),
+                    Container(height: 1, color: borderColor),
                     // Accounts
                     InkWell(
                       onTap: () => _showAccountPicker(accentColor),
                       borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(20)),
+                        bottom: Radius.circular(20),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -596,14 +650,13 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 15),
+                      horizontal: 18,
+                      vertical: 15,
+                    ),
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: accentColor,
-                        width: 1.2,
-                      ),
+                      border: Border.all(color: accentColor, width: 1.2),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -681,10 +734,7 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                   ),
                   child: const Text(
                     'Share to WhatsApp',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -730,8 +780,8 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
               color: isSelected
                   ? accentColor
                   : (isDark
-                      ? Colors.white.withValues(alpha: 0.65)
-                      : borderColor),
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : borderColor),
               width: isSelected ? 1.8 : 1,
             ),
           ),
@@ -761,8 +811,9 @@ class _ReportExportScreenState extends ConsumerState<ReportExportScreen> {
                         style: TextStyle(
                           color: isSelected ? accentColor : textSecondary,
                           fontSize: 9.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

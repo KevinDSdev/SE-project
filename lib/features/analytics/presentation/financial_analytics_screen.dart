@@ -7,6 +7,7 @@ import '../../../core/navigation/slide_route.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../providers/analytics_provider.dart';
+import '../services/analytics_period_helper.dart';
 import 'screens/expense_analytics_screen.dart';
 import 'screens/goal_savings_analytics_screen.dart';
 import 'screens/income_analytics_screen.dart';
@@ -30,30 +31,10 @@ class _FinancialAnalyticsScreenState
   int _selectedMonthIndex = 5; // Default October / last entry
 
   final List<Map<String, dynamic>> _weeklyData = [
-    {
-      'month': 'W1',
-      'income': 120000.0,
-      'expense': 75000.0,
-      'savings': 5000.0,
-    },
-    {
-      'month': 'W2',
-      'income': 135000.0,
-      'expense': 82000.0,
-      'savings': 6000.0,
-    },
-    {
-      'month': 'W3',
-      'income': 130000.0,
-      'expense': 78000.0,
-      'savings': 4000.0,
-    },
-    {
-      'month': 'W4',
-      'income': 150000.0,
-      'expense': 83500.0,
-      'savings': 5000.0,
-    },
+    {'month': 'W1', 'income': 120000.0, 'expense': 75000.0, 'savings': 5000.0},
+    {'month': 'W2', 'income': 135000.0, 'expense': 82000.0, 'savings': 6000.0},
+    {'month': 'W3', 'income': 130000.0, 'expense': 78000.0, 'savings': 4000.0},
+    {'month': 'W4', 'income': 150000.0, 'expense': 83500.0, 'savings': 5000.0},
   ];
 
   final List<Map<String, dynamic>> _monthlyData = [
@@ -153,7 +134,13 @@ class _FinancialAnalyticsScreenState
     final String chartTitle;
     switch (selectedPeriod) {
       case AnalyticsPeriod.weekly:
-        currentData = _weeklyData;
+        final weeklyBuckets = AnalyticsPeriodHelper.getWeeklyBuckets();
+        currentData = List.generate(_weeklyData.length, (i) {
+          final label = i < weeklyBuckets.length
+              ? weeklyBuckets[i].label
+              : 'W${i + 1}';
+          return {..._weeklyData[i], 'month': label};
+        });
         chartTitle = 'Income vs Expenses (Weekly)';
         break;
       case AnalyticsPeriod.monthly:
@@ -174,8 +161,8 @@ class _FinancialAnalyticsScreenState
 
     final double activeIncome = (activeItem['income'] as num).toDouble();
     final double activeExpense = (activeItem['expense'] as num).toDouble();
-    final double activeSavings =
-        ((activeItem['savings'] ?? 20000.0) as num).toDouble();
+    final double activeSavings = ((activeItem['savings'] ?? 20000.0) as num)
+        .toDouble();
 
     final showIncome = activeIds.contains('active_income');
     final showExpense = activeIds.contains('active_expenses');
@@ -240,10 +227,7 @@ class _FinancialAnalyticsScreenState
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: accentColor,
-                    width: 1.2,
-                  ),
+                  border: Border.all(color: accentColor, width: 1.2),
                 ),
                 child: Row(
                   children: [
@@ -285,9 +269,9 @@ class _FinancialAnalyticsScreenState
                           color: const Color(0xFF98E836),
                           textColor: const Color(0xFF0C0F14),
                           onTap: () {
-                            Navigator.of(context).push(
-                              slideRoute(const IncomeAnalyticsScreen()),
-                            );
+                            Navigator.of(
+                              context,
+                            ).push(slideRoute(const IncomeAnalyticsScreen()));
                           },
                         ),
                       ),
@@ -301,14 +285,13 @@ class _FinancialAnalyticsScreenState
                           color: const Color(0xFFF43F5E),
                           textColor: const Color(0xFF0C0F14),
                           onTap: () {
-                            Navigator.of(context).push(
-                              slideRoute(const ExpenseAnalyticsScreen()),
-                            );
+                            Navigator.of(
+                              context,
+                            ).push(slideRoute(const ExpenseAnalyticsScreen()));
                           },
                         ),
                       ),
-                    if (showExpense && showSavings)
-                      const SizedBox(width: 10),
+                    if (showExpense && showSavings) const SizedBox(width: 10),
                     if (showSavings)
                       Expanded(
                         child: _buildSummaryCard(
@@ -354,8 +337,11 @@ class _FinancialAnalyticsScreenState
                           ),
                           Row(
                             children: [
-                              const Icon(Icons.circle,
-                                  color: Color(0xFF98E836), size: 8),
+                              const Icon(
+                                Icons.circle,
+                                color: Color(0xFF98E836),
+                                size: 8,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'In',
@@ -365,8 +351,11 @@ class _FinancialAnalyticsScreenState
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              const Icon(Icons.circle,
-                                  color: Color(0xFFF43F5E), size: 8),
+                              const Icon(
+                                Icons.circle,
+                                color: Color(0xFFF43F5E),
+                                size: 8,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'Ex',
@@ -425,6 +414,7 @@ class _FinancialAnalyticsScreenState
                 textPrimary,
                 textSecondary,
                 ref.watch(subTrendChartStyleProvider),
+                selectedPeriod,
               ),
 
               // Quick Actions Grid (4 cards: Exactly matching 1. Financial Analytics Dashboard.png)
@@ -442,9 +432,8 @@ class _FinancialAnalyticsScreenState
                       iconBgColor: Colors.white,
                       iconColor: const Color(0xFFE11D48),
                       onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const PredictionAnalysisScreen()),
-                        );
+                        Navigator.of(context)
+                            .push(slideRoute(const PredictionAnalysisScreen()));
                       },
                     ),
                   ),
@@ -461,9 +450,8 @@ class _FinancialAnalyticsScreenState
                       iconBgColor: Colors.white,
                       iconColor: const Color(0xFFF97316),
                       onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const SpendingAnomalyScreen()),
-                        );
+                        Navigator.of(context)
+                            .push(slideRoute(const SpendingAnomalyScreen()));
                       },
                     ),
                   ),
@@ -501,9 +489,8 @@ class _FinancialAnalyticsScreenState
                       iconBgColor: const Color(0xFF2563EB),
                       iconColor: Colors.white,
                       onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const ReportExportScreen()),
-                        );
+                        Navigator.of(context)
+                            .push(slideRoute(const ReportExportScreen()));
                       },
                     ),
                   ),
@@ -526,9 +513,93 @@ class _FinancialAnalyticsScreenState
     Color textPrimary,
     Color textSecondary,
     ChartVisualMode subTrendStyle,
+    AnalyticsPeriod selectedPeriod,
   ) {
     final widgets = <Widget>[];
-    const months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+    final labels = AnalyticsPeriodHelper.getLabelsForPeriod(selectedPeriod);
+    final lastIndex = (labels.length - 1).clamp(0, 10);
+
+    // Dynamic aggregated totals and values reflecting selected period
+    final List<double> incomeTrendValues;
+    final String incomeTotalDisplay;
+    final List<double> expenseTrendValues;
+    final String expenseTotalDisplay;
+    final List<double> savingsTrendValues;
+    final String savingsTotalDisplay;
+    final List<double> anomalyTrendValues;
+
+    switch (selectedPeriod) {
+      case AnalyticsPeriod.weekly:
+        incomeTrendValues = const [120000, 135000, 130000, 150000];
+        incomeTotalDisplay = 'LKR 150,000';
+        expenseTrendValues = const [75000, 82000, 78000, 83500];
+        expenseTotalDisplay = 'LKR 83,500';
+        savingsTrendValues = const [5000, 6000, 4000, 5000];
+        savingsTotalDisplay = 'LKR 5,000';
+        anomalyTrendValues = const [130000, 145000, 138000, 200000];
+        break;
+      case AnalyticsPeriod.yearly:
+        incomeTrendValues = const [
+          4800000,
+          5200000,
+          5800000,
+          6100000,
+          6300000,
+          6420000,
+        ];
+        incomeTotalDisplay = 'LKR 6,420,000';
+        expenseTrendValues = const [
+          3200000,
+          3500000,
+          3700000,
+          3900000,
+          3800000,
+          3822000,
+        ];
+        expenseTotalDisplay = 'LKR 3,822,000';
+        savingsTrendValues = const [
+          200000,
+          240000,
+          280000,
+          300000,
+          320000,
+          350000,
+        ];
+        savingsTotalDisplay = 'LKR 350,000';
+        anomalyTrendValues = const [
+          900000,
+          1050000,
+          1200000,
+          1400000,
+          1650000,
+          2000000,
+        ];
+        break;
+      case AnalyticsPeriod.monthly:
+      default:
+        incomeTrendValues = const [65000, 70000, 72000, 90000, 83000, 155000];
+        incomeTotalDisplay = 'LKR 535,000';
+        expenseTrendValues = const [54000, 68500, 38000, 46000, 62000, 50000];
+        expenseTotalDisplay = 'LKR 318,500';
+        savingsTrendValues = const [
+          250000,
+          320000,
+          380000,
+          440000,
+          480000,
+          580000,
+        ];
+        savingsTotalDisplay = 'LKR 2,450,000';
+        anomalyTrendValues = const [
+          120000,
+          125000,
+          124000,
+          145000,
+          138000,
+          200000,
+        ];
+        break;
+    }
 
     // 1. Income Analytics Specialized Dashboard Card
     if (activeIds.contains('avail_inc_analytics')) {
@@ -536,17 +607,16 @@ class _FinancialAnalyticsScreenState
         Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              slideRoute(const IncomeAnalyticsScreen()),
-            ),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(slideRoute(const IncomeAnalyticsScreen())),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF152512) : cardBg,
                 borderRadius: BorderRadius.circular(22),
-                border:
-                    Border.all(color: const Color(0xFF98E836), width: 1.5),
+                border: Border.all(color: const Color(0xFF98E836), width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,9 +641,9 @@ class _FinancialAnalyticsScreenState
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'LKR 535,000',
-                    style: TextStyle(
+                  Text(
+                    incomeTotalDisplay,
+                    style: const TextStyle(
                       color: Color(0xFF98E836),
                       fontSize: 25,
                       fontWeight: FontWeight.w800,
@@ -582,10 +652,10 @@ class _FinancialAnalyticsScreenState
                   const SizedBox(height: 14),
                   AdaptiveTrendChart(
                     mode: subTrendStyle,
-                    labels: months,
-                    values: const [65000, 70000, 72000, 90000, 83000, 155000],
+                    labels: labels,
+                    values: incomeTrendValues,
                     color: const Color(0xFF98E836),
-                    selectedIndex: 5,
+                    selectedIndex: lastIndex,
                   ),
                 ],
               ),
@@ -601,17 +671,16 @@ class _FinancialAnalyticsScreenState
         Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              slideRoute(const ExpenseAnalyticsScreen()),
-            ),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(slideRoute(const ExpenseAnalyticsScreen())),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF281519) : cardBg,
                 borderRadius: BorderRadius.circular(22),
-                border:
-                    Border.all(color: const Color(0xFFFF6464), width: 1.5),
+                border: Border.all(color: const Color(0xFFFF6464), width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,9 +705,9 @@ class _FinancialAnalyticsScreenState
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'LKR 318,500',
-                    style: TextStyle(
+                  Text(
+                    expenseTotalDisplay,
+                    style: const TextStyle(
                       color: Color(0xFFFF6464),
                       fontSize: 25,
                       fontWeight: FontWeight.w800,
@@ -647,10 +716,10 @@ class _FinancialAnalyticsScreenState
                   const SizedBox(height: 14),
                   AdaptiveTrendChart(
                     mode: subTrendStyle,
-                    labels: months,
-                    values: const [54000, 68500, 38000, 46000, 62000, 50000],
+                    labels: labels,
+                    values: expenseTrendValues,
                     color: const Color(0xFFFF6464),
-                    selectedIndex: 5,
+                    selectedIndex: lastIndex,
                   ),
                 ],
               ),
@@ -666,17 +735,16 @@ class _FinancialAnalyticsScreenState
         Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              slideRoute(const GoalSavingsAnalyticsScreen()),
-            ),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(slideRoute(const GoalSavingsAnalyticsScreen())),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF10212B) : cardBg,
                 borderRadius: BorderRadius.circular(22),
-                border:
-                    Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+                border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -701,9 +769,9 @@ class _FinancialAnalyticsScreenState
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'LKR 2,450,000',
-                    style: TextStyle(
+                  Text(
+                    savingsTotalDisplay,
+                    style: const TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 25,
                       fontWeight: FontWeight.w800,
@@ -712,17 +780,10 @@ class _FinancialAnalyticsScreenState
                   const SizedBox(height: 14),
                   AdaptiveTrendChart(
                     mode: subTrendStyle,
-                    labels: months,
-                    values: const [
-                      250000,
-                      320000,
-                      380000,
-                      440000,
-                      480000,
-                      580000
-                    ],
+                    labels: labels,
+                    values: savingsTrendValues,
                     color: const Color(0xFF38BDF8),
-                    selectedIndex: 5,
+                    selectedIndex: lastIndex,
                   ),
                 ],
               ),
@@ -821,9 +882,9 @@ class _FinancialAnalyticsScreenState
         Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              slideRoute(const PredictionAnalysisScreen()),
-            ),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(slideRoute(const PredictionAnalysisScreen())),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
@@ -858,8 +919,10 @@ class _FinancialAnalyticsScreenState
                           const SizedBox(width: 4),
                           Text(
                             'Actual',
-                            style:
-                                TextStyle(color: textSecondary, fontSize: 11),
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 11,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           const Icon(
@@ -910,17 +973,16 @@ class _FinancialAnalyticsScreenState
         Padding(
           padding: const EdgeInsets.only(bottom: 18),
           child: GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              slideRoute(const SpendingAnomalyScreen()),
-            ),
+            onTap: () =>
+                Navigator.of(context)
+                    .push(slideRoute(const SpendingAnomalyScreen())),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF281519) : cardBg,
                 borderRadius: BorderRadius.circular(22),
-                border:
-                    Border.all(color: const Color(0xFFF43F5E), width: 1.5),
+                border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -967,17 +1029,10 @@ class _FinancialAnalyticsScreenState
                   ),
                   const SizedBox(height: 10),
                   CurvedTrendLineChart(
-                    labels: months,
-                    values: const [
-                      120000,
-                      125000,
-                      124000,
-                      145000,
-                      138000,
-                      200000
-                    ],
+                    labels: labels,
+                    values: anomalyTrendValues,
                     lineColor: const Color(0xFFF43F5E),
-                    selectedIndex: 5,
+                    selectedIndex: lastIndex,
                     height: 115,
                     valueFormatter: (v) => '',
                   ),
@@ -1014,9 +1069,7 @@ class _FinancialAnalyticsScreenState
             child: Text(
               label,
               style: TextStyle(
-                color: isSelected
-                    ? const Color(0xFF0C0F14)
-                    : textSecondary,
+                color: isSelected ? const Color(0xFF0C0F14) : textSecondary,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
@@ -1132,9 +1185,7 @@ class _FinancialAnalyticsScreenState
                 color: iconBgColor,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Center(
-                child: Icon(icon, color: iconColor, size: 20),
-              ),
+              child: Center(child: Icon(icon, color: iconColor, size: 20)),
             ),
             const SizedBox(width: 8),
             Expanded(

@@ -10,7 +10,7 @@ import 'analytics_customization_storage.dart';
 /// Report Export preferences.
 class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
   static const String databaseName = 'finpulse_analytics_customization.db';
-  static const int databaseVersion = 3;
+  static const int databaseVersion = 4;
   static const String tableName = 'analytics_customization_preferences';
   static const String dashboardLayoutTableName = 'dashboard_layout_preferences';
   static const String reportExportTableName = 'report_export_preferences';
@@ -54,6 +54,8 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
       period_label TEXT NOT NULL DEFAULT 'October 2026',
       account_scope TEXT NOT NULL DEFAULT 'BOC',
       selected_requirements TEXT NOT NULL,
+      start_date TEXT,
+      end_date TEXT,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   ''';
@@ -106,6 +108,13 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
           }
           if (oldVersion < 3) {
             await db.execute(createReportExportTableSql);
+          } else if (oldVersion < 4) {
+            await db.execute(
+              'ALTER TABLE $reportExportTableName ADD COLUMN start_date TEXT;',
+            );
+            await db.execute(
+              'ALTER TABLE $reportExportTableName ADD COLUMN end_date TEXT;',
+            );
           }
         },
       ),

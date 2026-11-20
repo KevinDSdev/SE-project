@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
+import '../../services/analytics_period_helper.dart';
 import '../widgets/analytics_chart_widgets.dart';
 
 class GoalSavingsAnalyticsScreen extends ConsumerStatefulWidget {
@@ -16,7 +18,6 @@ class GoalSavingsAnalyticsScreen extends ConsumerStatefulWidget {
 class _GoalSavingsAnalyticsScreenState
     extends ConsumerState<GoalSavingsAnalyticsScreen> {
   String _selectedFilter = 'Emergency Fund';
-  String? _customPeriodLabel;
 
   final List<String> _filters = [
     'All (4)',
@@ -25,70 +26,7 @@ class _GoalSavingsAnalyticsScreenState
     'Vacation',
   ];
 
-  final List<String> _months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
-  final List<double> _totalTrend = [
-    250000,
-    320000,
-    380000,
-    440000,
-    480000,
-    580000
-  ];
-
-  final Map<String, Map<String, dynamic>> _goalsData = {
-    'Emergency Fund': {
-      'title': 'Emergency Fund (6 Months Cushion)',
-      'target': '/ 1,500,000',
-      'total': 'LKR 1,450,000',
-      'progress': 0.967,
-      'values': [
-        170000.0,
-        200000.0,
-        230000.0,
-        250000.0,
-        260000.0,
-        340000.0
-      ],
-      'barColor': const Color(0xFF38BDF8),
-      'activeOctColor': const Color(0xFF98E836),
-    },
-    'Vehicle': {
-      'title': 'Vehicle Upgrade (Hybrid/EV)',
-      'target': '/ 2,500,000',
-      'total': 'LKR 700,000',
-      'progress': 0.28,
-      'values': [80000.0, 95000.0, 110000.0, 120000.0, 140000.0, 155000.0],
-      'barColor': const Color(0xFF38BDF8),
-      'activeOctColor': const Color(0xFF98E836),
-    },
-    'Vacation': {
-      'title': 'Vacation (Ella & Mirissa)',
-      'target': '/ 250,000',
-      'total': 'LKR 200,000',
-      'progress': 0.80,
-      'values': [20000.0, 25000.0, 30000.0, 35000.0, 40000.0, 50000.0],
-      'barColor': const Color(0xFFF59E0B),
-      'activeOctColor': const Color(0xFF98E836),
-    },
-    'All (4)': {
-      'title': 'All Savings Goals Combined',
-      'target': '/ 4,400,000',
-      'total': 'LKR 2,450,000',
-      'progress': 0.56,
-      'values': [
-        250000.0,
-        320000.0,
-        380000.0,
-        440000.0,
-        480000.0,
-        580000.0
-      ],
-      'barColor': const Color(0xFF38BDF8),
-      'activeOctColor': const Color(0xFF98E836),
-    },
-  };
-
-  void _showPeriodPicker(BuildContext context, String currentPeriod) {
+  void _showPeriodPicker(BuildContext context, AnalyticsPeriod currentPeriod) {
     final accentColor = ref.read(accentColorProvider).color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = AppColors.getCard(isDark);
@@ -113,30 +51,33 @@ class _GoalSavingsAnalyticsScreenState
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            'Monthly : 2026',
-            'Weekly : 2026',
-            'Q3 : 2026',
-            'Q2 : 2026',
-            'Yearly : 2026',
-          ].map((period) {
-            return ListTile(
-              title: Text(
-                period,
-                style: TextStyle(
-                  color: textPrimary,
-                  fontSize: 14,
-                ),
-              ),
-              trailing: currentPeriod == period
-                  ? Icon(Icons.check, color: accentColor)
-                  : null,
-              onTap: () {
-                setState(() => _customPeriodLabel = period);
-                Navigator.of(ctx).pop();
-              },
-            );
-          }).toList(),
+          children:
+              [
+                (AnalyticsPeriod.weekly, 'Weekly : 2026'),
+                (AnalyticsPeriod.monthly, 'Monthly : 2026'),
+                (AnalyticsPeriod.yearly, 'Yearly : 2026'),
+              ].map((item) {
+                final period = item.$1;
+                final label = item.$2;
+                final isSel = currentPeriod == period;
+                return ListTile(
+                  title: Text(
+                    label,
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: 14,
+                      fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  trailing: isSel
+                      ? Icon(Icons.check, color: accentColor)
+                      : null,
+                  onTap: () {
+                    ref.read(selectedPeriodProvider.notifier).setPeriod(period);
+                    Navigator.of(ctx).pop();
+                  },
+                );
+              }).toList(),
         ),
       ),
     );
@@ -155,17 +96,225 @@ class _GoalSavingsAnalyticsScreenState
 
     final trendStyle = ref.watch(subTrendChartStyleProvider);
     final categoryStyle = ref.watch(subCategoryChartStyleProvider);
-    final defaultPeriod = ref.watch(selectedPeriodProvider);
+    final selectedPeriod = ref.watch(selectedPeriodProvider);
 
-    final periodLabel = _customPeriodLabel ??
-        (defaultPeriod == AnalyticsPeriod.weekly
-            ? 'Weekly : 2026'
-            : defaultPeriod == AnalyticsPeriod.yearly
-                ? 'Yearly : 2026'
-                : 'Monthly : 2026');
+    final periodLabel = AnalyticsPeriodHelper.getPeriodTypeLabel(
+      selectedPeriod,
+    );
+    final labels = AnalyticsPeriodHelper.getLabelsForPeriod(selectedPeriod);
+    final lastIndex = (labels.length - 1).clamp(0, 10);
+
+    final String totalAmountDisplay;
+    final List<double> totalTrend;
+    final Map<String, Map<String, dynamic>> goalsData;
+    final String vehicleTargetDisplay;
+    final String vacationTargetDisplay;
+    final String techTargetDisplay;
+
+    switch (selectedPeriod) {
+      case AnalyticsPeriod.weekly:
+        totalAmountDisplay = 'LKR 48,000';
+        totalTrend = const [35000, 42000, 38000, 48000];
+        vehicleTargetDisplay = 'LKR 14K / 50K';
+        vacationTargetDisplay = 'LKR 6K / 10K';
+        techTargetDisplay = 'LKR 4K / 5K';
+        goalsData = {
+          'Emergency Fund': {
+            'title': 'Emergency Fund (Weekly Contribution)',
+            'target': '/ 30,000',
+            'total': 'LKR 28,000',
+            'progress': 0.933,
+            'values': const [20000.0, 25000.0, 22000.0, 28000.0],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'Vehicle': {
+            'title': 'Vehicle Upgrade (Weekly Contribution)',
+            'target': '/ 50,000',
+            'total': 'LKR 14,000',
+            'progress': 0.28,
+            'values': const [10000.0, 12000.0, 11000.0, 14000.0],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'Vacation': {
+            'title': 'Vacation (Weekly Contribution)',
+            'target': '/ 10,000',
+            'total': 'LKR 6,000',
+            'progress': 0.60,
+            'values': const [5000.0, 5000.0, 5000.0, 6000.0],
+            'barColor': const Color(0xFFF59E0B),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'All (4)': {
+            'title': 'All Weekly Contributions Combined',
+            'target': '/ 90,000',
+            'total': 'LKR 48,000',
+            'progress': 0.53,
+            'values': const [35000.0, 42000.0, 38000.0, 48000.0],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+        };
+        break;
+      case AnalyticsPeriod.yearly:
+        totalAmountDisplay = 'LKR 2,450,000';
+        totalTrend = const [
+          900000,
+          1200000,
+          1500000,
+          1800000,
+          2100000,
+          2450000,
+        ];
+        vehicleTargetDisplay = 'LKR 700K / 2.5M';
+        vacationTargetDisplay = 'LKR 200K / 250K';
+        techTargetDisplay = 'LKR 100K / 150K';
+        goalsData = {
+          'Emergency Fund': {
+            'title': 'Emergency Fund (6 Months Cushion)',
+            'target': '/ 1,500,000',
+            'total': 'LKR 1,450,000',
+            'progress': 0.967,
+            'values': const [
+              500000.0,
+              700000.0,
+              900000.0,
+              1100000.0,
+              1300000.0,
+              1450000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'Vehicle': {
+            'title': 'Vehicle Upgrade (Hybrid/EV)',
+            'target': '/ 2,500,000',
+            'total': 'LKR 700,000',
+            'progress': 0.28,
+            'values': const [
+              250000.0,
+              320000.0,
+              400000.0,
+              500000.0,
+              600000.0,
+              700000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'Vacation': {
+            'title': 'Vacation (Ella & Mirissa)',
+            'target': '/ 250,000',
+            'total': 'LKR 200,000',
+            'progress': 0.80,
+            'values': const [
+              150000.0,
+              180000.0,
+              200000.0,
+              200000.0,
+              200000.0,
+              200000.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'All (4)': {
+            'title': 'All Savings Goals Combined',
+            'target': '/ 4,400,000',
+            'total': 'LKR 2,450,000',
+            'progress': 0.56,
+            'values': const [
+              900000.0,
+              1200000.0,
+              1500000.0,
+              1800000.0,
+              2100000.0,
+              2450000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+        };
+        break;
+      case AnalyticsPeriod.monthly:
+      default:
+        totalAmountDisplay = 'LKR 2,450,000';
+        totalTrend = const [250000, 320000, 380000, 440000, 480000, 580000];
+        vehicleTargetDisplay = 'LKR 700K / 2.5M';
+        vacationTargetDisplay = 'LKR 200K / 250K';
+        techTargetDisplay = 'LKR 100K / 150K';
+        goalsData = {
+          'Emergency Fund': {
+            'title': 'Emergency Fund (6 Months Cushion)',
+            'target': '/ 1,500,000',
+            'total': 'LKR 1,450,000',
+            'progress': 0.967,
+            'values': const [
+              170000.0,
+              200000.0,
+              230000.0,
+              250000.0,
+              260000.0,
+              340000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'Vehicle': {
+            'title': 'Vehicle Upgrade (Hybrid/EV)',
+            'target': '/ 2,500,000',
+            'total': 'LKR 700,000',
+            'progress': 0.28,
+            'values': const [
+              80000.0,
+              95000.0,
+              110000.0,
+              120000.0,
+              140000.0,
+              155000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'Vacation': {
+            'title': 'Vacation (Ella & Mirissa)',
+            'target': '/ 250,000',
+            'total': 'LKR 200,000',
+            'progress': 0.80,
+            'values': const [
+              20000.0,
+              25000.0,
+              30000.0,
+              35000.0,
+              40000.0,
+              50000.0,
+            ],
+            'barColor': const Color(0xFFF59E0B),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+          'All (4)': {
+            'title': 'All Savings Goals Combined',
+            'target': '/ 4,400,000',
+            'total': 'LKR 2,450,000',
+            'progress': 0.56,
+            'values': const [
+              250000.0,
+              320000.0,
+              380000.0,
+              440000.0,
+              480000.0,
+              580000.0,
+            ],
+            'barColor': const Color(0xFF38BDF8),
+            'activeOctColor': const Color(0xFF98E836),
+          },
+        };
+        break;
+    }
 
     final currentGoal =
-        _goalsData[_selectedFilter] ?? _goalsData['Emergency Fund']!;
+        goalsData[_selectedFilter] ?? goalsData['Emergency Fund']!;
 
     return Scaffold(
       backgroundColor: bg,
@@ -201,7 +350,7 @@ class _GoalSavingsAnalyticsScreenState
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Goal Savings Analytics',
+                        'Goal Savings',
                         style: TextStyle(
                           color: textPrimary,
                           fontSize: 20,
@@ -211,7 +360,7 @@ class _GoalSavingsAnalyticsScreenState
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => _showPeriodPicker(context, periodLabel),
+                    onTap: () => _showPeriodPicker(context, selectedPeriod),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -235,15 +384,17 @@ class _GoalSavingsAnalyticsScreenState
               ),
               const SizedBox(height: 18),
 
-              // Total Savings Card
+              // Total Goals Saved Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF10212B) : cardBg,
+                  color: isDark ? const Color(0xFF0F2532) : cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border:
-                      Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFF38BDF8),
+                    width: 1.5,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,9 +409,9 @@ class _GoalSavingsAnalyticsScreenState
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'LKR 2,450,000',
-                      style: TextStyle(
+                    Text(
+                      totalAmountDisplay,
+                      style: const TextStyle(
                         color: Color(0xFF38BDF8),
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -269,10 +420,10 @@ class _GoalSavingsAnalyticsScreenState
                     const SizedBox(height: 16),
                     AdaptiveTrendChart(
                       mode: trendStyle,
-                      labels: _months,
-                      values: _totalTrend,
+                      labels: labels,
+                      values: totalTrend,
                       color: const Color(0xFF38BDF8),
-                      selectedIndex: 5,
+                      selectedIndex: lastIndex,
                     ),
                   ],
                 ),
@@ -296,9 +447,7 @@ class _GoalSavingsAnalyticsScreenState
                             vertical: 9,
                           ),
                           decoration: BoxDecoration(
-                            color: isSel
-                                ? const Color(0xFF38BDF8)
-                                : cardBg,
+                            color: isSel ? const Color(0xFF38BDF8) : cardBg,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSel
@@ -316,8 +465,9 @@ class _GoalSavingsAnalyticsScreenState
                                       ? const Color(0xFF0C0F14)
                                       : textSecondary,
                                   fontSize: 13,
-                                  fontWeight:
-                                      isSel ? FontWeight.w700 : FontWeight.w500,
+                                  fontWeight: isSel
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
                                 ),
                               ),
                               if (isSel && filter != 'All (4)') ...[
@@ -338,7 +488,7 @@ class _GoalSavingsAnalyticsScreenState
               ),
               const SizedBox(height: 18),
 
-              // Selected Target Card
+              // Selected Goal Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -399,12 +549,12 @@ class _GoalSavingsAnalyticsScreenState
                     // Bar Chart
                     AdaptiveCategoryChart(
                       mode: categoryStyle,
-                      months: _months,
+                      months: labels,
                       values: currentGoal['values'] as List<double>,
                       barColor: currentGoal['barColor'] as Color,
                       alternateBarColor:
                           currentGoal['activeOctColor'] as Color?,
-                      selectedIndex: 5,
+                      selectedIndex: lastIndex,
                     ),
                   ],
                 ),
@@ -435,7 +585,7 @@ class _GoalSavingsAnalyticsScreenState
                     _buildTargetRow(
                       dotColor: const Color(0xFF38BDF8),
                       name: 'Vehicle Upgrade (Hybrid/EV)',
-                      amount: 'LKR 700K / 2.5M',
+                      amount: vehicleTargetDisplay,
                       amountColor: const Color(0xFF38BDF8),
                       textColor: textPrimary,
                     ),
@@ -443,7 +593,7 @@ class _GoalSavingsAnalyticsScreenState
                     _buildTargetRow(
                       dotColor: const Color(0xFFF59E0B),
                       name: 'Vacation (Ella & Mirissa)',
-                      amount: 'LKR 200K / 250K',
+                      amount: vacationTargetDisplay,
                       amountColor: const Color(0xFFF59E0B),
                       textColor: textPrimary,
                     ),
@@ -451,7 +601,7 @@ class _GoalSavingsAnalyticsScreenState
                     _buildTargetRow(
                       dotColor: const Color(0xFFA855F7),
                       name: 'Tech Workstation',
-                      amount: 'LKR 100K / 150K',
+                      amount: techTargetDisplay,
                       amountColor: const Color(0xFFA855F7),
                       textColor: textPrimary,
                     ),

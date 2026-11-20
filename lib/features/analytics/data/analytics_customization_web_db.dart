@@ -10,7 +10,7 @@ import 'analytics_customization_storage.dart';
 class AnalyticsCustomizationWebDb implements AnalyticsCustomizationStorage {
   static const String defaultDatabaseName =
       'finpulse_analytics_customization_web';
-  static const int databaseVersion = 3;
+  static const int databaseVersion = 4;
   static const String storeName = 'analytics_customization_preferences';
   static const String dashboardLayoutStoreName = 'dashboard_layout_preferences';
   static const String reportExportStoreName = 'report_export_preferences';

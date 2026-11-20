@@ -64,11 +64,11 @@ void main() {
     return reopenedRepo;
   }
 
-  group('ReportExport SQLite (v3)', () {
+  group('ReportExport SQLite (v4)', () {
     test('fresh database creates all three tables with expected columns', () async {
       final database = await db.init();
       expect(database.isOpen, isTrue);
-      expect(await database.getVersion(), 3);
+      expect(await database.getVersion(), 4);
 
       final tables = await database.rawQuery(
         "SELECT name FROM sqlite_master WHERE type = 'table'",
@@ -98,12 +98,14 @@ void main() {
           'period_label',
           'account_scope',
           'selected_requirements',
+          'start_date',
+          'end_date',
           'updated_at',
         ]),
       );
     });
 
-    test('v2-to-v3 migration preserves existing analytics customization and dashboard layout records', () async {
+    test('v2-to-v4 migration preserves existing analytics customization and dashboard layout records', () async {
       // Seed a v2 database with existing records in both v1 & v2 tables.
       final v2Db = await databaseFactoryFfi.openDatabase(
         testDbPath,
@@ -138,9 +140,9 @@ void main() {
       );
       await v2Db.close();
 
-      // Reopen with v3 AnalyticsCustomizationDb.
+      // Reopen with v4 AnalyticsCustomizationDb.
       final upgradedDb = await db.init();
-      expect(await upgradedDb.getVersion(), 3);
+      expect(await upgradedDb.getVersion(), 4);
 
       final analyticsRepo = AnalyticsCustomizationRepository(db: db);
       final loadedAnalytics = await analyticsRepo.init();
@@ -153,6 +155,100 @@ void main() {
       // Report export defaults are loaded when no record exists yet.
       final loadedExport = await repository.init();
       expect(loadedExport, equals(const ReportExportPreferences.defaults()));
+    });
+
+    test('v3-to-v4 migration preserves existing report export records and adds start_date/end_date columns', () async {
+      // Seed a v3 database with v3 tables and an existing export record.
+      final v3Db = await databaseFactoryFfi.openDatabase(
+        testDbPath,
+        options: OpenDatabaseOptions(
+          version: 3,
+          onCreate: (database, version) async {
+            await database.execute(AnalyticsCustomizationDb.createTableSql);
+            await database.execute(
+              AnalyticsCustomizationDb.createDashboardLayoutTableSql,
+            );
+            await database.execute('''
+              CREATE TABLE IF NOT EXISTS report_export_preferences (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_key TEXT NOT NULL UNIQUE DEFAULT 'default',
+                report_format TEXT NOT NULL DEFAULT 'PDF Report',
+                period_label TEXT NOT NULL DEFAULT 'October 2026',
+                account_scope TEXT NOT NULL DEFAULT 'BOC',
+                selected_requirements TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            ''');
+          },
+        ),
+      );
+
+      await v3Db.insert('report_export_preferences', {
+        'profile_key': 'default',
+        'report_format': 'Excel (.XLSX)',
+        'period_label': 'September 2026',
+        'account_scope': 'Commercial Bank',
+        'selected_requirements': '["trans_history","inc_analysis"]',
+        'updated_at': DateTime.utc(2026, 9, 30).toIso8601String(),
+      });
+      await v3Db.close();
+
+      // Open with v4 AnalyticsCustomizationDb
+      final upgradedDb = await db.init();
+      expect(await upgradedDb.getVersion(), 4);
+
+      // Verify new columns were added
+      final columns = await upgradedDb.rawQuery(
+        'PRAGMA table_info(${AnalyticsCustomizationDb.reportExportTableName})',
+      );
+      final columnNames = columns.map((row) => row['name']).toSet();
+      expect(columnNames, contains('start_date'));
+      expect(columnNames, contains('end_date'));
+
+      // Verify previously saved v3 data is preserved
+      final loadedExport = await repository.init();
+      expect(loadedExport.reportFormat, 'Excel (.XLSX)');
+      expect(loadedExport.periodLabel, 'September 2026');
+      expect(loadedExport.accountScope, 'Commercial Bank');
+      expect(loadedExport.selectedRequirements, [
+        'trans_history',
+        'inc_analysis',
+      ]);
+      expect(loadedExport.startDate, isNull);
+      expect(loadedExport.endDate, isNull);
+
+      // Save custom dates on the upgraded v4 schema and verify persistence
+      final customStart = DateTime.utc(2026, 8, 1);
+      final customEnd = DateTime.utc(2026, 8, 31);
+      await repository.savePreferences(
+        loadedExport.copyWith(
+          periodLabel: 'Custom Range',
+          startDate: customStart,
+          endDate: customEnd,
+        ),
+      );
+
+      final restartedRepo = await reopenRepository();
+      expect(restartedRepo.currentPreferences.periodLabel, 'Custom Range');
+      expect(restartedRepo.currentPreferences.startDate, customStart);
+      expect(restartedRepo.currentPreferences.endDate, customEnd);
+    });
+
+    test('validates and sanitizes custom export date range', () {
+      final invalidStart = DateTime.utc(2026, 10, 31);
+      final invalidEnd = DateTime.utc(2026, 10, 1);
+
+      // When start is after end, validateAndSanitizeDateRange swaps them
+      final (
+        validStart,
+        validEnd,
+      ) = ReportExportPreferences.validateAndSanitizeDateRange(
+        invalidStart,
+        invalidEnd,
+      );
+      expect(validStart, invalidEnd);
+      expect(validEnd, invalidStart);
+      expect(validStart!.isBefore(validEnd!), isTrue);
     });
 
     test('saves and loads all supported report formats', () async {

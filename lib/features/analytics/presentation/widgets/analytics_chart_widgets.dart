@@ -106,9 +106,11 @@ class GroupedDualBarChart extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     month,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isSelected ? kColorLime : const Color(0xFF8E95A3),
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                     ),
@@ -166,9 +168,11 @@ class DualTrendLineChart extends StatelessWidget {
               child: Center(
                 child: Text(
                   labels[index],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isSelected ? kColorLime : const Color(0xFF8E95A3),
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
@@ -495,9 +499,11 @@ class CurvedTrendLineChart extends StatelessWidget {
               child: Center(
                 child: Text(
                   labels[index],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isSelected ? lineColor : const Color(0xFFB0B7C3),
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight:
                         isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
@@ -765,9 +771,11 @@ class SingleCategoryBarChart extends StatelessWidget {
                 child: Center(
                   child: Text(
                     month,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: mColor,
-                      fontSize: 11.5,
+                      fontSize: 11,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                     ),

@@ -52,11 +52,11 @@ void main() {
     return reopenedRepo;
   }
 
-  group('ReportExport IndexedDB (v3)', () {
-    test('fresh version 3 database creates all three object stores', () async {
+  group('ReportExport IndexedDB (v4)', () {
+    test('fresh version 4 database creates all three object stores', () async {
       final db = await webDb.init();
       expect(webDb.isOpen, isTrue);
-      expect(db.version, 3);
+      expect(db.version, 4);
       expect(
         db.objectStoreNames,
         contains(AnalyticsCustomizationWebDb.storeName),
@@ -71,7 +71,7 @@ void main() {
       );
     });
 
-    test('v2-to-v3 migration preserves existing analytics customization and dashboard layout records', () async {
+    test('v2-to-v4 migration preserves existing analytics customization and dashboard layout records', () async {
       // Seed a v2 IndexedDB database with both existing stores populated.
       final v2Db = await idbFactory.open(
         testDbName,
@@ -118,9 +118,9 @@ void main() {
       await layoutTxn.completed;
       v2Db.close();
 
-      // Reopen with v3 AnalyticsCustomizationWebDb.
+      // Reopen with v4 AnalyticsCustomizationWebDb.
       final upgradedDb = await webDb.init();
-      expect(upgradedDb.version, 3);
+      expect(upgradedDb.version, 4);
 
       final analyticsRepo = AnalyticsCustomizationRepository(db: webDb);
       final loadedAnalytics = await analyticsRepo.init();
@@ -133,6 +133,74 @@ void main() {
       // Report export defaults are loaded when no record exists yet.
       final loadedExport = await repository.init();
       expect(loadedExport, equals(const ReportExportPreferences.defaults()));
+    });
+
+    test('v3-to-v4 migration preserves existing report export records and persists custom dates', () async {
+      // Seed a v3 database with existing report export store
+      final v3Db = await idbFactory.open(
+        testDbName,
+        version: 3,
+        onUpgradeNeeded: (VersionChangeEvent event) {
+          final database = event.database;
+          database.createObjectStore(
+            AnalyticsCustomizationWebDb.storeName,
+            keyPath: 'profile_key',
+          );
+          database.createObjectStore(
+            AnalyticsCustomizationWebDb.dashboardLayoutStoreName,
+            keyPath: 'profile_key',
+          );
+          database.createObjectStore(
+            AnalyticsCustomizationWebDb.reportExportStoreName,
+            keyPath: 'profile_key',
+          );
+        },
+      );
+
+      final v3Txn = v3Db.transaction(
+        AnalyticsCustomizationWebDb.reportExportStoreName,
+        idbModeReadWrite,
+      );
+      await v3Txn
+          .objectStore(AnalyticsCustomizationWebDb.reportExportStoreName)
+          .put({
+            'profile_key': 'default',
+            'report_format': 'Raw Data',
+            'period_label': 'Last 12 Months',
+            'account_scope': 'Hatton National Bank',
+            'selected_requirements': '["goal_savings"]',
+            'updated_at': DateTime.utc(2026, 10, 1).toIso8601String(),
+          });
+      await v3Txn.completed;
+      v3Db.close();
+
+      // Upgrade to v4 AnalyticsCustomizationWebDb
+      final upgradedDb = await webDb.init();
+      expect(upgradedDb.version, 4);
+
+      final loadedExport = await repository.init();
+      expect(loadedExport.reportFormat, 'Raw Data');
+      expect(loadedExport.periodLabel, 'Last 12 Months');
+      expect(loadedExport.accountScope, 'Hatton National Bank');
+      expect(loadedExport.selectedRequirements, ['goal_savings']);
+      expect(loadedExport.startDate, isNull);
+      expect(loadedExport.endDate, isNull);
+
+      // Save custom dates and verify persistence
+      final customStart = DateTime.utc(2026, 5, 1);
+      final customEnd = DateTime.utc(2026, 10, 31);
+      await repository.savePreferences(
+        loadedExport.copyWith(
+          periodLabel: 'Custom Range',
+          startDate: customStart,
+          endDate: customEnd,
+        ),
+      );
+
+      final restartedRepo = await reopenRepository();
+      expect(restartedRepo.currentPreferences.periodLabel, 'Custom Range');
+      expect(restartedRepo.currentPreferences.startDate, customStart);
+      expect(restartedRepo.currentPreferences.endDate, customEnd);
     });
 
     test(

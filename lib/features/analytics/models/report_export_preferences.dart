@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import '../providers/analytics_provider.dart';
 
 /// Immutable model representing the persisted Report Export configuration
-/// (latest selected format, time period, account scope, and analytics
-/// requirement module IDs).
+/// (latest selected format, time period, account scope, optional custom date
+/// range, and analytics requirement module IDs).
 class ReportExportPreferences {
   static const String defaultProfileKey = 'default';
 
@@ -28,6 +28,7 @@ class ReportExportPreferences {
     'Q3 2026 (Jul - Sep)',
     'Year-to-Date 2026',
     'Last 12 Months',
+    'Custom Range',
   ];
 
   static const List<String> supportedAccounts = <String>[
@@ -66,6 +67,8 @@ class ReportExportPreferences {
   final String periodLabel;
   final String accountScope;
   final List<String> selectedRequirements;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final DateTime? updatedAt;
 
   ReportExportPreferences({
@@ -74,15 +77,21 @@ class ReportExportPreferences {
     required String periodLabel,
     required String accountScope,
     required Iterable<Object?> selectedRequirements,
+    Object? startDate,
+    Object? endDate,
     this.updatedAt,
   }) : profileKey = sanitizeProfileKey(profileKey),
        reportFormat = sanitizeFormat(reportFormat),
        periodLabel = sanitizePeriod(periodLabel),
        accountScope = sanitizeAccount(accountScope),
-       selectedRequirements = sanitizeRequirementIds(selectedRequirements);
+       selectedRequirements = sanitizeRequirementIds(selectedRequirements),
+       startDate = validateAndSanitizeDateRange(startDate, endDate).$1,
+       endDate = validateAndSanitizeDateRange(startDate, endDate).$2;
 
   const ReportExportPreferences.defaults({
     this.profileKey = defaultProfileKey,
+    this.startDate,
+    this.endDate,
     this.updatedAt,
   }) : reportFormat = defaultFormat,
        periodLabel = defaultPeriod,
@@ -177,6 +186,31 @@ class ReportExportPreferences {
     return List<String>.unmodifiable(fallback);
   }
 
+  /// Sanitizes an individual date value to UTC DateTime.
+  static DateTime? sanitizeCustomDate(Object? rawValue) {
+    if (rawValue is DateTime) {
+      return rawValue.toUtc();
+    }
+    if (rawValue is String && rawValue.trim().isNotEmpty) {
+      return DateTime.tryParse(rawValue.trim())?.toUtc();
+    }
+    return null;
+  }
+
+  /// Validates and sanitizes a custom date range. If [rawStart] is strictly after
+  /// [rawEnd], the range is automatically inverted/swapped so `start <= end` holds.
+  static (DateTime?, DateTime?) validateAndSanitizeDateRange(
+    Object? rawStart,
+    Object? rawEnd,
+  ) {
+    final start = sanitizeCustomDate(rawStart);
+    final end = sanitizeCustomDate(rawEnd);
+    if (start != null && end != null && start.isAfter(end)) {
+      return (end, start);
+    }
+    return (start, end);
+  }
+
   /// Safely constructs a [ReportExportPreferences] instance from a SQLite row
   /// map or IndexedDB record map.
   factory ReportExportPreferences.fromMap(Map<String, Object?> map) {
@@ -186,6 +220,11 @@ class ReportExportPreferences {
       parsedUpdatedAt = DateTime.tryParse(rawUpdatedAt.trim())?.toUtc();
     }
 
+    final (sanitizedStart, sanitizedEnd) = validateAndSanitizeDateRange(
+      map['start_date'],
+      map['end_date'],
+    );
+
     return ReportExportPreferences(
       profileKey: sanitizeProfileKey(map['profile_key']),
       reportFormat: sanitizeFormat(map['report_format']),
@@ -194,6 +233,8 @@ class ReportExportPreferences {
       selectedRequirements: parseSelectedRequirements(
         map['selected_requirements'],
       ),
+      startDate: sanitizedStart,
+      endDate: sanitizedEnd,
       updatedAt: parsedUpdatedAt,
     );
   }
@@ -210,6 +251,8 @@ class ReportExportPreferences {
       'period_label': periodLabel,
       'account_scope': accountScope,
       'selected_requirements': jsonEncode(selectedRequirements),
+      'start_date': startDate?.toUtc().toIso8601String(),
+      'end_date': endDate?.toUtc().toIso8601String(),
       'updated_at': effectiveTimestamp.toIso8601String(),
     };
   }
@@ -220,6 +263,8 @@ class ReportExportPreferences {
     String? periodLabel,
     String? accountScope,
     Iterable<Object?>? selectedRequirements,
+    Object? startDate = _sentinel,
+    Object? endDate = _sentinel,
     DateTime? updatedAt,
   }) {
     return ReportExportPreferences(
@@ -228,9 +273,13 @@ class ReportExportPreferences {
       periodLabel: periodLabel ?? this.periodLabel,
       accountScope: accountScope ?? this.accountScope,
       selectedRequirements: selectedRequirements ?? this.selectedRequirements,
+      startDate: identical(startDate, _sentinel) ? this.startDate : startDate,
+      endDate: identical(endDate, _sentinel) ? this.endDate : endDate,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  static const Object _sentinel = Object();
 
   @override
   bool operator ==(Object other) {
@@ -240,7 +289,9 @@ class ReportExportPreferences {
         other.reportFormat == reportFormat &&
         other.periodLabel == periodLabel &&
         other.accountScope == accountScope &&
-        listEquals(other.selectedRequirements, selectedRequirements);
+        listEquals(other.selectedRequirements, selectedRequirements) &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
   }
 
   @override
@@ -250,6 +301,8 @@ class ReportExportPreferences {
     periodLabel,
     accountScope,
     Object.hashAll(selectedRequirements),
+    startDate,
+    endDate,
   );
 
   @override
@@ -260,6 +313,8 @@ class ReportExportPreferences {
         'periodLabel: $periodLabel, '
         'accountScope: $accountScope, '
         'selectedRequirements: $selectedRequirements, '
+        'startDate: ${startDate?.toIso8601String()}, '
+        'endDate: ${endDate?.toIso8601String()}, '
         'updatedAt: ${updatedAt?.toIso8601String()}'
         ')';
   }

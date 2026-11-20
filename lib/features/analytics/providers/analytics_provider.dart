@@ -559,12 +559,16 @@ class ExportPreferencesState {
   final String period; // 'October 2026'
   final String account; // 'BOC'
   final Set<String> selectedRequirements;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   const ExportPreferencesState({
     required this.format,
     required this.period,
     required this.account,
     required this.selectedRequirements,
+    this.startDate,
+    this.endDate,
   });
 
   ExportPreferencesState copyWith({
@@ -572,12 +576,16 @@ class ExportPreferencesState {
     String? period,
     String? account,
     Set<String>? selectedRequirements,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
     return ExportPreferencesState(
       format: format ?? this.format,
       period: period ?? this.period,
       account: account ?? this.account,
       selectedRequirements: selectedRequirements ?? this.selectedRequirements,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
     );
   }
 }
@@ -591,6 +599,8 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
       period: prefs.periodLabel,
       account: prefs.accountScope,
       selectedRequirements: prefs.selectedRequirements.toSet(),
+      startDate: prefs.startDate,
+      endDate: prefs.endDate,
     );
   }
 
@@ -616,19 +626,28 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
         periodLabel: state.period,
         accountScope: state.account,
         selectedRequirements: state.selectedRequirements,
+        startDate: state.startDate,
+        endDate: state.endDate,
       ),
     );
   }
 
-  Future<void> setPeriod(String period) {
+  Future<void> setPeriod(String period, [DateTime? start, DateTime? end]) {
+    final isCustom = period == 'Custom Range';
     return _persist(
       ReportExportPreferences(
         reportFormat: state.format,
         periodLabel: period,
         accountScope: state.account,
         selectedRequirements: state.selectedRequirements,
+        startDate: start ?? (isCustom ? state.startDate : null),
+        endDate: end ?? (isCustom ? state.endDate : null),
       ),
     );
+  }
+
+  Future<void> setCustomDateRange(DateTime? start, DateTime? end) {
+    return setPeriod('Custom Range', start, end);
   }
 
   Future<void> setAccount(String account) {
@@ -638,6 +657,8 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
         periodLabel: state.period,
         accountScope: account,
         selectedRequirements: state.selectedRequirements,
+        startDate: state.startDate,
+        endDate: state.endDate,
       ),
     );
   }
@@ -655,6 +676,8 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
         periodLabel: state.period,
         accountScope: state.account,
         selectedRequirements: updated,
+        startDate: state.startDate,
+        endDate: state.endDate,
       ),
     );
   }
@@ -669,6 +692,8 @@ class ExportPreferencesNotifier extends Notifier<ExportPreferencesState> {
         periodLabel: state.period,
         accountScope: state.account,
         selectedRequirements: nextSelected,
+        startDate: state.startDate,
+        endDate: state.endDate,
       ),
     );
   }
