@@ -1,7 +1,9 @@
 import '../models/analytics_customization_preferences.dart';
+import '../models/dashboard_layout_preferences.dart';
 
-/// Platform-agnostic persistence contract for Analytics Customization
-/// preferences (SQLite on Android/mobile, IndexedDB on Flutter Web).
+/// Platform-agnostic persistence contract for Analytics Customization and
+/// Dashboard Layout preferences (SQLite on Android/mobile, IndexedDB on
+/// Flutter Web).
 abstract class AnalyticsCustomizationStorage {
   bool get isOpen;
 
@@ -13,6 +15,16 @@ abstract class AnalyticsCustomizationStorage {
 
   Future<void> savePreferencesAtomically(
     AnalyticsCustomizationPreferences preferences, {
+    DateTime? timestamp,
+    Future<void> Function(dynamic txn)? beforeCommitHook,
+  });
+
+  Future<DashboardLayoutPreferences?> getDashboardLayout({
+    String profileKey = DashboardLayoutPreferences.defaultProfileKey,
+  });
+
+  Future<void> saveDashboardLayoutAtomically(
+    DashboardLayoutPreferences preferences, {
     DateTime? timestamp,
     Future<void> Function(dynamic txn)? beforeCommitHook,
   });

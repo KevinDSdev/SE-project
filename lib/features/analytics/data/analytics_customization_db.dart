@@ -2,13 +2,16 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import '../models/analytics_customization_preferences.dart';
+import '../models/dashboard_layout_preferences.dart';
 import 'analytics_customization_storage.dart';
 
-/// SQLite database helper dedicated to Analytics Customization preferences.
+/// SQLite database helper for Analytics Customization and Dashboard Layout
+/// preferences.
 class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
   static const String databaseName = 'finpulse_analytics_customization.db';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 2;
   static const String tableName = 'analytics_customization_preferences';
+  static const String dashboardLayoutTableName = 'dashboard_layout_preferences';
   static const String defaultProfileKey =
       AnalyticsCustomizationPreferences.defaultProfileKey;
 
@@ -25,6 +28,16 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
         CHECK (sub_trend_chart_style IN ('bar', 'line', 'donut')),
       sub_category_chart_style TEXT NOT NULL DEFAULT 'bar'
         CHECK (sub_category_chart_style IN ('bar', 'line', 'donut')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  ''';
+
+  static const String createDashboardLayoutTableSql =
+      '''
+    CREATE TABLE IF NOT EXISTS $dashboardLayoutTableName (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      profile_key TEXT NOT NULL UNIQUE DEFAULT '$defaultProfileKey',
+      active_card_ids TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   ''';
@@ -68,9 +81,12 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
         version: databaseVersion,
         onCreate: (db, version) async {
           await db.execute(createTableSql);
+          await db.execute(createDashboardLayoutTableSql);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
-          // Reserved for future schema upgrades.
+          if (oldVersion < 2) {
+            await db.execute(createDashboardLayoutTableSql);
+          }
         },
       ),
     );
@@ -165,6 +181,69 @@ class AnalyticsCustomizationDb implements AnalyticsCustomizationStorage {
           ..remove('profile_key');
         await txn.update(
           tableName,
+          updateValues,
+          where: 'profile_key = ?',
+          whereArgs: [preferences.profileKey],
+        );
+      }
+
+      if (beforeCommitHook != null) {
+        await beforeCommitHook(txn);
+      }
+    });
+  }
+
+  /// Reads the stored Dashboard Layout row for [profileKey], or returns `null`
+  /// if no row has been saved yet.
+  @override
+  Future<DashboardLayoutPreferences?> getDashboardLayout({
+    String profileKey = defaultProfileKey,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      dashboardLayoutTableName,
+      where: 'profile_key = ?',
+      whereArgs: [profileKey],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+    return DashboardLayoutPreferences.fromMap(rows.first);
+  }
+
+  /// Atomically inserts or updates the Dashboard Layout preferences row inside
+  /// a single SQLite transaction.
+  @override
+  Future<void> saveDashboardLayoutAtomically(
+    DashboardLayoutPreferences preferences, {
+    DateTime? timestamp,
+    Future<void> Function(dynamic txn)? beforeCommitHook,
+  }) async {
+    final db = await database;
+    final values = preferences.toMap(timestamp: timestamp);
+
+    await db.transaction((txn) async {
+      final existing = await txn.query(
+        dashboardLayoutTableName,
+        columns: ['id'],
+        where: 'profile_key = ?',
+        whereArgs: [preferences.profileKey],
+        limit: 1,
+      );
+
+      if (existing.isEmpty) {
+        await txn.insert(
+          dashboardLayoutTableName,
+          values,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+      } else {
+        final updateValues = Map<String, Object?>.from(values)
+          ..remove('profile_key');
+        await txn.update(
+          dashboardLayoutTableName,
           updateValues,
           where: 'profile_key = ?',
           whereArgs: [preferences.profileKey],

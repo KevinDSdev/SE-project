@@ -1,15 +1,17 @@
 import 'package:idb_shim/idb_shim.dart';
 
 import '../models/analytics_customization_preferences.dart';
+import '../models/dashboard_layout_preferences.dart';
 import 'analytics_customization_storage.dart';
 
-/// IndexedDB persistence helper for Analytics Customization preferences on
-/// Flutter Web.
+/// IndexedDB persistence helper for Analytics Customization and Dashboard
+/// Layout preferences on Flutter Web.
 class AnalyticsCustomizationWebDb implements AnalyticsCustomizationStorage {
   static const String defaultDatabaseName =
       'finpulse_analytics_customization_web';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 2;
   static const String storeName = 'analytics_customization_preferences';
+  static const String dashboardLayoutStoreName = 'dashboard_layout_preferences';
   static const String defaultProfileKey =
       AnalyticsCustomizationPreferences.defaultProfileKey;
 
@@ -38,6 +40,12 @@ class AnalyticsCustomizationWebDb implements AnalyticsCustomizationStorage {
         final db = event.database;
         if (!db.objectStoreNames.contains(storeName)) {
           db.createObjectStore(storeName, keyPath: 'profile_key');
+        }
+        if (!db.objectStoreNames.contains(dashboardLayoutStoreName)) {
+          db.createObjectStore(
+            dashboardLayoutStoreName,
+            keyPath: 'profile_key',
+          );
         }
       },
     );
@@ -77,6 +85,60 @@ class AnalyticsCustomizationWebDb implements AnalyticsCustomizationStorage {
     final values = preferences.toMap(timestamp: timestamp);
     final txn = db.transaction(storeName, idbModeReadWrite);
     final store = txn.objectStore(storeName);
+
+    try {
+      await store.put(values);
+
+      if (beforeCommitHook != null) {
+        await beforeCommitHook(txn);
+      }
+
+      await txn.completed;
+    } catch (_) {
+      try {
+        txn.abort();
+      } catch (_) {
+        // Transaction may already be aborted or inactive.
+      }
+      try {
+        await txn.completed;
+      } catch (_) {
+        // Ignore the expected AbortError after aborting the transaction.
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<DashboardLayoutPreferences?> getDashboardLayout({
+    String profileKey = defaultProfileKey,
+  }) async {
+    final db = await database;
+    final txn = db.transaction(dashboardLayoutStoreName, idbModeReadOnly);
+    final store = txn.objectStore(dashboardLayoutStoreName);
+    final raw = await store.getObject(profileKey);
+    await txn.completed;
+
+    if (raw is! Map) {
+      return null;
+    }
+
+    final normalizedMap = <String, Object?>{
+      for (final entry in raw.entries) entry.key.toString(): entry.value,
+    };
+    return DashboardLayoutPreferences.fromMap(normalizedMap);
+  }
+
+  @override
+  Future<void> saveDashboardLayoutAtomically(
+    DashboardLayoutPreferences preferences, {
+    DateTime? timestamp,
+    Future<void> Function(dynamic txn)? beforeCommitHook,
+  }) async {
+    final db = await database;
+    final values = preferences.toMap(timestamp: timestamp);
+    final txn = db.transaction(dashboardLayoutStoreName, idbModeReadWrite);
+    final store = txn.objectStore(dashboardLayoutStoreName);
 
     try {
       await store.put(values);

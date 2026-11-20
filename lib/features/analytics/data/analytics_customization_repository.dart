@@ -30,6 +30,10 @@ class AnalyticsCustomizationRepository {
 
   bool get isInitialized => _isInitialized;
 
+  /// Exposes the shared platform storage instance so sibling analytics
+  /// repositories reuse the same open database connection.
+  AnalyticsCustomizationStorage get storage => _storage;
+
   /// Synchronous access to the currently cached preferences for Riverpod
   /// `Notifier.build()` methods.
   AnalyticsCustomizationPreferences get currentPreferences =>

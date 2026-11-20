@@ -5,6 +5,7 @@ import 'core/providers/theme_provider.dart';
 import 'core/services/app_preferences_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/analytics/data/analytics_customization_repository.dart';
+import 'features/analytics/data/dashboard_layout_repository.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/settings/providers/settings_provider.dart';
 
@@ -13,6 +14,14 @@ void main() async {
   await AppPreferencesService.init();
   try {
     await AnalyticsCustomizationRepository.instance.init();
+    try {
+      await DashboardLayoutRepository.instance.init();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Dashboard layout persistence initialization failed: $error\n'
+        '$stackTrace',
+      );
+    }
   } catch (error, stackTrace) {
     debugPrint(
       'Analytics customization database initialization failed: $error\n'

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../settings/providers/settings_provider.dart';
 import '../../providers/analytics_provider.dart';
@@ -16,6 +17,7 @@ class _DashboardWidgetsScreenState
     extends ConsumerState<DashboardWidgetsScreen> {
   late List<DashboardWidgetItem> _draftActive;
   late List<DashboardWidgetItem> _draftAvailable;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -23,6 +25,72 @@ class _DashboardWidgetsScreenState
     final current = ref.read(dashboardWidgetsProvider);
     _draftActive = [...current.activeWidgets];
     _draftAvailable = [...current.availableWidgets];
+  }
+
+  Future<void> _savePreferences(
+    Color cardBg,
+    Color textPrimary,
+    Color accentColor,
+  ) async {
+    if (_isSaving) return;
+    _isSaving = true;
+
+    final activeIds = _draftActive.map((item) => item.id).toList();
+
+    try {
+      final repository = ref.read(dashboardLayoutRepositoryProvider);
+      final saved = await repository.saveActiveCardIds(activeIds);
+
+      ref
+          .read(dashboardWidgetsProvider.notifier)
+          .syncState(saved.activeCardIds);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: cardBg,
+          content: Text(
+            'Preferences saved successfully.',
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: accentColor),
+          ),
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to save dashboard layout preferences: $error\n$stackTrace',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: cardBg,
+          content: Text(
+            'Failed to save dashboard layout. Please try again.',
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFFF43F5E)),
+          ),
+        ),
+      );
+    } finally {
+      _isSaving = false;
+    }
   }
 
   void _removeActive(String id) {
@@ -175,10 +243,7 @@ class _DashboardWidgetsScreenState
                   child: Center(
                     child: Text(
                       'No active cards. Tap + below to add cards to dashboard.',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: textSecondary, fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -221,7 +286,7 @@ class _DashboardWidgetsScreenState
               ),
               const SizedBox(height: 12),
 
-              // Available widgets list
+              // Available Analytics Dashboard Cards list
               if (_draftAvailable.isEmpty)
                 Container(
                   width: double.infinity,
@@ -233,11 +298,8 @@ class _DashboardWidgetsScreenState
                   ),
                   child: Center(
                     child: Text(
-                      'All widgets are currently active on dashboard.',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 13,
-                      ),
+                      'All Analytics Dashboard Cards are currently active',
+                      style: TextStyle(color: textSecondary, fontSize: 13),
                     ),
                   ),
                 )
@@ -264,11 +326,7 @@ class _DashboardWidgetsScreenState
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(7),
                             ),
-                            child: Icon(
-                              item.icon,
-                              color: item.color,
-                              size: 18,
-                            ),
+                            child: Icon(item.icon, color: item.color, size: 18),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -319,30 +377,8 @@ class _DashboardWidgetsScreenState
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(dashboardWidgetsProvider.notifier)
-                        .applyState(_draftActive, _draftAvailable);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: cardBg,
-                        content: Text(
-                          'Preferences saved successfully.',
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: accentColor),
-                        ),
-                      ),
-                    );
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () =>
+                      _savePreferences(cardBg, textPrimary, accentColor),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentColor,
                     foregroundColor: const Color(0xFF0C0F14),
@@ -353,10 +389,7 @@ class _DashboardWidgetsScreenState
                   ),
                   child: const Text(
                     'Save Preferences',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -378,21 +411,27 @@ class _DashboardWidgetsScreenState
     Color subContainer,
     Color accentColor,
   ) {
-    final incomeItem =
-        activeWidgets.where((w) => w.id == 'active_income').firstOrNull;
-    final expenseItem =
-        activeWidgets.where((w) => w.id == 'active_expenses').firstOrNull;
-    final savingsItem =
-        activeWidgets.where((w) => w.id == 'active_savings').firstOrNull;
-    final trendItem =
-        activeWidgets.where((w) => w.id == 'active_trend').firstOrNull;
+    final incomeItem = activeWidgets
+        .where((w) => w.id == 'active_income')
+        .firstOrNull;
+    final expenseItem = activeWidgets
+        .where((w) => w.id == 'active_expenses')
+        .firstOrNull;
+    final savingsItem = activeWidgets
+        .where((w) => w.id == 'active_savings')
+        .firstOrNull;
+    final trendItem = activeWidgets
+        .where((w) => w.id == 'active_trend')
+        .firstOrNull;
 
     final otherItems = activeWidgets
-        .where((w) =>
-            w.id != 'active_income' &&
-            w.id != 'active_expenses' &&
-            w.id != 'active_savings' &&
-            w.id != 'active_trend')
+        .where(
+          (w) =>
+              w.id != 'active_income' &&
+              w.id != 'active_expenses' &&
+              w.id != 'active_savings' &&
+              w.id != 'active_trend',
+        )
         .toList();
 
     return Column(
@@ -497,10 +536,7 @@ class _DashboardWidgetsScreenState
                         ),
                         Text(
                           item.subtitle,
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: textSecondary, fontSize: 12),
                         ),
                       ],
                     ),
@@ -615,6 +651,7 @@ class _DashboardWidgetsScreenState
                   ),
                 ),
               ),
+              _buildMinusButton(item.id),
             ],
           ),
           const SizedBox(height: 12),
@@ -705,6 +742,7 @@ class _DashboardWidgetsScreenState
 
   Widget _buildMinusButton(String id) {
     return GestureDetector(
+      key: ValueKey('remove_card_$id'),
       onTap: () => _removeActive(id),
       child: Container(
         width: 28,
@@ -714,11 +752,7 @@ class _DashboardWidgetsScreenState
           shape: BoxShape.circle,
         ),
         child: const Center(
-          child: Icon(
-            Icons.remove,
-            color: Colors.white,
-            size: 16,
-          ),
+          child: Icon(Icons.remove, color: Colors.white, size: 16),
         ),
       ),
     );

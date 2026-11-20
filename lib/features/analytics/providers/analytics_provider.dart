@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/services/app_preferences_service.dart';
 import '../data/analytics_customization_repository.dart';
+import '../data/dashboard_layout_repository.dart';
+import '../models/dashboard_layout_preferences.dart';
 
 enum AnalyticsPeriod { weekly, monthly, yearly, custom }
 
@@ -63,6 +64,10 @@ final analyticsCustomizationRepositoryProvider =
     Provider<AnalyticsCustomizationRepository>(
       (ref) => AnalyticsCustomizationRepository.instance,
     );
+
+final dashboardLayoutRepositoryProvider = Provider<DashboardLayoutRepository>(
+  (ref) => DashboardLayoutRepository.instance,
+);
 
 // -------------------------------------------------------------
 // Selected Period Provider
@@ -433,33 +438,38 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
     ),
   ];
 
+  static const List<DashboardWidgetItem> _allCards = [
+    ..._defaultActive,
+    ..._defaultAvailable,
+  ];
+
+  static final Map<String, DashboardWidgetItem> _cardsById = {
+    for (final item in _allCards) item.id: item,
+  };
+
+  /// Builds a [DashboardWidgetsState] from an ordered list of active card IDs,
+  /// ignoring unknown/duplicate IDs and deriving available cards from the full
+  /// known catalog.
+  static DashboardWidgetsState stateFromActiveIds(List<String> activeIds) {
+    final sanitizedIds = DashboardLayoutPreferences.sanitizeCardIds(activeIds);
+    final active = <DashboardWidgetItem>[
+      for (final id in sanitizedIds)
+        if (_cardsById.containsKey(id)) _cardsById[id]!,
+    ];
+    final activeIdSet = active.map((c) => c.id).toSet();
+    final available = _allCards
+        .where((c) => !activeIdSet.contains(c.id))
+        .toList();
+    return DashboardWidgetsState(
+      activeWidgets: active,
+      availableWidgets: available,
+    );
+  }
+
   @override
   DashboardWidgetsState build() {
-    final savedIds = AppPreferencesService.getActiveWidgets();
-    if (savedIds != null && savedIds.isNotEmpty) {
-      final all = [..._defaultActive, ..._defaultAvailable];
-      final active = <DashboardWidgetItem>[];
-      for (final id in savedIds) {
-        final match = all.firstWhere(
-          (w) => w.id == id,
-          orElse: () => _defaultActive.first,
-        );
-        if (!active.any((w) => w.id == match.id)) {
-          active.add(match);
-        }
-      }
-      final activeIdSet = active.map((w) => w.id).toSet();
-      final available = all.where((w) => !activeIdSet.contains(w.id)).toList();
-      return DashboardWidgetsState(
-        activeWidgets: active,
-        availableWidgets: available,
-      );
-    }
-
-    return const DashboardWidgetsState(
-      activeWidgets: _defaultActive,
-      availableWidgets: _defaultAvailable,
-    );
+    final repo = ref.read(dashboardLayoutRepositoryProvider);
+    return stateFromActiveIds(repo.activeCardIds);
   }
 
   void removeActive(String id) {
@@ -482,18 +492,29 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
     state = state.copyWith(activeWidgets: active, availableWidgets: available);
   }
 
-  void savePreferences() {
-    final activeIds = state.activeWidgets.map((w) => w.id).toList();
-    AppPreferencesService.saveActiveWidgets(activeIds);
+  /// Synchronizes Riverpod state after a repository save without triggering a
+  /// duplicate database write.
+  void syncState(List<String> activeCardIds) {
+    state = stateFromActiveIds(activeCardIds);
   }
 
-  void applyState(
+  Future<void> savePreferences() async {
+    final activeIds = state.activeWidgets.map((w) => w.id).toList();
+    final saved = await ref
+        .read(dashboardLayoutRepositoryProvider)
+        .saveActiveCardIds(activeIds);
+    state = stateFromActiveIds(saved.activeCardIds);
+  }
+
+  Future<void> applyState(
     List<DashboardWidgetItem> active,
     List<DashboardWidgetItem> available,
-  ) {
-    state = state.copyWith(activeWidgets: active, availableWidgets: available);
+  ) async {
     final activeIds = active.map((w) => w.id).toList();
-    AppPreferencesService.saveActiveWidgets(activeIds);
+    final saved = await ref
+        .read(dashboardLayoutRepositoryProvider)
+        .saveActiveCardIds(activeIds);
+    state = stateFromActiveIds(saved.activeCardIds);
   }
 
   DashboardWidgetsState get defaultState => const DashboardWidgetsState(
@@ -501,13 +522,11 @@ class DashboardWidgetsNotifier extends Notifier<DashboardWidgetsState> {
     availableWidgets: _defaultAvailable,
   );
 
-  void reset() {
-    state = const DashboardWidgetsState(
-      activeWidgets: _defaultActive,
-      availableWidgets: _defaultAvailable,
-    );
-    final activeIds = _defaultActive.map((w) => w.id).toList();
-    AppPreferencesService.saveActiveWidgets(activeIds);
+  Future<void> reset() async {
+    final saved = await ref
+        .read(dashboardLayoutRepositoryProvider)
+        .resetToDefaults();
+    state = stateFromActiveIds(saved.activeCardIds);
   }
 }
 
