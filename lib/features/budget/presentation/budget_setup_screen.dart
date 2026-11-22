@@ -4,8 +4,12 @@ import 'package:intl/intl.dart';
 
 import '../../../core/providers/navigation_provider.dart';
 import '../../settings/providers/settings_provider.dart';
+import '../models/budget_calculation_result.dart';
 import '../models/budget_category_model.dart';
+import '../models/budget_status.dart';
 import '../models/fixed_bill_model.dart';
+import '../providers/budget_provider.dart';
+import '../services/zero_based_budget_calculator.dart';
 import 'add_budget_category_screen.dart';
 import 'add_fixed_bill_screen.dart';
 import 'budget_progress_screen.dart';
@@ -36,10 +40,23 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   // Fixed Monthly Bills matching Figma Screen 01
   late List<FixedBillModel> _fixedBills;
 
+  // Zero-Based Budget Calculation Result
+  late BudgetCalculationResult _calculation;
+
   @override
   void initState() {
     super.initState();
     _initializeData();
+    _recalculate();
+  }
+
+  void _recalculate() {
+    _calculation = ZeroBasedBudgetCalculator.calculate(
+      monthlyIncome: _monthlyIncome,
+      variableCategories: _variableExpenses,
+      fixedBills: _fixedBills,
+      baselineSavings: _baselineSavings,
+    );
   }
 
   void _initializeData() {
@@ -119,14 +136,11 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     ];
   }
 
-  double get _totalVariable =>
-      _variableExpenses.fold(0.0, (sum, item) => sum + item.assignedAmount);
+  double get _totalFixed => _calculation.totalFixedAllocated;
 
-  double get _totalFixed =>
-      _fixedBills.fold(0.0, (sum, item) => sum + item.amount);
+  double get _remainingToAllocate => _calculation.unallocatedAmount;
 
-  double get _remainingToAllocate =>
-      _monthlyIncome - (_totalVariable + _totalFixed + _baselineSavings);
+  BudgetStatus get _budgetStatus => _calculation.status;
 
   // Navigate to Add Budget Category Screen (Screen 02A)
   Future<void> _navigateToAddCategory() async {
@@ -142,7 +156,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     if (newCategory != null) {
       setState(() {
         _variableExpenses.add(newCategory);
+        _recalculate();
       });
+      ref.read(budgetProvider.notifier).addCategory(newCategory);
     }
   }
 
@@ -160,15 +176,19 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
       if (result.isDeleted) {
         setState(() {
           _variableExpenses.removeWhere((c) => c.id == category.id);
+          _recalculate();
         });
+        ref.read(budgetProvider.notifier).deleteCategory(category.id);
       } else if (result.updatedCategory != null) {
         setState(() {
           final index =
               _variableExpenses.indexWhere((c) => c.id == category.id);
           if (index != -1) {
             _variableExpenses[index] = result.updatedCategory!;
+            _recalculate();
           }
         });
+        ref.read(budgetProvider.notifier).updateCategory(result.updatedCategory!);
       }
     }
   }
@@ -184,7 +204,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     if (newBill != null) {
       setState(() {
         _fixedBills.add(newBill);
+        _recalculate();
       });
+      ref.read(budgetProvider.notifier).addFixedBill(newBill);
     }
   }
 
@@ -202,14 +224,18 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
       if (result.isDeleted) {
         setState(() {
           _fixedBills.removeWhere((b) => b.id == bill.id);
+          _recalculate();
         });
+        ref.read(budgetProvider.notifier).deleteFixedBill(bill.id);
       } else if (result.updatedBill != null) {
         setState(() {
           final index = _fixedBills.indexWhere((b) => b.id == bill.id);
           if (index != -1) {
             _fixedBills[index] = result.updatedBill!;
+            _recalculate();
           }
         });
+        ref.read(budgetProvider.notifier).updateFixedBill(result.updatedBill!);
       }
     }
   }
@@ -279,7 +305,13 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             onPressed: () {
               final val =
                   double.tryParse(controller.text.trim()) ?? _monthlyIncome;
-              setState(() => _monthlyIncome = val);
+              if (val >= 0) {
+                setState(() {
+                  _monthlyIncome = val;
+                  _recalculate();
+                });
+                ref.read(budgetProvider.notifier).setMonthlyIncome(val);
+              }
               Navigator.pop(ctx);
             },
             child: const Text(
@@ -446,13 +478,37 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Remaining to Allocate:',
-                            style: TextStyle(
-                              color: Color(0xFF0C0F14),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              const Text(
+                                'Remaining to Allocate:',
+                                style: TextStyle(
+                                  color: Color(0xFF0C0F14),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0x260C0F14),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _budgetStatus.displayName,
+                                  style: const TextStyle(
+                                    color: Color(0xFF0C0F14),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Text(
                             'LKR ${currencyFormat.format(_remainingToAllocate)}',

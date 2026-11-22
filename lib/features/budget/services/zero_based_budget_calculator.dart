@@ -69,7 +69,6 @@ class ZeroBasedBudgetCalculator {
     // 3. Process & Validate Variable Categories
     double totalVariableAllocated = 0.0;
     double totalVariableSpent = 0.0;
-    double totalVariableAvailable = 0.0;
 
     for (final cat in variableCategories) {
       if (cat.assignedAmount.isNaN || cat.assignedAmount.isInfinite) {
@@ -77,7 +76,7 @@ class ZeroBasedBudgetCalculator {
       } else if (cat.assignedAmount < 0) {
         errors.add('Assigned amount for category "${cat.name}" cannot be negative.');
       } else {
-        totalVariableAllocated += cat.assignedAmount;
+        totalVariableAllocated += roundCurrency(cat.assignedAmount);
       }
 
       if (cat.spentAmount.isNaN || cat.spentAmount.isInfinite) {
@@ -85,17 +84,13 @@ class ZeroBasedBudgetCalculator {
       } else if (cat.spentAmount < 0) {
         errors.add('Spent amount for category "${cat.name}" cannot be negative.');
       } else {
-        totalVariableSpent += cat.spentAmount;
-        // Category available amount = Allocated - Spent (clamped to 0)
-        final catAvailable = (cat.assignedAmount - cat.spentAmount).clamp(0.0, double.infinity);
-        totalVariableAvailable += catAvailable;
+        totalVariableSpent += roundCurrency(cat.spentAmount);
       }
     }
 
     // 4. Process & Validate Fixed Bills
     double totalFixedAllocated = 0.0;
     double totalFixedSpent = 0.0;
-    double totalFixedAvailable = 0.0;
 
     for (final bill in fixedBills) {
       if (bill.amount.isNaN || bill.amount.isInfinite) {
@@ -103,11 +98,10 @@ class ZeroBasedBudgetCalculator {
       } else if (bill.amount < 0) {
         errors.add('Amount for fixed bill "${bill.title}" cannot be negative.');
       } else {
-        totalFixedAllocated += bill.amount;
+        final roundedBillAmount = roundCurrency(bill.amount);
+        totalFixedAllocated += roundedBillAmount;
         if (bill.isPaid) {
-          totalFixedSpent += bill.amount;
-        } else {
-          totalFixedAvailable += bill.amount;
+          totalFixedSpent += roundedBillAmount;
         }
       }
     }
@@ -121,7 +115,7 @@ class ZeroBasedBudgetCalculator {
       } else if (alloc < 0) {
         errors.add('Additional allocation #$i cannot be negative.');
       } else {
-        totalAdditional += alloc;
+        totalAdditional += roundCurrency(alloc);
       }
     }
 
@@ -133,7 +127,7 @@ class ZeroBasedBudgetCalculator {
         totalAllocated: roundCurrency(
           (totalVariableAllocated > 0 ? totalVariableAllocated : 0) +
               (totalFixedAllocated > 0 ? totalFixedAllocated : 0) +
-              (baselineSavings > 0 ? baselineSavings : 0) +
+              (baselineSavings > 0 ? roundCurrency(baselineSavings) : 0) +
               (totalAdditional > 0 ? totalAdditional : 0),
         ),
       );
@@ -143,7 +137,7 @@ class ZeroBasedBudgetCalculator {
     final roundedIncome = roundCurrency(monthlyIncome);
     final roundedVariable = roundCurrency(totalVariableAllocated);
     final roundedFixed = roundCurrency(totalFixedAllocated);
-    final roundedSavings = roundCurrency(baselineSavings + totalAdditional);
+    final roundedSavings = roundCurrency(roundCurrency(baselineSavings) + totalAdditional);
 
     final roundedAllocated = roundCurrency(
       roundedVariable + roundedFixed + roundedSavings,
@@ -153,7 +147,9 @@ class ZeroBasedBudgetCalculator {
     final status = determineStatus(roundedUnallocated);
 
     final totalSpent = roundCurrency(totalVariableSpent + totalFixedSpent);
-    final totalAvailable = roundCurrency(totalVariableAvailable + totalFixedAvailable);
+    final totalAvailable = roundCurrency(
+      (roundedAllocated - totalSpent).clamp(0.0, double.infinity),
+    );
 
     return BudgetCalculationResult(
       totalIncome: roundedIncome,
@@ -192,7 +188,7 @@ class ZeroBasedBudgetCalculator {
       } else if (val < 0) {
         errors.add('Allocation at index $i cannot be negative ($val).');
       } else {
-        totalAllocated += val;
+        totalAllocated += roundCurrency(val);
       }
     }
 

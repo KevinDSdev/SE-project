@@ -313,19 +313,20 @@ void main() {
     await tester.tap(viewProgressBtn);
     await tester.pumpAndSettle();
 
-    // Verify BudgetProgressScreen is opened
+    // Verify BudgetProgressScreen is opened in Live Mode with provider data
     expect(find.byType(BudgetProgressScreen), findsOneWidget);
     expect(find.text('Budget Progress'), findsOneWidget);
-    expect(find.text('Total Income: LKR 100,000'), findsOneWidget);
-    expect(find.text('Assigned: LKR 100,000'), findsOneWidget);
+    expect(find.text('Total Income: LKR 450,000'), findsOneWidget);
+    expect(find.text('Assigned: LKR 345,000'), findsOneWidget);
     expect(find.text('Total Used'), findsOneWidget);
     expect(find.text('Total Available'), findsOneWidget);
+    expect(find.text('LKR 303,000'), findsOneWidget);
     expect(find.text('Unassigned'), findsOneWidget);
-    expect(find.text('CATEGORY PROGRESS (5 CATEGORIES)'), findsOneWidget);
-    expect(find.text('Bills'), findsOneWidget);
-    expect(find.text('Groceries'), findsOneWidget);
-    expect(find.text('Transport'), findsOneWidget);
-    expect(find.text('Savings'), findsOneWidget);
+    expect(find.text('LKR 105,000'), findsOneWidget);
+    expect(find.text('CATEGORY PROGRESS (3 CATEGORIES)'), findsOneWidget);
+    expect(find.text('Food & Groceries'), findsOneWidget);
+    expect(find.text('Dining & Takeout'), findsOneWidget);
+    expect(find.text('Travel & Transport'), findsOneWidget);
 
     // Tap back button '<'
     final backBtn = find.byIcon(Icons.chevron_left_rounded);
@@ -339,7 +340,7 @@ void main() {
   });
 
   testWidgets('BudgetProgressScreen standalone renders default values matching Screen 04 reference', (tester) async {
-    await tester.pumpWidget(createWidgetUnderTest(const BudgetProgressScreen()));
+    await tester.pumpWidget(createWidgetUnderTest(const BudgetProgressScreen.reference()));
     await tester.pumpAndSettle();
 
     // Screen title and top bar

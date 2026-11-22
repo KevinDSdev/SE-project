@@ -103,6 +103,19 @@ void main() {
       expect(result.unallocatedAmount, equals(0.0));
       expect(result.status, equals(BudgetStatus.balanced));
     });
+
+    test('Normalizes sub-cent fractional inputs before accumulation', () {
+      // 10.004 and 10.004 each round to 10.00 cents
+      // 10.00 + 10.00 = 20.00 (not 20.008 -> 20.01)
+      final result = ZeroBasedBudgetCalculator.calculateFromRaw(
+        monthlyIncome: 100.00,
+        allocations: [10.004, 10.004],
+      );
+
+      expect(result.totalAllocated, equals(20.00));
+      expect(result.unallocatedAmount, equals(80.00));
+      expect(result.status, equals(BudgetStatus.underallocated));
+    });
   });
 
   group('ZeroBasedBudgetCalculator – Input Validation and Edge Cases', () {
@@ -246,12 +259,37 @@ void main() {
 
       // Variable available: (65k-20k) + (35k-12k) + (30k-10k) = 45k + 23k + 20k = 88,000
       // Fixed available (unpaid bills): 45k + 25k = 70,000
-      // Total available = 158,000
-      expect(result.totalAvailable, equals(158000.0));
+      // Savings available: 25,000
+      // Total available = Total Allocated (345,000) - Total Spent (162,000) = 183,000
+      expect(result.totalAvailable, equals(183000.0));
 
       // Distinct from unallocatedAmount (which is remaining income to be assigned)
       expect(result.unallocatedAmount, equals(105000.0));
       expect(result.unallocatedAmount != result.totalAvailable, isTrue);
+    });
+
+    test('Reuses BudgetCategoryModel.availableAmount and clamps overspent to 0', () {
+      final overspentCategory = BudgetCategoryModel(
+        id: 'dining_overspent',
+        name: 'Dining',
+        group: 'Wants',
+        icon: Icons.restaurant,
+        color: Colors.red,
+        assignedAmount: 10000,
+        spentAmount: 15000, // Overspent by 5000
+      );
+
+      expect(overspentCategory.availableAmount, equals(0.0));
+
+      final result = ZeroBasedBudgetCalculator.calculate(
+        monthlyIncome: 50000,
+        variableCategories: [overspentCategory],
+      );
+
+      expect(result.totalVariableAllocated, equals(10000.0));
+      expect(result.totalSpent, equals(15000.0));
+      expect(result.totalAvailable, equals(0.0));
+      expect(result.unallocatedAmount, equals(40000.0));
     });
 
     test('Handles category creation and recalculates totals correctly', () {
