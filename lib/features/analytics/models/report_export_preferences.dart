@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import '../providers/analytics_provider.dart';
 import '../services/export_requirements_validator.dart';
 
 /// Immutable model representing the persisted Report Export configuration
@@ -11,11 +10,15 @@ import '../services/export_requirements_validator.dart';
 class ReportExportPreferences {
   static const String defaultProfileKey = 'default';
 
-  static const String defaultFormat = ExportPreferencesState.defaultFormat;
-  static const String defaultPeriod = ExportPreferencesState.defaultPeriod;
-  static const String defaultAccount = ExportPreferencesState.defaultAccount;
-  static const List<String> defaultSelectedRequirements =
-      ExportPreferencesState.defaultSelectedRequirements;
+  static const String defaultFormat = 'PDF Report';
+  static const String defaultPeriod = 'Monthly';
+  static const String defaultAccount = 'BOC';
+  static const List<String> defaultSelectedRequirements = <String>[
+    'trans_history',
+    'inc_analysis',
+    'exp_analysis',
+    'goal_savings',
+  ];
 
   static const List<String> supportedFormats = <String>[
     'PDF Report',

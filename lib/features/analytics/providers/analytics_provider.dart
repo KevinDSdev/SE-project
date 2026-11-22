@@ -695,15 +695,11 @@ final reportExportRepositoryProvider = Provider<ReportExportRepository>(
 );
 
 class ExportPreferencesState {
-  static const String defaultFormat = 'PDF Report';
-  static const String defaultPeriod = 'Monthly';
-  static const String defaultAccount = 'BOC';
-  static const List<String> defaultSelectedRequirements = <String>[
-    'trans_history',
-    'inc_analysis',
-    'exp_analysis',
-    'goal_savings',
-  ];
+  static const String defaultFormat = ReportExportPreferences.defaultFormat;
+  static const String defaultPeriod = ReportExportPreferences.defaultPeriod;
+  static const String defaultAccount = ReportExportPreferences.defaultAccount;
+  static const List<String> defaultSelectedRequirements =
+      ReportExportPreferences.defaultSelectedRequirements;
 
   final String format; // 'PDF Report' | 'Excel (.XLSX)' | 'Raw Data'
   final String period; // e.g. 'November 2026', 'Nov 16 – Nov 22, 2026', '2026', 'Custom Range'
