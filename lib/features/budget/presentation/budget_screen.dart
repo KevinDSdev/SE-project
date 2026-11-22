@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
-import '../../analytics/presentation/analytics_screen.dart';
+import '../../analytics/presentation/transaction_history_screen.dart';
 import 'budget_setup_screen.dart';
 
 class BudgetScreen extends ConsumerStatefulWidget {
@@ -120,7 +120,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const AnalyticsScreen(),
+                          builder: (_) => const TransactionHistoryScreen(),
                         ),
                       );
                     },
@@ -174,10 +174,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       decoration: BoxDecoration(
                         color: cardBg,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: borderColor,
-                          width: 1.2,
-                        ),
+                        border: Border.all(color: borderColor, width: 1.2),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,13 +244,13 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                     color: isDark
                                         ? const Color(0xFF1C1917)
                                         : const Color(0xFFF59E0B)
-                                            .withValues(alpha: 0.1),
+                                              .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
                                       color: isDark
                                           ? const Color(0xFF38281B)
                                           : const Color(0xFFF59E0B)
-                                              .withValues(alpha: 0.35),
+                                                .withValues(alpha: 0.35),
                                     ),
                                   ),
                                   child: Column(
@@ -465,7 +462,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(
+                            builder: (_) => const TransactionHistoryScreen(
                               initialCategory: HistoryCategoryFilter.utilities,
                             ),
                           ),
@@ -488,7 +485,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(
+                            builder: (_) => const TransactionHistoryScreen(
                               initialCategory: HistoryCategoryFilter.groceries,
                             ),
                           ),
@@ -511,7 +508,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(
+                            builder: (_) => const TransactionHistoryScreen(
                               initialCategory: HistoryCategoryFilter.transport,
                             ),
                           ),
@@ -534,7 +531,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(
+                            builder: (_) => const TransactionHistoryScreen(
                               initialCategory: HistoryCategoryFilter.savings,
                             ),
                           ),
@@ -557,7 +554,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(
+                            builder: (_) => const TransactionHistoryScreen(
                               initialCategory:
                                   HistoryCategoryFilter.entertainment,
                             ),
@@ -638,10 +635,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                       const SizedBox(height: 2),
                       Text(
                         'Assigned: LKR ${currencyFormat.format(assigned)}',
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: textSecondary, fontSize: 12),
                       ),
                     ],
                   ),
@@ -660,10 +654,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     const SizedBox(height: 2),
                     Text(
                       'available',
-                      style: TextStyle(
-                        color: textSecondary,
-                        fontSize: 11,
-                      ),
+                      style: TextStyle(color: textSecondary, fontSize: 11),
                     ),
                   ],
                 ),
@@ -707,9 +698,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                 Text(
                   '$percentSpent% spent',
                   style: TextStyle(
-                    color: percentSpent == 0
-                        ? textSecondary
-                        : progressColor,
+                    color: percentSpent == 0 ? textSecondary : progressColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),

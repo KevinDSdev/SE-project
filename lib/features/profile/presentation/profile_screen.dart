@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/navigation/slide_route.dart';
-import '../../analytics/presentation/analytics_screen.dart';
+import '../../analytics/presentation/transaction_history_screen.dart';
 import '../../analytics/presentation/screens/report_export_screen.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -58,7 +58,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // User Profile Card (Reference: Profile Screen (LKR).png)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(22),
@@ -114,7 +117,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Stats Row (Linked Banks, Budget Mode, CRIB Score)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 10,
+                ),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(20),
@@ -145,11 +151,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                     ),
-                    Container(
-                      width: 1,
-                      height: 28,
-                      color: borderColor,
-                    ),
+                    Container(width: 1, height: 28, color: borderColor),
                     Expanded(
                       child: Column(
                         children: [
@@ -173,11 +175,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                     ),
-                    Container(
-                      width: 1,
-                      height: 28,
-                      color: borderColor,
-                    ),
+                    Container(width: 1, height: 28, color: borderColor),
                     Expanded(
                       child: Column(
                         children: [
@@ -301,7 +299,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         },
                       ),
                       onTap: () {
-                        setState(() => _budgetAlertsEnabled = !_budgetAlertsEnabled);
+                        setState(
+                          () => _budgetAlertsEnabled = !_budgetAlertsEnabled,
+                        );
                       },
                     ),
                   ],
@@ -328,9 +328,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                       onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const SettingsScreen()),
-                        );
+                        Navigator.of(context)
+                            .push(slideRoute(const SettingsScreen()));
                       },
                     ),
                     _buildDivider(borderColor),
@@ -344,9 +343,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                       onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const ReportExportScreen()),
-                        );
+                        Navigator.of(context)
+                            .push(slideRoute(const ReportExportScreen()));
                       },
                     ),
                     _buildDivider(borderColor),
@@ -368,9 +366,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                       onTap: () {
-                        Navigator.of(context).push(
-                          slideRoute(const AnalyticsScreen()),
-                        );
+                        Navigator.of(context)
+                            .push(slideRoute(const TransactionHistoryScreen()));
                       },
                     ),
                   ],
@@ -397,8 +394,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    backgroundColor:
-                        isDark ? const Color(0xFF1A1215) : cardBg,
+                    backgroundColor: isDark ? const Color(0xFF1A1215) : cardBg,
                     side: const BorderSide(
                       color: Color(0xFFF43F5E),
                       width: 1.2,
@@ -460,7 +456,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       : null,
                 ),
                 child: Center(
-                  child: customIconWidget ??
+                  child:
+                      customIconWidget ??
                       Icon(icon, color: iconColor, size: 22),
                 ),
               ),

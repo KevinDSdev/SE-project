@@ -21,21 +21,23 @@ enum HistoryCategoryFilter {
 
 enum HistorySortOption { newest, oldest, highest, lowest }
 
-class AnalyticsScreen extends ConsumerStatefulWidget {
+class TransactionHistoryScreen extends ConsumerStatefulWidget {
   final HistoryCategoryFilter initialCategory;
   final String? initialSearchQuery;
 
-  const AnalyticsScreen({
+  const TransactionHistoryScreen({
     super.key,
     this.initialCategory = HistoryCategoryFilter.all,
     this.initialSearchQuery,
   });
 
   @override
-  ConsumerState<AnalyticsScreen> createState() => _AnalyticsScreenState();
+  ConsumerState<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
-class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
+class _TransactionHistoryScreenState
+    extends ConsumerState<TransactionHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   late String _searchQuery;
   late HistoryCategoryFilter _selectedCategory;
