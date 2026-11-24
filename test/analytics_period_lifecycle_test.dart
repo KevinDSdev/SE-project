@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -8,10 +7,6 @@ import 'package:prot/core/services/app_preferences_service.dart';
 import 'package:prot/features/analytics/data/analytics_customization_db.dart';
 import 'package:prot/features/analytics/data/analytics_customization_repository.dart';
 import 'package:prot/features/analytics/models/analytics_customization_preferences.dart';
-import 'package:prot/features/analytics/presentation/financial_analytics_screen.dart';
-import 'package:prot/features/analytics/presentation/screens/expense_analytics_screen.dart';
-import 'package:prot/features/analytics/presentation/screens/goal_savings_analytics_screen.dart';
-import 'package:prot/features/analytics/presentation/screens/income_analytics_screen.dart';
 import 'package:prot/features/analytics/providers/analytics_provider.dart';
 import 'package:prot/features/auth/providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
