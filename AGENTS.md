@@ -3,17 +3,18 @@
 ## Project shape
 
 - Flutter app, package name `prot`. Branding is inconsistent: UI title is `ECORP`, while services, SQLite files, and comments use `FinPulse` / `finpulse_*`. Search for all three before renaming anything.
-- This is a UI prototype, not a connected product. There is no HTTP/backend package; auth is mocked (any email plus a 6+ character password works), and transactions, budgets, goals, and custom categories are seeded in Riverpod and reset on restart.
+- Supported targets are Android, iOS, and web. Windows desktop support was removed (no `windows/` folder); do not add Windows-only commands or configuration.
+- This is a UI prototype, not a connected product. There is no direct HTTP/backend dependency; auth is mocked (any email plus a 6+ character password works), and transactions, budgets, goals, and custom categories are seeded in Riverpod and reset on restart.
 - Persisted state is limited to theme/accent + daily reminder time (SharedPreferences, `ecorp_*` keys) and analytics customization / dashboard layout / report export preferences (SQLite on native, IndexedDB on web). Report export and bank-statement import are UI demos.
 
 ## Commands
 
 - `flutter pub get`
-- `flutter run -d chrome` (web is a real target), or `flutter run -d windows` / an Android device.
-- `flutter test` — full suite runs in roughly 10 seconds; no emulator or browser required.
+- `flutter run -d chrome` (web is a real target), `flutter run -d edge`, or `flutter run` on an Android device. iOS requires macOS/Xcode.
+- `flutter test` - full suite (174 tests) runs in roughly 10 seconds; no emulator or browser required.
 - Single file: `flutter test test/report_export_db_test.dart`
 - Single test: `flutter test test/report_export_db_test.dart --plain-name "restore persisted selections"`
-- `flutter analyze` — baseline is not clean on the installed Flutter 3.50.1: 69 infos/warnings and exit code 1. Expect `package:flutter/material.dart` deprecation infos plus existing unused locals/imports. Compare before/after instead of treating the whole output as caused by your change.
+- `flutter analyze` - baseline has 4 existing warnings (unused locals/fields) and exits with code 1 on the installed Flutter 3.50.1. Compare before/after instead of treating the whole output as caused by your change.
 - There is no CI or pre-commit config; run verification manually.
 
 ## Architecture
@@ -32,7 +33,6 @@
 - Prefer injecting storage into repositories (e.g. `AnalyticsCustomizationRepository(db: ...)`) or using an in-memory `AnalyticsCustomizationStorage` fake. Global `instance` singletons leak state between tests; `test/dashboard_layout_screen_test.dart` has a reusable fake pattern.
 - Notification tests use `NotificationService.test(client: fake, nowProvider: ...)`; do not exercise real platform channels.
 
-## Stale docs
+## Docs
 
-- `README.md` still claims Flutter 3.47 and a `D:\flutter` install path, and says analysis is clean. Trust `pubspec.yaml`, `pubspec.lock`, and the commands above instead.
-- `.vscode/settings.json` contains an absolute CMake path from another machine; do not copy it.
+- `README.md` covers setup, architecture, persistence, and the current test/analyze baseline. Keep it in sync when commands or platform support change.
