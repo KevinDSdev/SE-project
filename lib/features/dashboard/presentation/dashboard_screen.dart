@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/navigation/slide_route.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../transactions/models/transaction_model.dart';
 import '../../transactions/presentation/add_transaction_screen.dart';
 import '../../transactions/presentation/transaction_details_edit_screen.dart';
 import '../../transactions/providers/transactions_provider.dart';
+import 'bank_cash_balances_screen.dart';
 
 enum DashboardCategoryFilter { all, groceries, shopping, dining, bills }
 
@@ -277,24 +279,56 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Badge: "Active Budget Plan"
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0C0F14),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Active Budget Plan',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                      // Top Row: Badge "Active Budget Plan" + Eye Icon -> Bank & Cash Balances
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0C0F14),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Active Budget Plan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
-                        ),
+                          Tooltip(
+                            message: 'Bank & Cash Balances',
+                            child: GestureDetector(
+                              key: const Key('dashboard_balances_eye_button'),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  slideRoute(const BankCashBalancesScreen()),
+                                );
+                              },
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF0C0F14),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.visibility_outlined,
+                                    color: Colors.white,
+                                    size: 19,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
 
@@ -364,7 +398,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.of(context).push(
+                        Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
                             builder: (_) => const AddTransactionScreen(),
                           ),
@@ -678,7 +712,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
+        Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute(
             builder: (_) => TransactionDetailsEditScreen(transaction: item),
           ),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../dashboard/models/balance_account_model.dart';
+import '../../dashboard/providers/balances_provider.dart';
 import '../models/transaction_model.dart';
 import '../providers/transactions_provider.dart';
 import 'receipt_capture_screen.dart';
@@ -35,6 +37,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   TransactionCategoryType? _selectedExpenseCategory;
   TransactionCategoryType? _selectedIncomeCategory;
+  String? _selectedDepositAccountId;
 
   final currencyFormat = NumberFormat('#,##0.00', 'en_US');
 
@@ -388,19 +391,33 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         return;
       }
 
+      final balancesState = ref.read(balancesProvider);
+      final BalanceAccount? targetAccount = _resolveSelectedDepositAccount(
+        balancesState,
+      );
+
       createdTx = ref
           .read(transactionsProvider.notifier)
           .addIncome(
             amount: amount,
             source: source,
             category: _selectedIncomeCategory!,
+            account: targetAccount?.name,
             note: '',
           );
+
+      if (targetAccount != null) {
+        ref
+            .read(balancesProvider.notifier)
+            .adjustBalance(targetAccount.id, amount);
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Income of LKR ${currencyFormat.format(amount)} recorded.',
+            targetAccount != null
+                ? 'Income of LKR ${currencyFormat.format(amount)} deposited to ${targetAccount.name}.'
+                : 'Income of LKR ${currencyFormat.format(amount)} recorded.',
           ),
           backgroundColor: AppColors.darkCard,
         ),
@@ -1402,66 +1419,224 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     );
   }
 
-  // Income Secondary Card: "Deposit into Commercial Bank"
-  Widget _buildDepositAccountCard() {
+  BalanceAccount? _resolveSelectedDepositAccount(BalancesState balancesState) {
+    if (balancesState.accounts.isEmpty) return null;
+    if (_selectedDepositAccountId != null) {
+      final found = balancesState.findById(_selectedDepositAccountId!);
+      if (found != null) return found;
+    }
+    return balancesState.accounts.first;
+  }
+
+  void _showDepositAccountPicker(BalancesState balancesState) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = AppColors.getCard(isDark);
     final borderColor = AppColors.getBorder(isDark);
     final textPrimary = AppColors.getTextPrimary(isDark);
     final textSecondary = AppColors.getTextSecondary(isDark);
+    final wholeFormat = NumberFormat('#,##0', 'en_US');
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: incomeColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+    if (balancesState.accounts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Add a bank account or cash wallet in Bank & Cash Balances first.',
+          ),
+          backgroundColor: AppColors.darkCard,
+        ),
+      );
+      return;
+    }
+
+    final currentSelected = _resolveSelectedDepositAccount(balancesState);
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(top: BorderSide(color: borderColor)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: borderColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Select Deposit Account',
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...balancesState.accounts.map((account) {
+                final isSelected = currentSelected?.id == account.id;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedDepositAccountId = account.id;
+                      });
+                      Navigator.of(sheetContext).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? incomeColor.withValues(alpha: 0.14)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected ? incomeColor : borderColor,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            account.type == BalanceAccountType.bank
+                                ? Icons.account_balance_rounded
+                                : Icons.account_balance_wallet_rounded,
+                            color: incomeColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: TextStyle(
+                                    color: textPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  'LKR ${wholeFormat.format(account.balance)}',
+                                  style: TextStyle(
+                                    color: textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: incomeColor,
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Income Secondary Card: Real Deposit Account from balancesProvider
+  Widget _buildDepositAccountCard() {
+    final balancesState = ref.watch(balancesProvider);
+    final selectedAccount = _resolveSelectedDepositAccount(balancesState);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.getCard(isDark);
+    final borderColor = AppColors.getBorder(isDark);
+    final textPrimary = AppColors.getTextPrimary(isDark);
+    final textSecondary = AppColors.getTextSecondary(isDark);
+    final wholeFormat = NumberFormat('#,##0', 'en_US');
+
+    final titleText = selectedAccount != null
+        ? 'Deposit into ${selectedAccount.name}'
+        : 'No deposit account linked yet';
+    final subtitleText = selectedAccount != null
+        ? 'Current Balance: LKR ${wholeFormat.format(selectedAccount.balance)}'
+        : 'Add a bank account or cash wallet in Balances';
+
+    return GestureDetector(
+      key: const Key('deposit_account_selector'),
+      onTap: () => _showDepositAccountPicker(balancesState),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: incomeColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                selectedAccount?.type == BalanceAccountType.cash
+                    ? Icons.account_balance_wallet_rounded
+                    : Icons.account_balance_rounded,
+                color: incomeColor,
+                size: 20,
+              ),
             ),
-            child: const Icon(
-              Icons.credit_card_rounded,
-              color: incomeColor,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titleText,
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitleText,
+                    style: TextStyle(
+                      color: textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: textSecondary,
               size: 20,
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Deposit into Commercial Bank (••4821)',
-                  style: TextStyle(
-                    color: textPrimary,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Current Balance: LKR 1,845,000',
-                  style: TextStyle(
-                    color: textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: textSecondary,
-            size: 20,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

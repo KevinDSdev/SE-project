@@ -9,6 +9,7 @@ import 'features/analytics/data/analytics_customization_repository.dart';
 import 'features/analytics/data/dashboard_layout_repository.dart';
 import 'features/analytics/data/report_export_repository.dart';
 import 'features/auth/presentation/signup_screen.dart';
+import 'features/dashboard/data/balances_repository.dart';
 import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
@@ -35,6 +36,14 @@ void main() async {
   } catch (error, stackTrace) {
     debugPrint(
       'Analytics customization database initialization failed: $error\n'
+      '$stackTrace',
+    );
+  }
+  try {
+    await BalancesRepository.instance.init();
+  } catch (error, stackTrace) {
+    debugPrint(
+      'Balances persistence initialization failed: $error\n'
       '$stackTrace',
     );
   }

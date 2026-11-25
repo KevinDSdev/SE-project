@@ -18,13 +18,18 @@ class MainWrapper extends ConsumerStatefulWidget {
 }
 
 class _MainWrapperState extends ConsumerState<MainWrapper> {
+  final GlobalKey<NavigatorState> _dashboardNavKey =
+      GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> _analyticsNavKey =
       GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> _profileNavKey =
       GlobalKey<NavigatorState>();
 
   late final List<Widget> _screens = [
-    const DashboardScreen(),
+    _TabNavigator(
+      navigatorKey: _dashboardNavKey,
+      initialScreen: const DashboardScreen(),
+    ),
     const BudgetScreen(),
     _TabNavigator(
       navigatorKey: _analyticsNavKey,
@@ -50,7 +55,10 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (currentIndex == 2 &&
+        if (currentIndex == 0 &&
+            _dashboardNavKey.currentState?.canPop() == true) {
+          _dashboardNavKey.currentState?.pop();
+        } else if (currentIndex == 2 &&
             _analyticsNavKey.currentState?.canPop() == true) {
           _analyticsNavKey.currentState?.pop();
         } else if (currentIndex == 4 &&
@@ -152,7 +160,10 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         if (currentIndex == index) {
-          if (index == 2 && _analyticsNavKey.currentState?.canPop() == true) {
+          if (index == 0 && _dashboardNavKey.currentState?.canPop() == true) {
+            _dashboardNavKey.currentState?.popUntil((route) => route.isFirst);
+          } else if (index == 2 &&
+              _analyticsNavKey.currentState?.canPop() == true) {
             _analyticsNavKey.currentState?.popUntil((route) => route.isFirst);
           } else if (index == 4 &&
               _profileNavKey.currentState?.canPop() == true) {
